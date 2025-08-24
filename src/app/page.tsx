@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { onAuthStateChanged, signInWithRedirect, GoogleAuthProvider, signOut, User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
@@ -18,6 +18,7 @@ interface Room {
     doors: number | string;
     paintDoorsCheck: boolean;
     closetDoors?: number | string;
+    paintClosetDoors?: boolean;
     paintVanity?: boolean;
     vanityDoors?: number | string;
     vanityDrawers?: number | string;
@@ -118,10 +119,10 @@ const SelectableCard: React.FC<SelectableCardProps> = ({ label, selected, onClic
 const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
     const initialRoomState: Room = {
         id: Date.now(), type: 'Bedroom', length: '', width: '', ceilingHeight: 8,
-        paintWalls: true, paintCeiling: false, paintTrim: false, doors: '', paintDoorsCheck: false,
-        closetDoors: '', paintVanity: false, vanityDoors: '', vanityDrawers: '', useMoldResistantPaint: false,
+        paintWalls: true, paintCeiling: false, paintTrim: false, doors: 0, paintDoorsCheck: false,
+        closetDoors: 0, paintClosetDoors: false, paintVanity: false, vanityDoors: 0, vanityDrawers: 0, useMoldResistantPaint: false,
         paintCrownMolding: false, paintFireplaceMantel: false, paintStairwell: false,
-        paintCabinets: false, cabinetDoors: '', cabinetDrawers: ''
+        paintCabinets: false, cabinetDoors: 0, cabinetDrawers: 0
     };
     const [formData, setFormData] = useState<Room>(room || initialRoomState);
     const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
@@ -131,9 +132,11 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
         let checked: boolean | undefined;
         if (type === 'checkbox') {
             checked = (e.target as HTMLInputElement).checked;
+            setFormData(prev => ({ ...prev, [name]: checked }));
+            return;
         }
-        const newValue = type === 'checkbox' ? checked : value;
-        if (type === 'number') {
+        const newValue = value;
+        if (['length', 'width', 'ceilingHeight', 'sqft', 'trimLft', 'gutterLft', 'deckSqft'].includes(name)) {
             const num = parseFloat(value);
             if (value !== '' && !isNaN(num) && num < 0) {
                 setFieldErrors(prev => ({ ...prev, [name]: 'Cannot be negative' }));
@@ -158,20 +161,31 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
     };
 
     const handleSave = () => {
-        if (!formData.length || !formData.width) {
-            alert("Please enter valid room dimensions."); return;
+        if (!formData.length || !formData.width || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0) {
+            alert("Please enter valid room dimensions greater than 0."); return;
         }
         onSave(formData);
     };
+
+    const quantityOptions = Array.from({length: 51}, (_, i) => (
+        <option key={i} value={i}>{i}</option>
+    ));
 
     const renderCustomFields = () => {
         switch (formData.type) {
             case 'Bedroom':
                 return (
-                    <div>
-                        <label htmlFor="closet-doors" className="block text-sm text-gray-600">Closet Doors (qty)</label>
-                        <input type="number" id="closet-doors" name="closetDoors" value={formData.closetDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.closetDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
-                        {fieldErrors.closetDoors && <p className="text-red-500 text-sm mt-1">{fieldErrors.closetDoors}</p>}
+                    <div className="space-y-4">
+                        <label className="flex items-center"><input type="checkbox" name="paintClosetDoors" checked={formData.paintClosetDoors} onChange={handleChange} className="h-4 w-4 rounded border-2 border-gray-400 text-[#093373] focus:ring-[#093373] mr-2" />Paint Closet Doors</label>
+                        {formData.paintClosetDoors && (
+                            <div>
+                                <label htmlFor="closet-doors" className="block text-sm text-gray-600">Closet Doors (qty)</label>
+                                <select id="closet-doors" name="closetDoors" value={formData.closetDoors || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.closetDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`}>
+                                    {quantityOptions}
+                                </select>
+                                {fieldErrors.closetDoors && <p className="text-red-500 text-sm mt-1">{fieldErrors.closetDoors}</p>}
+                            </div>
+                        )}
                     </div>
                 );
             case 'Bathroom':
@@ -183,12 +197,16 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
                             <div className="grid grid-cols-2 gap-4 pl-6">
                                 <div>
                                     <label htmlFor="vanity-doors" className="block text-sm text-gray-600">Vanity Doors</label>
-                                    <input type="number" id="vanity-doors" name="vanityDoors" value={formData.vanityDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.vanityDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
+                                    <select id="vanity-doors" name="vanityDoors" value={formData.vanityDoors || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.vanityDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`}>
+                                        {quantityOptions}
+                                    </select>
                                     {fieldErrors.vanityDoors && <p className="text-red-500 text-sm mt-1">{fieldErrors.vanityDoors}</p>}
                                 </div>
                                 <div>
                                     <label htmlFor="vanity-drawers" className="block text-sm text-gray-600">Vanity Drawers</label>
-                                    <input type="number" id="vanity-drawers" name="vanityDrawers" value={formData.vanityDrawers} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.vanityDrawers ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
+                                    <select id="vanity-drawers" name="vanityDrawers" value={formData.vanityDrawers || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.vanityDrawers ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`}>
+                                        {quantityOptions}
+                                    </select>
                                     {fieldErrors.vanityDrawers && <p className="text-red-500 text-sm mt-1">{fieldErrors.vanityDrawers}</p>}
                                 </div>
                             </div>
@@ -216,12 +234,16 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
                             <div className="grid grid-cols-2 gap-4 pl-6">
                                 <div>
                                     <label htmlFor="cabinet-doors" className="block text-sm text-gray-600">Cabinet Doors</label>
-                                    <input type="number" id="cabinet-doors" name="cabinetDoors" value={formData.cabinetDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.cabinetDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
+                                    <select id="cabinet-doors" name="cabinetDoors" value={formData.cabinetDoors || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.cabinetDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`}>
+                                        {quantityOptions}
+                                    </select>
                                     {fieldErrors.cabinetDoors && <p className="text-red-500 text-sm mt-1">{fieldErrors.cabinetDoors}</p>}
                                 </div>
                                 <div>
                                     <label htmlFor="cabinet-drawers" className="block text-sm text-gray-600">Cabinet Drawers</label>
-                                    <input type="number" id="cabinet-drawers" name="cabinetDrawers" value={formData.cabinetDrawers} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.cabinetDrawers ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
+                                    <select id="cabinet-drawers" name="cabinetDrawers" value={formData.cabinetDrawers || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.cabinetDrawers ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`}>
+                                        {quantityOptions}
+                                    </select>
                                     {fieldErrors.cabinetDrawers && <p className="text-red-500 text-sm mt-1">{fieldErrors.cabinetDrawers}</p>}
                                 </div>
                             </div>
@@ -266,12 +288,16 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
                         <label className="flex items-center"><input type="checkbox" name="paintCeiling" checked={formData.paintCeiling} onChange={handleChange} className="h-4 w-4 rounded border-2 border-gray-400 text-[#093373] focus:ring-[#093373] mr-2" />Paint Ceiling</label>
                         <label className="flex items-center"><input type="checkbox" name="paintTrim" checked={formData.paintTrim} onChange={handleChange} className="h-4 w-4 rounded border-2 border-gray-400 text-[#093373] focus:ring-[#093373] mr-2" />Paint Trim/Baseboards</label>
                     </div>
-                    <div>
-                        <label htmlFor="room-doors" className="block text-sm font-medium text-gray-700">Doors (qty)</label>
-                        <input type="number" id="room-doors" name="doors" value={formData.doors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.doors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
-                        {fieldErrors.doors && <p className="text-red-500 text-sm mt-1">{fieldErrors.doors}</p>}
-                    </div>
                     <label className="flex items-center"><input type="checkbox" name="paintDoorsCheck" checked={formData.paintDoorsCheck} onChange={handleChange} className="h-4 w-4 rounded border-2 border-gray-400 text-[#093373] focus:ring-[#093373] mr-2" />Paint Doors</label>
+                    {formData.paintDoorsCheck && (
+                        <div>
+                            <label htmlFor="room-doors" className="block text-sm font-medium text-gray-700">Doors (qty)</label>
+                            <select id="room-doors" name="doors" value={formData.doors || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.doors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`}>
+                                {quantityOptions}
+                            </select>
+                            {fieldErrors.doors && <p className="text-red-500 text-sm mt-1">{fieldErrors.doors}</p>}
+                        </div>
+                    )}
                     {renderCustomFields()}
                     <div className="flex justify-end gap-4 mt-6">
                         <button onClick={onClose} className="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
@@ -285,7 +311,7 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
 
 const ExteriorModal: React.FC<ExteriorModalProps> = ({ item, onSave, onClose }) => {
     const initialExteriorState: ExteriorItem = {
-        id: Date.now(), siding: 'Vinyl', sqft: '', stories: '1', trimLft: '', doors: '', shutters: '', windowFrames: '', gutterLft: '', deckSqft: ''
+        id: Date.now(), siding: 'Vinyl', sqft: '', stories: '1', trimLft: '', doors: 0, shutters: 0, windowFrames: 0, gutterLft: '', deckSqft: ''
     };
     const [formData, setFormData] = useState<ExteriorItem>(item || initialExteriorState);
     const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
@@ -303,11 +329,15 @@ const ExteriorModal: React.FC<ExteriorModalProps> = ({ item, onSave, onClose }) 
     };
 
     const handleSave = () => {
-        if (!formData.sqft) {
-            alert("Please enter valid sqft."); return;
+        if (!formData.sqft || parseFloat(String(formData.sqft)) <= 0) {
+            alert("Please enter valid sqft greater than 0."); return;
         }
         onSave(formData);
     };
+
+    const quantityOptions = Array.from({length: 51}, (_, i) => (
+        <option key={i} value={i}>{i}</option>
+    ));
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -338,17 +368,23 @@ const ExteriorModal: React.FC<ExteriorModalProps> = ({ item, onSave, onClose }) 
                     </div>
                     <div>
                         <label htmlFor="exterior-doors" className="block text-sm font-medium text-gray-700">Doors (qty)</label>
-                        <input type="number" id="exterior-doors" name="doors" value={formData.doors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.doors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <select id="exterior-doors" name="doors" value={formData.doors || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.doors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`}>
+                            {quantityOptions}
+                        </select>
                         {fieldErrors.doors && <p className="text-red-500 text-sm mt-1">{fieldErrors.doors}</p>}
                     </div>
                     <div>
                         <label htmlFor="shutters" className="block text-sm font-medium text-gray-700">Shutters (qty)</label>
-                        <input type="number" id="shutters" name="shutters" value={formData.shutters} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.shutters ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <select id="shutters" name="shutters" value={formData.shutters || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.shutters ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`}>
+                            {quantityOptions}
+                        </select>
                         {fieldErrors.shutters && <p className="text-red-500 text-sm mt-1">{fieldErrors.shutters}</p>}
                     </div>
                     <div>
                         <label htmlFor="window-frames" className="block text-sm font-medium text-gray-700">Window Frames (qty)</label>
-                        <input type="number" id="window-frames" name="windowFrames" value={formData.windowFrames} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.windowFrames ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <select id="window-frames" name="windowFrames" value={formData.windowFrames || 0} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.windowFrames ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`}>
+                            {quantityOptions}
+                        </select>
                         {fieldErrors.windowFrames && <p className="text-red-500 text-sm mt-1">{fieldErrors.windowFrames}</p>}
                     </div>
                     <div>
@@ -612,13 +648,9 @@ export default function PaintingEstimator() {
         setIsSettingsOpen(false);
     };
 
-    const handleLogin = async () => {
+    const handleLogin = () => {
         const provider = new GoogleAuthProvider();
-        try {
-            await signInWithRedirect(auth, provider);
-        } catch (error) {
-            console.error('Login error:', error);
-        }
+        signInWithRedirect(auth, provider).catch(error => console.error('Login error:', error));
     };
 
     const handleLogout = async () => {
@@ -674,7 +706,7 @@ export default function PaintingEstimator() {
                     totalPrepHours += pricing.BASE_PREP_HOURS_PER_ROOM;
 
                     if (room.paintDoorsCheck) addonCOGS += (parseFloat(String(room.doors)) || 0) * pricing.COST_PER_DOOR;
-                    if (room.closetDoors) addonCOGS += (parseFloat(String(room.closetDoors)) || 0) * pricing.COST_PER_CLOSET_DOOR;
+                    if (room.paintClosetDoors && room.closetDoors) addonCOGS += (parseFloat(String(room.closetDoors)) || 0) * pricing.COST_PER_CLOSET_DOOR;
                     if (room.useMoldResistantPaint) addonCOGS += pricing.COST_MOLD_RESISTANT_PAINT_UPCHARGE;
                     if (room.paintVanity) {
                         const vanityCount = (parseFloat(String(room.vanityDoors)) || 0) + (parseFloat(String(room.vanityDrawers)) || 0);
@@ -771,7 +803,7 @@ export default function PaintingEstimator() {
                     @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
                     .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
                 `}</style>
-                <h1 className="text-4xl font-bold mb-4 text-grey-900">Login to Access Estimator</h1>
+                <h1 className="text-4xl font-bold mb-4 text-gray-900">Login to Access Estimator</h1>
                 <button onClick={handleLogin} className="btn-primary py-2 px-4">Sign in with Google</button>
             </div>
         );
@@ -780,7 +812,7 @@ export default function PaintingEstimator() {
     const renderStep1 = () => (
         <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#162733] mb-6">Personal Painting Estimator</h1>
-            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">Build accurate, profitable quotes for your residential painting projects. Customized for 50% gross margin.</p>
+            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">Build accurate, profitable quotes for your residential painting projects.</p>
             <div className="flex justify-center mb-8 gap-4">
                 <button onClick={() => setIsSettingsOpen(true)} className="btn-secondary font-bold py-2 px-6 rounded-lg flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -890,7 +922,7 @@ export default function PaintingEstimator() {
             </div>
             <div className="text-left max-w-2xl mx-auto">
                 <h3 className="text-xl font-serif font-semibold text-[#162733] mb-4">Understanding Your Quote</h3>
-                <p className="text-gray-600 mb-4">This precise quote is based on your inputs, aiming for a 50% gross margin. Adjust pricing in settings for different markets.</p>
+                <p className="text-gray-600 mb-4">This precise quote is based on your inputs. Adjust pricing in settings for different markets.</p>
             </div>
             <div className="mt-8 flex flex-col items-center gap-4">
                 <button onClick={() => setIsSettingsOpen(true)} className="btn-secondary font-bold py-2 px-6 rounded-lg">Adjust Pricing</button>
