@@ -771,7 +771,7 @@ export default function PaintingEstimator() {
                     @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
                     .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
                 `}</style>
-                <h1 className="text-4xl font-bold mb-4">Login to Access Estimator</h1>
+                <h1 className="text-4xl font-bold mb-4 text-grey-900">Login to Access Estimator</h1>
                 <button onClick={handleLogin} className="btn-primary py-2 px-4">Sign in with Google</button>
             </div>
         );
