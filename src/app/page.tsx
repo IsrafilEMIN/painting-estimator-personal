@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase'; // Adjust path if needed
 
 // --- TYPE DEFINITIONS ---
 interface Room {
@@ -473,18 +476,59 @@ export default function PaintingEstimator() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [pricing, setPricing] = useState<PricingConfig>(DEFAULT_PRICING);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const savedPricing = localStorage.getItem('pricingConfig');
-        if (savedPricing) {
-            setPricing(JSON.parse(savedPricing));
-        }
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                loadPricing(currentUser.uid);
+            }
+        });
+        return unsubscribe;
     }, []);
 
-    const savePricing = (newPricing: PricingConfig) => {
-        setPricing(newPricing);
-        localStorage.setItem('pricingConfig', JSON.stringify(newPricing));
+    const loadPricing = async (uid: string) => {
+        try {
+            const pricingDoc = await getDoc(doc(db, `users/${uid}/configs/pricing`));
+            if (pricingDoc.exists()) {
+                setPricing(pricingDoc.data() as PricingConfig);
+            } else {
+                setPricing(DEFAULT_PRICING);
+            }
+        } catch (error) {
+            console.error('Load pricing error:', error);
+            setPricing(DEFAULT_PRICING);
+        }
+    };
+
+    const savePricing = async (newPricing: PricingConfig) => {
+        if (!user) return;
+        try {
+            await setDoc(doc(db, `users/${user.uid}/configs/pricing`), newPricing);
+            setPricing(newPricing);
+        } catch (error) {
+            console.error('Save pricing error:', error);
+        }
         setIsSettingsOpen(false);
+    };
+
+    const handleLogin = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error('Login error:', error);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            setPricing(DEFAULT_PRICING); // Reset to defaults on logout
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
     };
 
     const handleSaveRoom = (roomData: Room) => {
@@ -614,17 +658,38 @@ export default function PaintingEstimator() {
 
     const formatCurrency = (num: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
 
+    if (!user) {
+        return (
+            <div className="bg-[#f0f2f5] min-h-screen px-6 py-24 font-sans text-center">
+                <style>{`
+                    .btn-primary { background-color: #093373; color: #ffffff; }
+                    .btn-primary:hover { background-color: #0c4194; }
+                    .btn-secondary { background-color: #e0e7ff; color: #162733; }
+                    .btn-secondary:hover { background-color: #c7d2fe; }
+                    @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;700&display=swap');
+                    .font-serif { font-family: 'Lora', serif; }
+                    .font-sans { font-family: 'Inter', sans-serif; }
+                    @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+                    .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+                `}</style>
+                <h1 className="text-4xl font-bold mb-4">Login to Access Estimator</h1>
+                <button onClick={handleLogin} className="btn-primary py-2 px-4">Sign in with Google</button>
+            </div>
+        );
+    }
+
     const renderStep1 = () => (
         <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#162733] mb-6">Personal Painting Estimator</h1>
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">Build accurate, profitable quotes for your residential painting projects. Customized for 50% gross margin.</p>
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-8 gap-4">
                 <button onClick={() => setIsSettingsOpen(true)} className="btn-secondary font-bold py-2 px-6 rounded-lg flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414L8.586 11l-1.293 1.293a1 1 0 101.414 1.414L10 12.414l1.293 1.293a1 1 0 001.414-1.414L11.414 11l1.293-1.293z" clipRule="evenodd" />
                     </svg>
                     Adjust Pricing
                 </button>
+                <button onClick={handleLogout} className="btn-secondary font-bold py-2 px-6 rounded-lg">Logout</button>
             </div>
             <button onClick={() => setCurrentStep(2)} className="btn-primary font-bold py-4 px-10 rounded-lg text-xl shadow-lg transform hover:scale-105 transition-transform duration-200 flex items-center gap-2 mx-auto">
                 Let's Get Started
