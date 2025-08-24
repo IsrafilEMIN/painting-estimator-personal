@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithRedirect, GoogleAuthProvider, signOut, User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 
@@ -170,7 +170,7 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
                 return (
                     <div>
                         <label htmlFor="closet-doors" className="block text-sm text-gray-600">Closet Doors (qty)</label>
-                        <input type="number" id="closet-doors" name="closetDoors" value={formData.closetDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.closetDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" id="closet-doors" name="closetDoors" value={formData.closetDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.closetDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
                         {fieldErrors.closetDoors && <p className="text-red-500 text-sm mt-1">{fieldErrors.closetDoors}</p>}
                     </div>
                 );
@@ -183,12 +183,12 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
                             <div className="grid grid-cols-2 gap-4 pl-6">
                                 <div>
                                     <label htmlFor="vanity-doors" className="block text-sm text-gray-600">Vanity Doors</label>
-                                    <input type="number" id="vanity-doors" name="vanityDoors" value={formData.vanityDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.vanityDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                                    <input type="number" id="vanity-doors" name="vanityDoors" value={formData.vanityDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.vanityDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
                                     {fieldErrors.vanityDoors && <p className="text-red-500 text-sm mt-1">{fieldErrors.vanityDoors}</p>}
                                 </div>
                                 <div>
                                     <label htmlFor="vanity-drawers" className="block text-sm text-gray-600">Vanity Drawers</label>
-                                    <input type="number" id="vanity-drawers" name="vanityDrawers" value={formData.vanityDrawers} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.vanityDrawers ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                                    <input type="number" id="vanity-drawers" name="vanityDrawers" value={formData.vanityDrawers} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.vanityDrawers ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
                                     {fieldErrors.vanityDrawers && <p className="text-red-500 text-sm mt-1">{fieldErrors.vanityDrawers}</p>}
                                 </div>
                             </div>
@@ -216,12 +216,12 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
                             <div className="grid grid-cols-2 gap-4 pl-6">
                                 <div>
                                     <label htmlFor="cabinet-doors" className="block text-sm text-gray-600">Cabinet Doors</label>
-                                    <input type="number" id="cabinet-doors" name="cabinetDoors" value={formData.cabinetDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.cabinetDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                                    <input type="number" id="cabinet-doors" name="cabinetDoors" value={formData.cabinetDoors} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.cabinetDoors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
                                     {fieldErrors.cabinetDoors && <p className="text-red-500 text-sm mt-1">{fieldErrors.cabinetDoors}</p>}
                                 </div>
                                 <div>
                                     <label htmlFor="cabinet-drawers" className="block text-sm text-gray-600">Cabinet Drawers</label>
-                                    <input type="number" id="cabinet-drawers" name="cabinetDrawers" value={formData.cabinetDrawers} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.cabinetDrawers ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                                    <input type="number" id="cabinet-drawers" name="cabinetDrawers" value={formData.cabinetDrawers} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] ${fieldErrors.cabinetDrawers ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'} text-gray-900`} />
                                     {fieldErrors.cabinetDrawers && <p className="text-red-500 text-sm mt-1">{fieldErrors.cabinetDrawers}</p>}
                                 </div>
                             </div>
@@ -316,7 +316,7 @@ const ExteriorModal: React.FC<ExteriorModalProps> = ({ item, onSave, onClose }) 
                 <div className="space-y-4">
                     <div>
                         <label htmlFor="siding-type" className="block text-sm font-medium text-gray-700">Siding Type</label>
-                        <select id="siding-type" name="siding" value={formData.siding} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373]">
+                        <select id="siding-type" name="siding" value={formData.siding} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
                             <option>Vinyl</option><option>Wood</option><option>Stucco</option><option>Brick</option><option>Metal</option><option>Fiber Cement</option>
                         </select>
                     </div>
@@ -327,7 +327,7 @@ const ExteriorModal: React.FC<ExteriorModalProps> = ({ item, onSave, onClose }) 
                     </div>
                     <div>
                         <label htmlFor="stories" className="block text-sm font-medium text-gray-700">Number of Stories</label>
-                        <select id="stories" name="stories" value={formData.stories} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373]">
+                        <select id="stories" name="stories" value={formData.stories} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
                             <option>1</option><option>2</option><option>3</option>
                         </select>
                     </div>
@@ -408,147 +408,147 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label htmlFor="PROFIT_MARKUP" className="block text-sm text-gray-600">Profit Markup (for 50% margin: 2.0)</label>
-                        <input type="number" step="0.01" id="PROFIT_MARKUP" name="PROFIT_MARKUP" value={formData.PROFIT_MARKUP} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="PROFIT_MARKUP" name="PROFIT_MARKUP" value={formData.PROFIT_MARKUP} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="PAINTER_BURDENED_HOURLY_COST" className="block text-sm text-gray-600">Burdened Hourly Labor Cost</label>
-                        <input type="number" step="0.01" id="PAINTER_BURDENED_HOURLY_COST" name="PAINTER_BURDENED_HOURLY_COST" value={formData.PAINTER_BURDENED_HOURLY_COST} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="PAINTER_BURDENED_HOURLY_COST" name="PAINTER_BURDENED_HOURLY_COST" value={formData.PAINTER_BURDENED_HOURLY_COST} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="paint_good" className="block text-sm text-gray-600">Paint Cost/Gallon - Good</label>
-                        <input type="number" step="0.01" id="paint_good" name="PAINT_COST_PER_GALLON.good" value={formData.PAINT_COST_PER_GALLON.good} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="paint_good" name="PAINT_COST_PER_GALLON.good" value={formData.PAINT_COST_PER_GALLON.good} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="paint_better" className="block text-sm text-gray-600">Paint Cost/Gallon - Better</label>
-                        <input type="number" step="0.01" id="paint_better" name="PAINT_COST_PER_GALLON.better" value={formData.PAINT_COST_PER_GALLON.better} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="paint_better" name="PAINT_COST_PER_GALLON.better" value={formData.PAINT_COST_PER_GALLON.better} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="paint_best" className="block text-sm text-gray-600">Paint Cost/Gallon - Best</label>
-                        <input type="number" step="0.01" id="paint_best" name="PAINT_COST_PER_GALLON.best" value={formData.PAINT_COST_PER_GALLON.best} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="paint_best" name="PAINT_COST_PER_GALLON.best" value={formData.PAINT_COST_PER_GALLON.best} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="SUPPLIES_PERCENTAGE" className="block text-sm text-gray-600">Supplies % of Paint Cost</label>
-                        <input type="number" step="0.01" id="SUPPLIES_PERCENTAGE" name="SUPPLIES_PERCENTAGE" value={formData.SUPPLIES_PERCENTAGE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="SUPPLIES_PERCENTAGE" name="SUPPLIES_PERCENTAGE" value={formData.SUPPLIES_PERCENTAGE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="PAINTING_SQFT_PER_HOUR" className="block text-sm text-gray-600">Painting SqFt per Hour</label>
-                        <input type="number" id="PAINTING_SQFT_PER_HOUR" name="PAINTING_SQFT_PER_HOUR" value={formData.PAINTING_SQFT_PER_HOUR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" id="PAINTING_SQFT_PER_HOUR" name="PAINTING_SQFT_PER_HOUR" value={formData.PAINTING_SQFT_PER_HOUR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="BASE_PREP_HOURS_PER_ROOM" className="block text-sm text-gray-600">Base Prep Hours per Room</label>
-                        <input type="number" step="0.01" id="BASE_PREP_HOURS_PER_ROOM" name="BASE_PREP_HOURS_PER_ROOM" value={formData.BASE_PREP_HOURS_PER_ROOM} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="BASE_PREP_HOURS_PER_ROOM" name="BASE_PREP_HOURS_PER_ROOM" value={formData.BASE_PREP_HOURS_PER_ROOM} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="BASE_PREP_HOURS_EXTERIOR" className="block text-sm text-gray-600">Base Prep Hours Exterior</label>
-                        <input type="number" step="0.01" id="BASE_PREP_HOURS_EXTERIOR" name="BASE_PREP_HOURS_EXTERIOR" value={formData.BASE_PREP_HOURS_EXTERIOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="BASE_PREP_HOURS_EXTERIOR" name="BASE_PREP_HOURS_EXTERIOR" value={formData.BASE_PREP_HOURS_EXTERIOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_PER_DOOR" className="block text-sm text-gray-600">Cost per Interior Door</label>
-                        <input type="number" step="0.01" id="COST_PER_DOOR" name="COST_PER_DOOR" value={formData.COST_PER_DOOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_PER_DOOR" name="COST_PER_DOOR" value={formData.COST_PER_DOOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_PER_EXTERIOR_DOOR" className="block text-sm text-gray-600">Cost per Exterior Door</label>
-                        <input type="number" step="0.01" id="COST_PER_EXTERIOR_DOOR" name="COST_PER_EXTERIOR_DOOR" value={formData.COST_PER_EXTERIOR_DOOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_PER_EXTERIOR_DOOR" name="COST_PER_EXTERIOR_DOOR" value={formData.COST_PER_EXTERIOR_DOOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_PER_CABINET_PIECE" className="block text-sm text-gray-600">Cost per Cabinet Piece</label>
-                        <input type="number" step="0.01" id="COST_PER_CABINET_PIECE" name="COST_PER_CABINET_PIECE" value={formData.COST_PER_CABINET_PIECE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_PER_CABINET_PIECE" name="COST_PER_CABINET_PIECE" value={formData.COST_PER_CABINET_PIECE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_PER_CLOSET_DOOR" className="block text-sm text-gray-600">Cost per Closet Door</label>
-                        <input type="number" step="0.01" id="COST_PER_CLOSET_DOOR" name="COST_PER_CLOSET_DOOR" value={formData.COST_PER_CLOSET_DOOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_PER_CLOSET_DOOR" name="COST_PER_CLOSET_DOOR" value={formData.COST_PER_CLOSET_DOOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_PER_VANITY_PIECE" className="block text-sm text-gray-600">Cost per Vanity Piece</label>
-                        <input type="number" step="0.01" id="COST_PER_VANITY_PIECE" name="COST_PER_VANITY_PIECE" value={formData.COST_PER_VANITY_PIECE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_PER_VANITY_PIECE" name="COST_PER_VANITY_PIECE" value={formData.COST_PER_VANITY_PIECE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_MOLD_RESISTANT_PAINT_UPCHARGE" className="block text-sm text-gray-600">Cost Mold Resistant Paint Upcharge</label>
-                        <input type="number" step="0.01" id="COST_MOLD_RESISTANT_PAINT_UPCHARGE" name="COST_MOLD_RESISTANT_PAINT_UPCHARGE" value={formData.COST_MOLD_RESISTANT_PAINT_UPCHARGE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_MOLD_RESISTANT_PAINT_UPCHARGE" name="COST_MOLD_RESISTANT_PAINT_UPCHARGE" value={formData.COST_MOLD_RESISTANT_PAINT_UPCHARGE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_CROWN_MOLDING" className="block text-sm text-gray-600">Cost Crown Molding</label>
-                        <input type="number" step="0.01" id="COST_CROWN_MOLDING" name="COST_CROWN_MOLDING" value={formData.COST_CROWN_MOLDING} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_CROWN_MOLDING" name="COST_CROWN_MOLDING" value={formData.COST_CROWN_MOLDING} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_FIREPLACE_MANTEL" className="block text-sm text-gray-600">Cost Fireplace Mantel</label>
-                        <input type="number" step="0.01" id="COST_FIREPLACE_MANTEL" name="COST_FIREPLACE_MANTEL" value={formData.COST_FIREPLACE_MANTEL} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_FIREPLACE_MANTEL" name="COST_FIREPLACE_MANTEL" value={formData.COST_FIREPLACE_MANTEL} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_STAIRWELL" className="block text-sm text-gray-600">Cost Stairwell</label>
-                        <input type="number" step="0.01" id="COST_STAIRWELL" name="COST_STAIRWELL" value={formData.COST_STAIRWELL} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_STAIRWELL" name="COST_STAIRWELL" value={formData.COST_STAIRWELL} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_PER_SHUTTER" className="block text-sm text-gray-600">Cost per Shutter</label>
-                        <input type="number" step="0.01" id="COST_PER_SHUTTER" name="COST_PER_SHUTTER" value={formData.COST_PER_SHUTTER} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_PER_SHUTTER" name="COST_PER_SHUTTER" value={formData.COST_PER_SHUTTER} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_PER_WINDOW_FRAME" className="block text-sm text-gray-600">Cost per Window Frame</label>
-                        <input type="number" step="0.01" id="COST_PER_WINDOW_FRAME" name="COST_PER_WINDOW_FRAME" value={formData.COST_PER_WINDOW_FRAME} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_PER_WINDOW_FRAME" name="COST_PER_WINDOW_FRAME" value={formData.COST_PER_WINDOW_FRAME} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_GUTTERS_PER_LFT" className="block text-sm text-gray-600">Cost Gutters per LFT</label>
-                        <input type="number" step="0.01" id="COST_GUTTERS_PER_LFT" name="COST_GUTTERS_PER_LFT" value={formData.COST_GUTTERS_PER_LFT} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_GUTTERS_PER_LFT" name="COST_GUTTERS_PER_LFT" value={formData.COST_GUTTERS_PER_LFT} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COST_DECK_STAIN_PER_SQFT" className="block text-sm text-gray-600">Cost Deck Stain per SQFT</label>
-                        <input type="number" step="0.01" id="COST_DECK_STAIN_PER_SQFT" name="COST_DECK_STAIN_PER_SQFT" value={formData.COST_DECK_STAIN_PER_SQFT} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="COST_DECK_STAIN_PER_SQFT" name="COST_DECK_STAIN_PER_SQFT" value={formData.COST_DECK_STAIN_PER_SQFT} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="prep_good" className="block text-sm text-gray-600">Prep Multiplier - Good</label>
-                        <input type="number" step="0.01" id="prep_good" name="PREP_CONDITION_MULTIPLIERS.good" value={formData.PREP_CONDITION_MULTIPLIERS.good} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="prep_good" name="PREP_CONDITION_MULTIPLIERS.good" value={formData.PREP_CONDITION_MULTIPLIERS.good} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="prep_fair" className="block text-sm text-gray-600">Prep Multiplier - Fair</label>
-                        <input type="number" step="0.01" id="prep_fair" name="PREP_CONDITION_MULTIPLIERS.fair" value={formData.PREP_CONDITION_MULTIPLIERS.fair} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="prep_fair" name="PREP_CONDITION_MULTIPLIERS.fair" value={formData.PREP_CONDITION_MULTIPLIERS.fair} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="prep_poor" className="block text-sm text-gray-600">Prep Multiplier - Poor</label>
-                        <input type="number" step="0.01" id="prep_poor" name="PREP_CONDITION_MULTIPLIERS.poor" value={formData.PREP_CONDITION_MULTIPLIERS.poor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="prep_poor" name="PREP_CONDITION_MULTIPLIERS.poor" value={formData.PREP_CONDITION_MULTIPLIERS.poor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="HIGH_CEILING_MULTIPLIER" className="block text-sm text-gray-600">High Ceiling Multiplier</label>
-                        <input type="number" step="0.01" id="HIGH_CEILING_MULTIPLIER" name="HIGH_CEILING_MULTIPLIER" value={formData.HIGH_CEILING_MULTIPLIER} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="HIGH_CEILING_MULTIPLIER" name="HIGH_CEILING_MULTIPLIER" value={formData.HIGH_CEILING_MULTIPLIER} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="siding_vinyl" className="block text-sm text-gray-600">Siding Labor Multiplier - Vinyl</label>
-                        <input type="number" step="0.01" id="siding_vinyl" name="SIDING_LABOR_MULTIPLIERS.Vinyl" value={formData.SIDING_LABOR_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="siding_vinyl" name="SIDING_LABOR_MULTIPLIERS.Vinyl" value={formData.SIDING_LABOR_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="siding_wood" className="block text-sm text-gray-600">Siding Labor Multiplier - Wood</label>
-                        <input type="number" step="0.01" id="siding_wood" name="SIDING_LABOR_MULTIPLIERS.Wood" value={formData.SIDING_LABOR_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="siding_wood" name="SIDING_LABOR_MULTIPLIERS.Wood" value={formData.SIDING_LABOR_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="siding_stucco" className="block text-sm text-gray-600">Siding Labor Multiplier - Stucco</label>
-                        <input type="number" step="0.01" id="siding_stucco" name="SIDING_LABOR_MULTIPLIERS.Stucco" value={formData.SIDING_LABOR_MULTIPLIERS.Stucco} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="siding_stucco" name="SIDING_LABOR_MULTIPLIERS.Stucco" value={formData.SIDING_LABOR_MULTIPLIERS.Stucco} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="siding_brick" className="block text-sm text-gray-600">Siding Labor Multiplier - Brick</label>
-                        <input type="number" step="0.01" id="siding_brick" name="SIDING_LABOR_MULTIPLIERS.Brick" value={formData.SIDING_LABOR_MULTIPLIERS.Brick} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="siding_brick" name="SIDING_LABOR_MULTIPLIERS.Brick" value={formData.SIDING_LABOR_MULTIPLIERS.Brick} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="siding_metal" className="block text-sm text-gray-600">Siding Labor Multiplier - Metal</label>
-                        <input type="number" step="0.01" id="siding_metal" name="SIDING_LABOR_MULTIPLIERS.Metal" value={formData.SIDING_LABOR_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="siding_metal" name="SIDING_LABOR_MULTIPLIERS.Metal" value={formData.SIDING_LABOR_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="siding_fiber_cement" className="block text-sm text-gray-600">Siding Labor Multiplier - Fiber Cement</label>
-                        <input type="number" step="0.01" id="siding_fiber_cement" name="SIDING_LABOR_MULTIPLIERS.Fiber Cement" value={formData.SIDING_LABOR_MULTIPLIERS['Fiber Cement']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="siding_fiber_cement" name="SIDING_LABOR_MULTIPLIERS.Fiber Cement" value={formData.SIDING_LABOR_MULTIPLIERS['Fiber Cement']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="story_1" className="block text-sm text-gray-600">Story Multiplier - 1</label>
-                        <input type="number" step="0.01" id="story_1" name="STORY_MULTIPLIERS.1" value={formData.STORY_MULTIPLIERS['1']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="story_1" name="STORY_MULTIPLIERS.1" value={formData.STORY_MULTIPLIERS['1']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="story_2" className="block text-sm text-gray-600">Story Multiplier - 2</label>
-                        <input type="number" step="0.01" id="story_2" name="STORY_MULTIPLIERS.2" value={formData.STORY_MULTIPLIERS['2']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="story_2" name="STORY_MULTIPLIERS.2" value={formData.STORY_MULTIPLIERS['2']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="story_3" className="block text-sm text-gray-600">Story Multiplier - 3</label>
-                        <input type="number" step="0.01" id="story_3" name="STORY_MULTIPLIERS.3" value={formData.STORY_MULTIPLIERS['3']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" step="0.01" id="story_3" name="STORY_MULTIPLIERS.3" value={formData.STORY_MULTIPLIERS['3']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                     <div>
                         <label htmlFor="COVERAGE_PER_GALLON" className="block text-sm text-gray-600">Coverage per Gallon</label>
-                        <input type="number" id="COVERAGE_PER_GALLON" name="COVERAGE_PER_GALLON" value={formData.COVERAGE_PER_GALLON} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373]" />
+                        <input type="number" id="COVERAGE_PER_GALLON" name="COVERAGE_PER_GALLON" value={formData.COVERAGE_PER_GALLON} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                     </div>
                 </div>
                 <div className="flex justify-end gap-4 mt-6">
@@ -615,7 +615,7 @@ export default function PaintingEstimator() {
     const handleLogin = async () => {
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
+            await signInWithRedirect(auth, provider);
         } catch (error) {
             console.error('Login error:', error);
         }
