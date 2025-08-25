@@ -293,18 +293,18 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="room-length" className="block text-sm font-medium text-gray-700">Length (ft)</label>
-                            <input type="number" id="room-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                            <input type="number" inputMode="decimal" id="room-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                             {fieldErrors.length && <p className="text-red-500 text-sm mt-1">{fieldErrors.length}</p>}
                         </div>
                         <div>
                             <label htmlFor="room-width" className="block text-sm font-medium text-gray-700">Width (ft)</label>
-                            <input type="number" id="room-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                            <input type="number" inputMode="decimal" id="room-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                             {fieldErrors.width && <p className="text-red-500 text-sm mt-1">{fieldErrors.width}</p>}
                         </div>
                     </div>
                     <div>
                         <label htmlFor="ceiling-height" className="block text-sm font-medium text-gray-700">Ceiling Height (ft)</label>
-                        <input type="number" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.ceilingHeight && <p className="text-red-500 text-sm mt-1">{fieldErrors.ceilingHeight}</p>}
                     </div>
                     <div>
@@ -325,7 +325,7 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
                     </div>
                     <div>
                         <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
-                        <input type="number" id="coats" name="coats" value={formData.coats} onChange={handleChange} min="1" className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" id="coats" name="coats" value={formData.coats} onChange={handleChange} min="1" className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
                     </div>
                     <div className="space-y-2">
@@ -399,7 +399,7 @@ const ExteriorModal: React.FC<ExteriorModalProps> = ({ item, onSave, onClose }) 
                     </div>
                     <div>
                         <label htmlFor="exterior-sqft" className="block text-sm font-medium text-gray-700">Sq Ft of Siding</label>
-                        <input type="number" id="exterior-sqft" name="sqft" value={formData.sqft} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.sqft ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" id="exterior-sqft" name="sqft" value={formData.sqft} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.sqft ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.sqft && <p className="text-red-500 text-sm mt-1">{fieldErrors.sqft}</p>}
                     </div>
                     <div>
@@ -410,7 +410,7 @@ const ExteriorModal: React.FC<ExteriorModalProps> = ({ item, onSave, onClose }) 
                     </div>
                     <div>
                         <label htmlFor="trim-lft" className="block text-sm font-medium text-gray-700">Trim Linear Ft</label>
-                        <input type="number" id="trim-lft" name="trimLft" value={formData.trimLft} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.trimLft ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" id="trim-lft" name="trimLft" value={formData.trimLft} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.trimLft ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.trimLft && <p className="text-red-500 text-sm mt-1">{fieldErrors.trimLft}</p>}
                     </div>
                     <div>
@@ -431,7 +431,7 @@ const ExteriorModal: React.FC<ExteriorModalProps> = ({ item, onSave, onClose }) 
                     </div>
                     <div>
                         <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
-                        <input type="number" id="coats" name="coats" value={formData.coats} onChange={handleChange} min="1" className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" id="coats" name="coats" value={formData.coats} onChange={handleChange} min="1" className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
                     </div>
                     <div className="flex justify-end gap-4 mt-6">
@@ -537,7 +537,7 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose
                     </div>
                     <div>
                         <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">{qtyLabel}</label>
-                        <input type="number" id="quantity" name="quantity" value={formData.quantity} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.quantity ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" id="quantity" name="quantity" value={formData.quantity} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.quantity ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.quantity && <p className="text-red-500 text-sm mt-1">{fieldErrors.quantity}</p>}
                     </div>
                     <div className="flex justify-end gap-4 mt-6">
