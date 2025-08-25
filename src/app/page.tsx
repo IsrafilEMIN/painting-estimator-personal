@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { onAuthStateChanged, signInWithRedirect, GoogleAuthProvider, signOut, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 
@@ -930,9 +930,13 @@ export default function PaintingEstimator() {
         setIsSettingsOpen(false);
     };
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         const provider = new GoogleAuthProvider();
-        signInWithRedirect(auth, provider).catch(error => console.error('Login error:', error));
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error('Login error:', error);
+        }
     };
 
     const handleLogout = async () => {
