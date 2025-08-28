@@ -1383,7 +1383,7 @@ export default function PaintingEstimator() {
             return 0;
         };
 
-        let totalEffectivePaintSqFt = 0, totalPrimerSqFt = 0, totalCogs = 0;
+        let totalCogs = 0;
         const breakdownItems: {name: string, cogs: number}[] = [];
 
         const calculateItemCogs = (name: string, laborHours: number, effectivePaintSqFt: number, primerSqFt: number, addon: number = 0) => {
@@ -1458,8 +1458,6 @@ export default function PaintingEstimator() {
                 if (w.paintStairwell) addon += pricing.COST_STAIRWELL;
                 const name = `Interior Walls - ${length} x ${width} x ${ceilingHeight} ft`;
                 totalCogs += calculateItemCogs(name, laborHours, effectivePaintSqFt, primerSqFt, addon);
-                totalEffectivePaintSqFt += effectivePaintSqFt;
-                totalPrimerSqFt += primerSqFt;
             });
 
             interiorCeilings.forEach((c: InteriorCeiling) => {
@@ -1481,8 +1479,6 @@ export default function PaintingEstimator() {
                 if (c.paintFireplaceMantel) addon += pricing.COST_FIREPLACE_MANTEL;
                 const name = `Interior Ceiling Painting - ${length} x ${width} ft`;
                 totalCogs += calculateItemCogs(name, laborHours, effectivePaintSqFt, primerSqFt, addon);
-                totalEffectivePaintSqFt += effectivePaintSqFt;
-                totalPrimerSqFt += primerSqFt;
             });
 
             popcornRemovals.forEach((p: PopcornRemoval) => {
@@ -1514,14 +1510,12 @@ export default function PaintingEstimator() {
                 const addon = 0;
                 const name = `Interior Trim - ${lnFt} ln ft`;
                 totalCogs += calculateItemCogs(name, laborHours, effectivePaintSqFt, primerSqFt, addon);
-                totalEffectivePaintSqFt += effectivePaintSqFt;
-                totalPrimerSqFt += primerSqFt;
             });
         }
 
         // Calculate exterior prep hours once with max multiplier
-        let exteriorPrepHours = 0;
-        let exteriorConditions: PrepCondition[] = [];
+        const exteriorPrepHours = 0;
+        const exteriorConditions: PrepCondition[] = [];
         if (projectType === 'exterior' || projectType === 'both') {
             exteriorSidings.forEach((s) => exteriorConditions.push(s.prepCondition));
             exteriorTrims.forEach((t) => exteriorConditions.push(t.prepCondition));
@@ -1553,8 +1547,6 @@ export default function PaintingEstimator() {
                 const addon = 0;
                 const name = `Exterior Siding - ${s.sqft} sq ft, ${s.siding}, ${s.stories} stories`;
                 totalCogs += calculateItemCogs(name, laborHours, effectivePaintSqFt, primerSqFt, addon);
-                totalEffectivePaintSqFt += effectivePaintSqFt;
-                totalPrimerSqFt += primerSqFt;
             });
 
             exteriorTrims.forEach((t: TrimItem) => {
@@ -1570,8 +1562,6 @@ export default function PaintingEstimator() {
                 const addon = 0;
                 const name = `Exterior Trim - ${lnFt} ln ft`;
                 totalCogs += calculateItemCogs(name, laborHours, effectivePaintSqFt, primerSqFt, addon);
-                totalEffectivePaintSqFt += effectivePaintSqFt;
-                totalPrimerSqFt += primerSqFt;
             });
         }
 
@@ -1624,8 +1614,6 @@ export default function PaintingEstimator() {
             const addon = 0;
             const name = `${formatTypeLabel(item.type)} x ${qty}${item.material ? ` (${item.material})` : ''}`;
             totalCogs += calculateItemCogs(name, laborHours, effectivePaintSqFt, primerSqFt, addon);
-            totalEffectivePaintSqFt += effectivePaintSqFt;
-            totalPrimerSqFt += primerSqFt;
         });
 
         const price = totalCogs * pricing.PROFIT_MARKUP * (1 + pricing.TAX_RATE);
