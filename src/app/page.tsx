@@ -674,9 +674,11 @@ const SidingModal: React.FC<SidingModalProps> = ({ siding, onSave, onClose } ) =
     );
 };
 
+const interiorTypes = ['interiorDoor', 'closetDoor', 'vanityDoor', 'vanityDrawer', 'cabinetDoor', 'cabinetDrawer'] as const;
+const exteriorTypes = ['exteriorDoor', 'garageDoor', 'shutter', 'windowFrame', 'gutter', 'deck'] as const;
+
 const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose, projectType } ) => {
-    const interiorTypes = ['interiorDoor', 'closetDoor', 'vanityDoor', 'vanityDrawer', 'cabinetDoor', 'cabinetDrawer'] as const;
-    const exteriorTypes = ['exteriorDoor', 'garageDoor', 'shutter', 'windowFrame', 'gutter', 'deck'] as const;
+
     const availableTypes = projectType === 'interior' ? interiorTypes : projectType === 'exterior' ? exteriorTypes : [...interiorTypes, ...exteriorTypes];
     const initialState: AdditionalItem = {
         id: Date.now(),
@@ -1520,7 +1522,7 @@ export default function PaintingEstimator() {
             exteriorSidings.forEach((s) => exteriorConditions.push(s.prepCondition));
             exteriorTrims.forEach((t) => exteriorConditions.push(t.prepCondition));
             additionalItems.forEach((i) => {
-                if (exteriorTypes.includes(i.type as any)) {
+                if (exteriorTypes.includes(i.type as typeof exteriorTypes[number])) {
                     exteriorConditions.push(i.prepCondition);
                 }
             });
