@@ -66,7 +66,6 @@ interface AdditionalItem {
 
 type PrepCondition = 'good' | 'fair' | 'poor';
 type PaintQuality = 'good' | 'better' | 'best' | '';
-type TextureType = 'smooth' | 'light' | 'heavy';
 
 interface SelectableCardProps { label: string; selected: boolean; onClick: () => void; children?: React.ReactNode; }
 interface WallModalProps { wall: InteriorWall | null; onSave: (wallData: InteriorWall) => void; onClose: () => void; }
@@ -79,6 +78,7 @@ interface AdditionalModalProps { item: AdditionalItem | null; onSave: (itemData:
 // --- PRICING CONFIGURATION (EDITABLE) ---
 interface PricingConfig {
     PROFIT_MARKUP: number;
+    TAX_RATE: number;
     PAINTER_BURDENED_HOURLY_COST: number;
     PAINT_COST_PER_GALLON: { good: number; better: number; best: number };
     SUPPLIES_PERCENTAGE: number;
@@ -141,6 +141,7 @@ interface PricingConfig {
 
 const DEFAULT_PRICING: PricingConfig = {
     PROFIT_MARKUP: 2.0,
+    TAX_RATE: 0.13,
     PAINTER_BURDENED_HOURLY_COST: 40.00,
     PAINT_COST_PER_GALLON: { good: 30, better: 50, best: 65 },
     SUPPLIES_PERCENTAGE: 0.15,
@@ -1444,13 +1445,15 @@ export default function PaintingEstimator() {
                 const width = parseFloat(String(w.width)) || 0;
                 const ceilingHeight = parseFloat(String(w.ceilingHeight)) || 8;
                 const textureMult = pricing.TEXTURE_MULTIPLIERS[w.texture] || 1.0;
-                const coatMult = 1 + (w.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
+                const baseCoats = Math.max(w.coats, 1);
+                const coatMult = 1 + (baseCoats - 1) * pricing.EXTRA_COAT_MULTIPLIER; // E.g., for 0.5, 2 coats=1.5, 3=2.0, but adjust
+                // Or simpler: full labor per coat, but discount extras: coatMult = 1 + (coats - 1) * pricing.EXTRA_COAT_MULTIPLIER;
                 const highCeilingMult = ceilingHeight > 10 ? pricing.HIGH_CEILING_MULTIPLIER : 1.0;
                 const sqFt = (length + width) * 2 * ceilingHeight;
                 const paintingHours = (sqFt / pricing.PRODUCTION_RATES.walls) * textureMult * coatMult * highCeilingMult;
                 const laborHours = paintingHours; // prep handled separately
                 const effectivePaintSqFt = sqFt * w.coats;
-                const primerSqFt = sqFt * getPrimerFactor(w.prepCondition);
+                const primerSqFt = sqFt * getPrimerFactor(w.prepCondition) * textureMult * (ceilingHeight > 10 ? 1.1 : 1.0);
                 let addon = 0;
                 if (w.paintStairwell) addon += pricing.COST_STAIRWELL;
                 const name = `Interior Walls - ${length} x ${width} x ${ceilingHeight} ft`;
@@ -1464,13 +1467,14 @@ export default function PaintingEstimator() {
                 const width = parseFloat(String(c.width)) || 0;
                 const ceilingHeight = parseFloat(String(c.ceilingHeight)) || 8;
                 const textureMult = pricing.TEXTURE_MULTIPLIERS[c.texture] || 1.0;
-                const coatMult = 1 + (c.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
+                const baseCoats = Math.max(c.coats, 1);
+                const coatMult = 1 + (baseCoats - 1) * pricing.EXTRA_COAT_MULTIPLIER;
                 const highCeilingMult = ceilingHeight > 10 ? pricing.HIGH_CEILING_MULTIPLIER : 1.0;
                 const sqFt = length * width;
                 const paintingHours = (sqFt / pricing.PRODUCTION_RATES.ceilings) * textureMult * coatMult * highCeilingMult;
                 const laborHours = paintingHours; // prep handled separately
                 const effectivePaintSqFt = sqFt * c.coats;
-                const primerSqFt = sqFt * getPrimerFactor(c.prepCondition);
+                const primerSqFt = sqFt * getPrimerFactor(c.prepCondition) * textureMult * (ceilingHeight > 10 ? 1.1 : 1.0);
                 let addon = 0;
                 if (c.useMoldResistantPaint) addon += pricing.COST_MOLD_RESISTANT_PAINT_UPCHARGE;
                 if (c.paintCrownMolding) addon += pricing.COST_CROWN_MOLDING;
@@ -1500,7 +1504,8 @@ export default function PaintingEstimator() {
             interiorTrims.forEach((t: TrimItem) => {
                 const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[t.prepCondition] || 1.0;
                 const lnFt = parseFloat(String(t.lnFt)) || 0;
-                const coatMult = 1 + (t.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
+                const baseCoats = Math.max(t.coats, 1);
+                const coatMult = 1 + (baseCoats - 1) * pricing.EXTRA_COAT_MULTIPLIER;
                 const paintingHours = (lnFt / pricing.PRODUCTION_RATES.trim) * coatMult * prepMultiplier;
                 const laborHours = paintingHours;
                 const itemSqFt = lnFt * pricing.ADDITIONAL_PAINT_USAGE.trim;
@@ -1537,13 +1542,14 @@ export default function PaintingEstimator() {
             exteriorSidings.forEach((s: ExteriorSiding) => {
                 const sqFt = parseFloat(String(s.sqft)) || 0;
                 const textureMult = pricing.TEXTURE_MULTIPLIERS[s.texture] || 1.0;
-                const coatMult = 1 + (s.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
+                const baseCoats = Math.max(s.coats, 1);
+                const coatMult = 1 + (baseCoats - 1) * pricing.EXTRA_COAT_MULTIPLIER;
                 const sidingMult = pricing.SIDING_LABOR_MULTIPLIERS[s.siding as keyof typeof pricing.SIDING_LABOR_MULTIPLIERS] || 1.0;
                 const storyMult = pricing.STORY_MULTIPLIERS[s.stories as keyof typeof pricing.STORY_MULTIPLIERS] || 1.0;
                 const paintingHours = (sqFt / pricing.PRODUCTION_RATES.walls) * textureMult * coatMult * sidingMult * storyMult;
                 const laborHours = paintingHours; // prep handled separately
                 const effectivePaintSqFt = sqFt * s.coats;
-                const primerSqFt = sqFt * getPrimerFactor(s.prepCondition);
+                const primerSqFt = sqFt * getPrimerFactor(s.prepCondition) * textureMult * storyMult;
                 const addon = 0;
                 const name = `Exterior Siding - ${s.sqft} sq ft, ${s.siding}, ${s.stories} stories`;
                 totalCogs += calculateItemCogs(name, laborHours, effectivePaintSqFt, primerSqFt, addon);
@@ -1554,7 +1560,8 @@ export default function PaintingEstimator() {
             exteriorTrims.forEach((t: TrimItem) => {
                 const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[t.prepCondition] || 1.0;
                 const lnFt = parseFloat(String(t.lnFt)) || 0;
-                const coatMult = 1 + (t.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
+                const baseCoats = Math.max(t.coats, 1);
+                const coatMult = 1 + (baseCoats - 1) * pricing.EXTRA_COAT_MULTIPLIER;
                 const paintingHours = (lnFt / pricing.PRODUCTION_RATES.trim) * coatMult * prepMultiplier;
                 const laborHours = paintingHours;
                 const itemSqFt = lnFt * pricing.ADDITIONAL_PAINT_USAGE.trim;
@@ -1572,7 +1579,8 @@ export default function PaintingEstimator() {
             const qty = parseFloat(String(item.quantity)) || 0;
             const rate = pricing.PRODUCTION_RATES[item.type] || 0;
             const paintUsage = pricing.ADDITIONAL_PAINT_USAGE[item.type] || 0;
-            const coatMult = 1 + (item.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
+            const baseCoats = Math.max(item.coats, 1);
+                const coatMult = 1 + (baseCoats - 1) * pricing.EXTRA_COAT_MULTIPLIER;
             let itemHours = (item.type === 'gutter' || item.type === 'deck' ? qty * rate : qty * rate);
             let materialMult = 1.0;
             const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[item.prepCondition] || 1.0;
@@ -1620,7 +1628,7 @@ export default function PaintingEstimator() {
             totalPrimerSqFt += primerSqFt;
         });
 
-        const price = totalCogs * pricing.PROFIT_MARKUP;
+        const price = totalCogs * pricing.PROFIT_MARKUP * (1 + pricing.TAX_RATE);
         // const roundedPrice = Math.round(price / 25) * 25; commented out to show exact price
         const breakdownWithPrices = breakdownItems.map(item => ({name: item.name, price: item.cogs * pricing.PROFIT_MARKUP}));
 
