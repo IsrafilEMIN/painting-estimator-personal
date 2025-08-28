@@ -1608,14 +1608,18 @@ export default function PaintingEstimator() {
                     .font-sans { font-family: 'Inter', sans-serif; }
                     @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
                     .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+                    
+                    /* --- DARK MODE FIXES --- */
                     @media (prefers-color-scheme: dark) {
-                    .text-gray-600, .text-gray-700, .text-gray-900, .text-[#162733] {
-                        color: #e2e8f0 !important; /* A light gray for dark mode */
-                    }
-
-                    .bg-white {
-                        background-color: #1a202c !important; /* A dark background for contrast */
-                    }
+                        /* This rule changes the text on various gray backgrounds to be light */
+                        .text-gray-600, .text-gray-700, .text-gray-900, .text-[#162733] {
+                            color: #e2e8f0 !important; /* A light gray for dark mode */
+                        }
+                        
+                        /* This rule now correctly targets BOTH the white cards AND the main page background */
+                        .bg-white, .bg-\\[\\#f0f2f5\\] {
+                            background-color: #1a202c !important; /* A dark background for contrast */
+                        }
                     }
                 `}</style>
                 <h1 className="text-4xl font-bold mb-4 text-gray-900">Login to Access Estimator</h1>
