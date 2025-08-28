@@ -978,7 +978,7 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                                 <input type="number" inputMode="decimal" step="0.01" min="0" id="interior_door_metal" name="INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Metal" value={formData.INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
-                                <label htmlFor="exterior_door_wood" className="block text-sm text-gray-600">Exterior Door Labor Mult - Wood</label>
+                                <label htmlFor="exterior_door_wood" className="block text-sm text-gray-600">Exterior Door Labor Mult -Wood</label>
                                 <input type="number" inputMode="decimal" step="0.01" min="0" id="exterior_door_wood" name="EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood" value={formData.EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
@@ -1514,7 +1514,7 @@ export default function PaintingEstimator() {
         }
 
         // Calculate exterior prep hours once with max multiplier
-        const exteriorPrepHours = 0;
+        let exteriorPrepHours = 0;
         const exteriorConditions: PrepCondition[] = [];
         if (projectType === 'exterior' || projectType === 'both') {
             exteriorSidings.forEach((s) => exteriorConditions.push(s.prepCondition));
