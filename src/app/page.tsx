@@ -61,6 +61,7 @@ interface AdditionalItem {
     quantity: number | string;
     material?: string; // Generic string for material, specific options per type
     prepCondition: PrepCondition;
+    coats: number;
 }
 
 type PrepCondition = 'good' | 'fair' | 'poor';
@@ -208,7 +209,7 @@ const SelectableCard: React.FC<SelectableCardProps> = ({ label, selected, onClic
     </div>
 );
 
-const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose }) => {
+const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose } ) => {
     const initialWallState: InteriorWall = {
         id: Date.now(),
         length: '',
@@ -244,7 +245,7 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose }) => {
     };
 
     const handleSave = () => {
-        if (!formData.length || !formData.width || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0) {
+        if (!formData.length || !formData.width || !formData.ceilingHeight || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0 || parseFloat(String(formData.ceilingHeight)) <= 0) {
             alert("Please enter valid dimensions greater than 0.");
             return;
         }
@@ -267,18 +268,18 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose }) => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="wall-length" className="block text-sm font-medium text-gray-700">Length (ft)</label>
-                            <input type="number" inputMode="decimal" id="wall-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                            <input type="number" inputMode="decimal" step="0.1" min="0" id="wall-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                             {fieldErrors.length && <p className="text-red-500 text-sm mt-1">{fieldErrors.length}</p>}
                         </div>
                         <div>
                             <label htmlFor="wall-width" className="block text-sm font-medium text-gray-700">Width (ft)</label>
-                            <input type="number" inputMode="decimal" id="wall-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                            <input type="number" inputMode="decimal" step="0.1" min="0" id="wall-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                             {fieldErrors.width && <p className="text-red-500 text-sm mt-1">{fieldErrors.width}</p>}
                         </div>
                     </div>
                     <div>
                         <label htmlFor="ceiling-height" className="block text-sm font-medium text-gray-700">Ceiling Height (ft)</label>
-                        <input type="number" inputMode="decimal" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.ceilingHeight && <p className="text-red-500 text-sm mt-1">{fieldErrors.ceilingHeight}</p>}
                     </div>
                     <div>
@@ -299,7 +300,7 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose }) => {
                     </div>
                     <div>
                         <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
-                        <input type="number" inputMode="decimal" id="coats" name="coats" value={formData.coats} onChange={handleChange} min="1" className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="1" min="1" id="coats" name="coats" value={formData.coats} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
                     </div>
                     <div className="space-y-2">
@@ -315,7 +316,7 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose }) => {
     );
 };
 
-const CeilingModal: React.FC<CeilingModalProps> = ({ ceiling, onSave, onClose }) => {
+const CeilingModal: React.FC<CeilingModalProps> = ({ ceiling, onSave, onClose } ) => {
     const initialCeilingState: InteriorCeiling = {
         id: Date.now(),
         length: '',
@@ -353,7 +354,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ ceiling, onSave, onClose })
     };
 
     const handleSave = () => {
-        if (!formData.length || !formData.width || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0) {
+        if (!formData.length || !formData.width || !formData.ceilingHeight || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0 || parseFloat(String(formData.ceilingHeight)) <= 0) {
             alert("Please enter valid dimensions greater than 0.");
             return;
         }
@@ -376,18 +377,18 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ ceiling, onSave, onClose })
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="ceiling-length" className="block text-sm font-medium text-gray-700">Length (ft)</label>
-                            <input type="number" inputMode="decimal" id="ceiling-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                            <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                             {fieldErrors.length && <p className="text-red-500 text-sm mt-1">{fieldErrors.length}</p>}
                         </div>
                         <div>
                             <label htmlFor="ceiling-width" className="block text-sm font-medium text-gray-700">Width (ft)</label>
-                            <input type="number" inputMode="decimal" id="ceiling-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                            <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                             {fieldErrors.width && <p className="text-red-500 text-sm mt-1">{fieldErrors.width}</p>}
                         </div>
                     </div>
                     <div>
                         <label htmlFor="ceiling-height" className="block text-sm font-medium text-gray-700">Ceiling Height (ft)</label>
-                        <input type="number" inputMode="decimal" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.ceilingHeight && <p className="text-red-500 text-sm mt-1">{fieldErrors.ceilingHeight}</p>}
                     </div>
                     <div>
@@ -408,7 +409,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ ceiling, onSave, onClose })
                     </div>
                     <div>
                         <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
-                        <input type="number" inputMode="decimal" id="coats" name="coats" value={formData.coats} onChange={handleChange} min="1" className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="1" min="1" id="coats" name="coats" value={formData.coats} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
                     </div>
                     <div className="space-y-2">
@@ -426,7 +427,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ ceiling, onSave, onClose })
     );
 };
 
-const PopcornModal: React.FC<PopcornModalProps> = ({ popcorn, onSave, onClose }) => {
+const PopcornModal: React.FC<PopcornModalProps> = ({ popcorn, onSave, onClose } ) => {
     const initialPopcornState: PopcornRemoval = {
         id: Date.now(),
         length: '',
@@ -453,7 +454,7 @@ const PopcornModal: React.FC<PopcornModalProps> = ({ popcorn, onSave, onClose })
     };
 
     const handleSave = () => {
-        if (!formData.length || !formData.width || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0) {
+        if (!formData.length || !formData.width || !formData.ceilingHeight || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0 || parseFloat(String(formData.ceilingHeight)) <= 0) {
             alert("Please enter valid dimensions greater than 0.");
             return;
         }
@@ -472,18 +473,18 @@ const PopcornModal: React.FC<PopcornModalProps> = ({ popcorn, onSave, onClose })
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="popcorn-length" className="block text-sm font-medium text-gray-700">Length (ft)</label>
-                            <input type="number" inputMode="decimal" id="popcorn-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                            <input type="number" inputMode="decimal" step="0.1" min="0" id="popcorn-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                             {fieldErrors.length && <p className="text-red-500 text-sm mt-1">{fieldErrors.length}</p>}
                         </div>
                         <div>
                             <label htmlFor="popcorn-width" className="block text-sm font-medium text-gray-700">Width (ft)</label>
-                            <input type="number" inputMode="decimal" id="popcorn-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                            <input type="number" inputMode="decimal" step="0.1" min="0" id="popcorn-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                             {fieldErrors.width && <p className="text-red-500 text-sm mt-1">{fieldErrors.width}</p>}
                         </div>
                     </div>
                     <div>
                         <label htmlFor="ceiling-height" className="block text-sm font-medium text-gray-700">Ceiling Height (ft)</label>
-                        <input type="number" inputMode="decimal" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.ceilingHeight && <p className="text-red-500 text-sm mt-1">{fieldErrors.ceilingHeight}</p>}
                     </div>
                     <div>
@@ -504,7 +505,7 @@ const PopcornModal: React.FC<PopcornModalProps> = ({ popcorn, onSave, onClose })
     );
 };
 
-const TrimModal: React.FC<TrimModalProps> = ({ trim, onSave, onClose }) => {
+const TrimModal: React.FC<TrimModalProps> = ({ trim, onSave, onClose } ) => {
     const initialTrimState: TrimItem = {
         id: Date.now(),
         lnFt: '',
@@ -552,7 +553,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ trim, onSave, onClose }) => {
                 <div className="space-y-4">
                     <div>
                         <label htmlFor="lnFt" className="block text-sm font-medium text-gray-700">Linear Feet</label>
-                        <input type="number" inputMode="decimal" id="lnFt" name="lnFt" value={formData.lnFt} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.lnFt ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="0.1" min="0" id="lnFt" name="lnFt" value={formData.lnFt} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.lnFt ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.lnFt && <p className="text-red-500 text-sm mt-1">{fieldErrors.lnFt}</p>}
                     </div>
                     <div>
@@ -565,7 +566,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ trim, onSave, onClose }) => {
                     </div>
                     <div>
                         <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
-                        <input type="number" inputMode="decimal" id="coats" name="coats" value={formData.coats} onChange={handleChange} min="1" className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="1" min="1" id="coats" name="coats" value={formData.coats} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
                     </div>
                     <div className="flex justify-end gap-4 mt-6">
@@ -578,7 +579,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ trim, onSave, onClose }) => {
     );
 };
 
-const SidingModal: React.FC<SidingModalProps> = ({ siding, onSave, onClose }) => {
+const SidingModal: React.FC<SidingModalProps> = ({ siding, onSave, onClose } ) => {
     const initialSidingState: ExteriorSiding = {
         id: Date.now(),
         siding: 'Vinyl',
@@ -632,7 +633,7 @@ const SidingModal: React.FC<SidingModalProps> = ({ siding, onSave, onClose }) =>
                     </div>
                     <div>
                         <label htmlFor="exterior-sqft" className="block text-sm font-medium text-gray-700">Sq Ft of Siding</label>
-                        <input type="number" inputMode="decimal" id="exterior-sqft" name="sqft" value={formData.sqft} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.sqft ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="0.1" min="0" id="exterior-sqft" name="sqft" value={formData.sqft} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.sqft ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.sqft && <p className="text-red-500 text-sm mt-1">{fieldErrors.sqft}</p>}
                     </div>
                     <div>
@@ -659,7 +660,7 @@ const SidingModal: React.FC<SidingModalProps> = ({ siding, onSave, onClose }) =>
                     </div>
                     <div>
                         <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
-                        <input type="number" inputMode="decimal" id="coats" name="coats" value={formData.coats} onChange={handleChange} min="1" className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="1" min="1" id="coats" name="coats" value={formData.coats} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
                     </div>
                     <div className="flex justify-end gap-4 mt-6">
@@ -672,7 +673,7 @@ const SidingModal: React.FC<SidingModalProps> = ({ siding, onSave, onClose }) =>
     );
 };
 
-const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose, projectType }) => {
+const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose, projectType } ) => {
     const interiorTypes = ['interiorDoor', 'closetDoor', 'vanityDoor', 'vanityDrawer', 'cabinetDoor', 'cabinetDrawer'] as const;
     const exteriorTypes = ['exteriorDoor', 'garageDoor', 'shutter', 'windowFrame', 'gutter', 'deck'] as const;
     const availableTypes = projectType === 'interior' ? interiorTypes : projectType === 'exterior' ? exteriorTypes : [...interiorTypes, ...exteriorTypes];
@@ -682,8 +683,9 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose
         quantity: '',
         material: undefined,
         prepCondition: 'good',
+        coats: 2,
     };
-    const [formData, setFormData] = useState<AdditionalItem>(item || initialState);
+    const [formData, setFormData] = useState<AdditionalItem>(item ? { ...item, coats: item.coats ?? 2 } : initialState);
     const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
 
     const materialOptions: { [key in AdditionalItem['type']]?: string[] } = {
@@ -703,7 +705,7 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        if (name === 'quantity') {
+        if (name === 'quantity' || name === 'coats') {
             const num = parseFloat(value);
             if (value !== '' && !isNaN(num) && num < 0) {
                 setFieldErrors(prev => ({ ...prev, [name]: 'Cannot be negative' }));
@@ -718,6 +720,10 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose
     const handleSave = () => {
         if (!formData.quantity || parseFloat(String(formData.quantity)) <= 0) {
             alert("Please enter valid quantity greater than 0.");
+            return;
+        }
+        if (parseFloat(String(formData.coats)) < 1) {
+            alert("Number of coats must be at least 1.");
             return;
         }
         if (materialOptions[formData.type] && !formData.material) {
@@ -764,8 +770,13 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose
                         </select>
                     </div>
                     <div>
+                        <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
+                        <input type="number" inputMode="decimal" step="1" min="1" id="coats" name="coats" value={formData.coats} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
+                    </div>
+                    <div>
                         <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">{qtyLabel}</label>
-                        <input type="number" inputMode="decimal" id="quantity" name="quantity" value={formData.quantity} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.quantity ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+                        <input type="number" inputMode="decimal" step="0.1" min="0" id="quantity" name="quantity" value={formData.quantity} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.quantity ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
                         {fieldErrors.quantity && <p className="text-red-500 text-sm mt-1">{fieldErrors.quantity}</p>}
                     </div>
                     <div className="flex justify-end gap-4 mt-6">
@@ -784,10 +795,11 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         const parts = name.split('.');
-        if (parts.length === 2) {
-            const [parent, child] = parts;
+        if (parts.length >= 2) {
+            const parent = parts[0] as keyof PricingConfig;
+            const child = parts.slice(1).join('.');
             setFormData((prev) => {
-                const nested = prev[parent as keyof PricingConfig] as Record<string, number>;
+                const nested = prev[parent] as Record<string, number>;
                 return {
                     ...prev,
                     [parent]: {
@@ -804,6 +816,10 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
         }
     };
 
+    const handleReset = () => {
+        setFormData(DEFAULT_PRICING);
+    };
+
     const handleSave = () => {
         onSave(formData);
     };
@@ -818,19 +834,19 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="PROFIT_MARKUP" className="block text-sm text-gray-600">Profit Markup (for 50% margin: 2.0)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="PROFIT_MARKUP" name="PROFIT_MARKUP" value={formData.PROFIT_MARKUP} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="PROFIT_MARKUP" name="PROFIT_MARKUP" value={formData.PROFIT_MARKUP} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="PAINTER_BURDENED_HOURLY_COST" className="block text-sm text-gray-600">Burdened Hourly Labor Cost</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="PAINTER_BURDENED_HOURLY_COST" name="PAINTER_BURDENED_HOURLY_COST" value={formData.PAINTER_BURDENED_HOURLY_COST} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="PAINTER_BURDENED_HOURLY_COST" name="PAINTER_BURDENED_HOURLY_COST" value={formData.PAINTER_BURDENED_HOURLY_COST} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="SUPPLIES_PERCENTAGE" className="block text-sm text-gray-600">Supplies % of Paint Cost</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="SUPPLIES_PERCENTAGE" name="SUPPLIES_PERCENTAGE" value={formData.SUPPLIES_PERCENTAGE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="SUPPLIES_PERCENTAGE" name="SUPPLIES_PERCENTAGE" value={formData.SUPPLIES_PERCENTAGE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="COVERAGE_PER_GALLON" className="block text-sm text-gray-600">Coverage per Gallon</label>
-                                <input type="number" inputMode="decimal" id="COVERAGE_PER_GALLON" name="COVERAGE_PER_GALLON" value={formData.COVERAGE_PER_GALLON} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="COVERAGE_PER_GALLON" name="COVERAGE_PER_GALLON" value={formData.COVERAGE_PER_GALLON} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                         </div>
                     </div>
@@ -839,19 +855,19 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="paint_good" className="block text-sm text-gray-600">Paint Cost/Gallon - Good</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="paint_good" name="PAINT_COST_PER_GALLON.good" value={formData.PAINT_COST_PER_GALLON.good} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="paint_good" name="PAINT_COST_PER_GALLON.good" value={formData.PAINT_COST_PER_GALLON.good} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_better" className="block text-sm text-gray-600">Paint Cost/Gallon - Better</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="paint_better" name="PAINT_COST_PER_GALLON.better" value={formData.PAINT_COST_PER_GALLON.better} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="paint_better" name="PAINT_COST_PER_GALLON.better" value={formData.PAINT_COST_PER_GALLON.better} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_best" className="block text-sm text-gray-600">Paint Cost/Gallon - Best</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="paint_best" name="PAINT_COST_PER_GALLON.best" value={formData.PAINT_COST_PER_GALLON.best} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="paint_best" name="PAINT_COST_PER_GALLON.best" value={formData.PAINT_COST_PER_GALLON.best} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="primer_cost" className="block text-sm text-gray-600">Primer Cost/Gallon</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="primer_cost" name="PRIMER_COST_PER_GALLON" value={formData.PRIMER_COST_PER_GALLON} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="primer_cost" name="PRIMER_COST_PER_GALLON" value={formData.PRIMER_COST_PER_GALLON} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                         </div>
                     </div>
@@ -860,11 +876,11 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="BASE_PREP_HOURS_PER_ROOM" className="block text-sm text-gray-600">Base Prep Hours per Room</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="BASE_PREP_HOURS_PER_ROOM" name="BASE_PREP_HOURS_PER_ROOM" value={formData.BASE_PREP_HOURS_PER_ROOM} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="BASE_PREP_HOURS_PER_ROOM" name="BASE_PREP_HOURS_PER_ROOM" value={formData.BASE_PREP_HOURS_PER_ROOM} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="BASE_PREP_HOURS_EXTERIOR" className="block text-sm text-gray-600">Base Prep Hours Exterior</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="BASE_PREP_HOURS_EXTERIOR" name="BASE_PREP_HOURS_EXTERIOR" value={formData.BASE_PREP_HOURS_EXTERIOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="BASE_PREP_HOURS_EXTERIOR" name="BASE_PREP_HOURS_EXTERIOR" value={formData.BASE_PREP_HOURS_EXTERIOR} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                         </div>
                     </div>
@@ -873,19 +889,19 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="COST_MOLD_RESISTANT_PAINT_UPCHARGE" className="block text-sm text-gray-600">Cost Mold Resistant Paint Upcharge</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="COST_MOLD_RESISTANT_PAINT_UPCHARGE" name="COST_MOLD_RESISTANT_PAINT_UPCHARGE" value={formData.COST_MOLD_RESISTANT_PAINT_UPCHARGE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="COST_MOLD_RESISTANT_PAINT_UPCHARGE" name="COST_MOLD_RESISTANT_PAINT_UPCHARGE" value={formData.COST_MOLD_RESISTANT_PAINT_UPCHARGE} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="COST_CROWN_MOLDING" className="block text-sm text-gray-600">Cost Crown Molding</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="COST_CROWN_MOLDING" name="COST_CROWN_MOLDING" value={formData.COST_CROWN_MOLDING} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="COST_CROWN_MOLDING" name="COST_CROWN_MOLDING" value={formData.COST_CROWN_MOLDING} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="COST_FIREPLACE_MANTEL" className="block text-sm text-gray-600">Cost Fireplace Mantel</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="COST_FIREPLACE_MANTEL" name="COST_FIREPLACE_MANTEL" value={formData.COST_FIREPLACE_MANTEL} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="COST_FIREPLACE_MANTEL" name="COST_FIREPLACE_MANTEL" value={formData.COST_FIREPLACE_MANTEL} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="COST_STAIRWELL" className="block text-sm text-gray-600">Cost Stairwell</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="COST_STAIRWELL" name="COST_STAIRWELL" value={formData.COST_STAIRWELL} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="COST_STAIRWELL" name="COST_STAIRWELL" value={formData.COST_STAIRWELL} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                         </div>
                     </div>
@@ -894,155 +910,155 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="prep_good" className="block text-sm text-gray-600">Prep Multiplier - Good</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="prep_good" name="PREP_CONDITION_MULTIPLIERS.good" value={formData.PREP_CONDITION_MULTIPLIERS.good} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="prep_good" name="PREP_CONDITION_MULTIPLIERS.good" value={formData.PREP_CONDITION_MULTIPLIERS.good} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="prep_fair" className="block text-sm text-gray-600">Prep Multiplier - Fair</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="prep_fair" name="PREP_CONDITION_MULTIPLIERS.fair" value={formData.PREP_CONDITION_MULTIPLIERS.fair} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="prep_fair" name="PREP_CONDITION_MULTIPLIERS.fair" value={formData.PREP_CONDITION_MULTIPLIERS.fair} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="prep_poor" className="block text-sm text-gray-600">Prep Multiplier - Poor</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="prep_poor" name="PREP_CONDITION_MULTIPLIERS.poor" value={formData.PREP_CONDITION_MULTIPLIERS.poor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="prep_poor" name="PREP_CONDITION_MULTIPLIERS.poor" value={formData.PREP_CONDITION_MULTIPLIERS.poor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="texture_smooth" className="block text-sm text-gray-600">Texture Multiplier - Smooth</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="texture_smooth" name="TEXTURE_MULTIPLIERS.smooth" value={formData.TEXTURE_MULTIPLIERS.smooth} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="texture_smooth" name="TEXTURE_MULTIPLIERS.smooth" value={formData.TEXTURE_MULTIPLIERS.smooth} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="texture_light" className="block text-sm text-gray-600">Texture Multiplier - Light</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="texture_light" name="TEXTURE_MULTIPLIERS.light" value={formData.TEXTURE_MULTIPLIERS.light} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="texture_light" name="TEXTURE_MULTIPLIERS.light" value={formData.TEXTURE_MULTIPLIERS.light} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="texture_heavy" className="block text-sm text-gray-600">Texture Multiplier - Heavy</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="texture_heavy" name="TEXTURE_MULTIPLIERS.heavy" value={formData.TEXTURE_MULTIPLIERS.heavy} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="texture_heavy" name="TEXTURE_MULTIPLIERS.heavy" value={formData.TEXTURE_MULTIPLIERS.heavy} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="EXTRA_COAT_MULTIPLIER" className="block text-sm text-gray-600">Extra Coat Multiplier</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="EXTRA_COAT_MULTIPLIER" name="EXTRA_COAT_MULTIPLIER" value={formData.EXTRA_COAT_MULTIPLIER} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="EXTRA_COAT_MULTIPLIER" name="EXTRA_COAT_MULTIPLIER" value={formData.EXTRA_COAT_MULTIPLIER} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="HIGH_CEILING_MULTIPLIER" className="block text-sm text-gray-600">High Ceiling Multiplier</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="HIGH_CEILING_MULTIPLIER" name="HIGH_CEILING_MULTIPLIER" value={formData.HIGH_CEILING_MULTIPLIER} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="HIGH_CEILING_MULTIPLIER" name="HIGH_CEILING_MULTIPLIER" value={formData.HIGH_CEILING_MULTIPLIER} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="siding_vinyl" className="block text-sm text-gray-600">Siding Labor Multiplier - Vinyl</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="siding_vinyl" name="SIDING_LABOR_MULTIPLIERS.Vinyl" value={formData.SIDING_LABOR_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="siding_vinyl" name="SIDING_LABOR_MULTIPLIERS.Vinyl" value={formData.SIDING_LABOR_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="siding_wood" className="block text-sm text-gray-600">Siding Labor Multiplier - Wood</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="siding_wood" name="SIDING_LABOR_MULTIPLIERS.Wood" value={formData.SIDING_LABOR_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="siding_wood" name="SIDING_LABOR_MULTIPLIERS.Wood" value={formData.SIDING_LABOR_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="siding_stucco" className="block text-sm text-gray-600">Siding Labor Multiplier - Stucco</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="siding_stucco" name="SIDING_LABOR_MULTIPLIERS.Stucco" value={formData.SIDING_LABOR_MULTIPLIERS.Stucco} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="siding_stucco" name="SIDING_LABOR_MULTIPLIERS.Stucco" value={formData.SIDING_LABOR_MULTIPLIERS.Stucco} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="siding_brick" className="block text-sm text-gray-600">Siding Labor Multiplier - Brick</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="siding_brick" name="SIDING_LABOR_MULTIPLIERS.Brick" value={formData.SIDING_LABOR_MULTIPLIERS.Brick} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="siding_brick" name="SIDING_LABOR_MULTIPLIERS.Brick" value={formData.SIDING_LABOR_MULTIPLIERS.Brick} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="siding_metal" className="block text-sm text-gray-600">Siding Labor Multiplier - Metal</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="siding_metal" name="SIDING_LABOR_MULTIPLIERS.Metal" value={formData.SIDING_LABOR_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="siding_metal" name="SIDING_LABOR_MULTIPLIERS.Metal" value={formData.SIDING_LABOR_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="siding_fiberCement" className="block text-sm text-gray-600">Siding Labor Multiplier - Fiber Cement</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="siding_fiberCement" name="SIDING_LABOR_MULTIPLIERS.Fiber Cement" value={formData.SIDING_LABOR_MULTIPLIERS['Fiber Cement']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="siding_fiberCement" name="SIDING_LABOR_MULTIPLIERS.Fiber Cement" value={formData.SIDING_LABOR_MULTIPLIERS['Fiber Cement']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="interior_door_wood" className="block text-sm text-gray-600">Interior Door Labor Mult - Wood</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="interior_door_wood" name="INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood" value={formData.INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="interior_door_wood" name="INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood" value={formData.INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="interior_door_mdf" className="block text-sm text-gray-600">Interior Door Labor Mult - MDF</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="interior_door_mdf" name="INTERIOR_DOOR_MATERIAL_MULTIPLIERS.MDF" value={formData.INTERIOR_DOOR_MATERIAL_MULTIPLIERS.MDF} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="interior_door_mdf" name="INTERIOR_DOOR_MATERIAL_MULTIPLIERS.MDF" value={formData.INTERIOR_DOOR_MATERIAL_MULTIPLIERS.MDF} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="interior_door_metal" className="block text-sm text-gray-600">Interior Door Labor Mult - Metal</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="interior_door_metal" name="INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Metal" value={formData.INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="interior_door_metal" name="INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Metal" value={formData.INTERIOR_DOOR_MATERIAL_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="exterior_door_wood" className="block text-sm text-gray-600">Exterior Door Labor Mult - Wood</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="exterior_door_wood" name="EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood" value={formData.EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="exterior_door_wood" name="EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood" value={formData.EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="exterior_door_steel" className="block text-sm text-gray-600">Exterior Door Labor Mult - Steel</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="exterior_door_steel" name="EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Steel" value={formData.EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Steel} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="exterior_door_steel" name="EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Steel" value={formData.EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Steel} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="exterior_door_fiberglass" className="block text-sm text-gray-600">Exterior Door Labor Mult - Fiberglass</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="exterior_door_fiberglass" name="EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Fiberglass" value={formData.EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Fiberglass} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="exterior_door_fiberglass" name="EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Fiberglass" value={formData.EXTERIOR_DOOR_MATERIAL_MULTIPLIERS.Fiberglass} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="cabinet_wood" className="block text-sm text-gray-600">Cabinet Labor Mult - Wood</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="cabinet_wood" name="CABINET_MATERIAL_MULTIPLIERS.Wood" value={formData.CABINET_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="cabinet_wood" name="CABINET_MATERIAL_MULTIPLIERS.Wood" value={formData.CABINET_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="cabinet_laminate" className="block text-sm text-gray-600">Cabinet Labor Mult - Laminate</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="cabinet_laminate" name="CABINET_MATERIAL_MULTIPLIERS.Laminate" value={formData.CABINET_MATERIAL_MULTIPLIERS.Laminate} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="cabinet_laminate" name="CABINET_MATERIAL_MULTIPLIERS.Laminate" value={formData.CABINET_MATERIAL_MULTIPLIERS.Laminate} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="cabinet_metal" className="block text-sm text-gray-600">Cabinet Labor Mult - Metal</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="cabinet_metal" name="CABINET_MATERIAL_MULTIPLIERS.Metal" value={formData.CABINET_MATERIAL_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="cabinet_metal" name="CABINET_MATERIAL_MULTIPLIERS.Metal" value={formData.CABINET_MATERIAL_MULTIPLIERS.Metal} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="shutter_wood" className="block text-sm text-gray-600">Shutter Labor Mult - Wood</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="shutter_wood" name="SHUTTER_MATERIAL_MULTIPLIERS.Wood" value={formData.SHUTTER_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="shutter_wood" name="SHUTTER_MATERIAL_MULTIPLIERS.Wood" value={formData.SHUTTER_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="shutter_vinyl" className="block text-sm text-gray-600">Shutter Labor Mult - Vinyl</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="shutter_vinyl" name="SHUTTER_MATERIAL_MULTIPLIERS.Vinyl" value={formData.SHUTTER_MATERIAL_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="shutter_vinyl" name="SHUTTER_MATERIAL_MULTIPLIERS.Vinyl" value={formData.SHUTTER_MATERIAL_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="shutter_composite" className="block text-sm text-gray-600">Shutter Labor Mult - Composite</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="shutter_composite" name="SHUTTER_MATERIAL_MULTIPLIERS.Composite" value={formData.SHUTTER_MATERIAL_MULTIPLIERS.Composite} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="shutter_composite" name="SHUTTER_MATERIAL_MULTIPLIERS.Composite" value={formData.SHUTTER_MATERIAL_MULTIPLIERS.Composite} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="window_frame_wood" className="block text-sm text-gray-600">Window Frame Labor Mult - Wood</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="window_frame_wood" name="WINDOW_FRAME_MATERIAL_MULTIPLIERS.Wood" value={formData.WINDOW_FRAME_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="window_frame_wood" name="WINDOW_FRAME_MATERIAL_MULTIPLIERS.Wood" value={formData.WINDOW_FRAME_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="window_frame_vinyl" className="block text-sm text-gray-600">Window Frame Labor Mult - Vinyl</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="window_frame_vinyl" name="WINDOW_FRAME_MATERIAL_MULTIPLIERS.Vinyl" value={formData.WINDOW_FRAME_MATERIAL_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="window_frame_vinyl" name="WINDOW_FRAME_MATERIAL_MULTIPLIERS.Vinyl" value={formData.WINDOW_FRAME_MATERIAL_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="window_frame_aluminum" className="block text-sm text-gray-600">Window Frame Labor Mult - Aluminum</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="window_frame_aluminum" name="WINDOW_FRAME_MATERIAL_MULTIPLIERS.Aluminum" value={formData.WINDOW_FRAME_MATERIAL_MULTIPLIERS.Aluminum} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="window_frame_aluminum" name="WINDOW_FRAME_MATERIAL_MULTIPLIERS.Aluminum" value={formData.WINDOW_FRAME_MATERIAL_MULTIPLIERS.Aluminum} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="gutter_aluminum" className="block text-sm text-gray-600">Gutter Labor Mult - Aluminum</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="gutter_aluminum" name="GUTTER_MATERIAL_MULTIPLIERS.Aluminum" value={formData.GUTTER_MATERIAL_MULTIPLIERS.Aluminum} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="gutter_aluminum" name="GUTTER_MATERIAL_MULTIPLIERS.Aluminum" value={formData.GUTTER_MATERIAL_MULTIPLIERS.Aluminum} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="gutter_steel" className="block text-sm text-gray-600">Gutter Labor Mult - Steel</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="gutter_steel" name="GUTTER_MATERIAL_MULTIPLIERS.Steel" value={formData.GUTTER_MATERIAL_MULTIPLIERS.Steel} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="gutter_steel" name="GUTTER_MATERIAL_MULTIPLIERS.Steel" value={formData.GUTTER_MATERIAL_MULTIPLIERS.Steel} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="gutter_copper" className="block text-sm text-gray-600">Gutter Labor Mult - Copper</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="gutter_copper" name="GUTTER_MATERIAL_MULTIPLIERS.Copper" value={formData.GUTTER_MATERIAL_MULTIPLIERS.Copper} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="gutter_copper" name="GUTTER_MATERIAL_MULTIPLIERS.Copper" value={formData.GUTTER_MATERIAL_MULTIPLIERS.Copper} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="gutter_vinyl" className="block text-sm text-gray-600">Gutter Labor Mult - Vinyl</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="gutter_vinyl" name="GUTTER_MATERIAL_MULTIPLIERS.Vinyl" value={formData.GUTTER_MATERIAL_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="gutter_vinyl" name="GUTTER_MATERIAL_MULTIPLIERS.Vinyl" value={formData.GUTTER_MATERIAL_MULTIPLIERS.Vinyl} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="deck_wood" className="block text-sm text-gray-600">Deck Labor Mult - Wood</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="deck_wood" name="DECK_MATERIAL_MULTIPLIERS.Wood" value={formData.DECK_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="deck_wood" name="DECK_MATERIAL_MULTIPLIERS.Wood" value={formData.DECK_MATERIAL_MULTIPLIERS.Wood} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="deck_composite" className="block text-sm text-gray-600">Deck Labor Mult - Composite</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="deck_composite" name="DECK_MATERIAL_MULTIPLIERS.Composite" value={formData.DECK_MATERIAL_MULTIPLIERS.Composite} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="deck_composite" name="DECK_MATERIAL_MULTIPLIERS.Composite" value={formData.DECK_MATERIAL_MULTIPLIERS.Composite} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="story_1" className="block text-sm text-gray-600">Story Multiplier - 1</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="story_1" name="STORY_MULTIPLIERS.1" value={formData.STORY_MULTIPLIERS['1']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="story_1" name="STORY_MULTIPLIERS.1" value={formData.STORY_MULTIPLIERS['1']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="story_2" className="block text-sm text-gray-600">Story Multiplier - 2</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="story_2" name="STORY_MULTIPLIERS.2" value={formData.STORY_MULTIPLIERS['2']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="story_2" name="STORY_MULTIPLIERS.2" value={formData.STORY_MULTIPLIERS['2']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="story_3" className="block text-sm text-gray-600">Story Multiplier - 3</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="story_3" name="STORY_MULTIPLIERS.3" value={formData.STORY_MULTIPLIERS['3']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="story_3" name="STORY_MULTIPLIERS.3" value={formData.STORY_MULTIPLIERS['3']} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                         </div>
                     </div>
@@ -1051,67 +1067,67 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="production_walls" className="block text-sm text-gray-600">Walls (sqft/hr)</label>
-                                <input type="number" inputMode="decimal" id="production_walls" name="PRODUCTION_RATES.walls" value={formData.PRODUCTION_RATES.walls} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="production_walls" name="PRODUCTION_RATES.walls" value={formData.PRODUCTION_RATES.walls} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_ceilings" className="block text-sm text-gray-600">Ceilings (sqft/hr)</label>
-                                <input type="number" inputMode="decimal" id="production_ceilings" name="PRODUCTION_RATES.ceilings" value={formData.PRODUCTION_RATES.ceilings} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="production_ceilings" name="PRODUCTION_RATES.ceilings" value={formData.PRODUCTION_RATES.ceilings} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_trim" className="block text-sm text-gray-600">Trim (lnft/hr)</label>
-                                <input type="number" inputMode="decimal" id="production_trim" name="PRODUCTION_RATES.trim" value={formData.PRODUCTION_RATES.trim} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="production_trim" name="PRODUCTION_RATES.trim" value={formData.PRODUCTION_RATES.trim} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_interiorDoor" className="block text-sm text-gray-600">Interior Door (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_interiorDoor" name="PRODUCTION_RATES.interiorDoor" value={formData.PRODUCTION_RATES.interiorDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_interiorDoor" name="PRODUCTION_RATES.interiorDoor" value={formData.PRODUCTION_RATES.interiorDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_closetDoor" className="block text-sm text-gray-600">Closet Door (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_closetDoor" name="PRODUCTION_RATES.closetDoor" value={formData.PRODUCTION_RATES.closetDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_closetDoor" name="PRODUCTION_RATES.closetDoor" value={formData.PRODUCTION_RATES.closetDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_vanityDoor" className="block text-sm text-gray-600">Vanity Door (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_vanityDoor" name="PRODUCTION_RATES.vanityDoor" value={formData.PRODUCTION_RATES.vanityDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_vanityDoor" name="PRODUCTION_RATES.vanityDoor" value={formData.PRODUCTION_RATES.vanityDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_vanityDrawer" className="block text-sm text-gray-600">Vanity Drawer (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_vanityDrawer" name="PRODUCTION_RATES.vanityDrawer" value={formData.PRODUCTION_RATES.vanityDrawer} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_vanityDrawer" name="PRODUCTION_RATES.vanityDrawer" value={formData.PRODUCTION_RATES.vanityDrawer} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_cabinetDoor" className="block text-sm text-gray-600">Cabinet Door (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_cabinetDoor" name="PRODUCTION_RATES.cabinetDoor" value={formData.PRODUCTION_RATES.cabinetDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_cabinetDoor" name="PRODUCTION_RATES.cabinetDoor" value={formData.PRODUCTION_RATES.cabinetDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_cabinetDrawer" className="block text-sm text-gray-600">Cabinet Drawer (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_cabinetDrawer" name="PRODUCTION_RATES.cabinetDrawer" value={formData.PRODUCTION_RATES.cabinetDrawer} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_cabinetDrawer" name="PRODUCTION_RATES.cabinetDrawer" value={formData.PRODUCTION_RATES.cabinetDrawer} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_exteriorDoor" className="block text-sm text-gray-600">Exterior Door (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_exteriorDoor" name="PRODUCTION_RATES.exteriorDoor" value={formData.PRODUCTION_RATES.exteriorDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_exteriorDoor" name="PRODUCTION_RATES.exteriorDoor" value={formData.PRODUCTION_RATES.exteriorDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_garageDoor" className="block text-sm text-gray-600">Garage Door (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_garageDoor" name="PRODUCTION_RATES.garageDoor" value={formData.PRODUCTION_RATES.garageDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_garageDoor" name="PRODUCTION_RATES.garageDoor" value={formData.PRODUCTION_RATES.garageDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_shutter" className="block text-sm text-gray-600">Shutter (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_shutter" name="PRODUCTION_RATES.shutter" value={formData.PRODUCTION_RATES.shutter} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_shutter" name="PRODUCTION_RATES.shutter" value={formData.PRODUCTION_RATES.shutter} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_windowFrame" className="block text-sm text-gray-600">Window Frame (hr/item)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_windowFrame" name="PRODUCTION_RATES.windowFrame" value={formData.PRODUCTION_RATES.windowFrame} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_windowFrame" name="PRODUCTION_RATES.windowFrame" value={formData.PRODUCTION_RATES.windowFrame} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_gutter" className="block text-sm text-gray-600">Gutter (hr/lnft)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_gutter" name="PRODUCTION_RATES.gutter" value={formData.PRODUCTION_RATES.gutter} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_gutter" name="PRODUCTION_RATES.gutter" value={formData.PRODUCTION_RATES.gutter} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_deck" className="block text-sm text-gray-600">Deck (hr/sqft)</label>
-                                <input type="number" inputMode="decimal" step="0.01" id="production_deck" name="PRODUCTION_RATES.deck" value={formData.PRODUCTION_RATES.deck} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="production_deck" name="PRODUCTION_RATES.deck" value={formData.PRODUCTION_RATES.deck} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="production_popcornRemoval" className="block text-sm text-gray-600">Popcorn Removal (sqft/hr)</label>
-                                <input type="number" inputMode="decimal" id="production_popcornRemoval" name="PRODUCTION_RATES.popcornRemoval" value={formData.PRODUCTION_RATES.popcornRemoval} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="production_popcornRemoval" name="PRODUCTION_RATES.popcornRemoval" value={formData.PRODUCTION_RATES.popcornRemoval} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                         </div>
                     </div>
@@ -1120,60 +1136,61 @@ const PricingSettingsModal = ({ pricing, onSave, onClose }: { pricing: PricingCo
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="paint_interiorDoor" className="block text-sm text-gray-600">Interior Door Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_interiorDoor" name="ADDITIONAL_PAINT_USAGE.interiorDoor" value={formData.ADDITIONAL_PAINT_USAGE.interiorDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_interiorDoor" name="ADDITIONAL_PAINT_USAGE.interiorDoor" value={formData.ADDITIONAL_PAINT_USAGE.interiorDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_trim" className="block text-sm text-gray-600">Trim Paint Usage (sqft/lnft)</label>
-                                <input type="number" inputMode="decimal" id="paint_trim" name="ADDITIONAL_PAINT_USAGE.trim" value={formData.ADDITIONAL_PAINT_USAGE.trim} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="paint_trim" name="ADDITIONAL_PAINT_USAGE.trim" value={formData.ADDITIONAL_PAINT_USAGE.trim} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_closetDoor" className="block text-sm text-gray-600">Closet Door Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_closetDoor" name="ADDITIONAL_PAINT_USAGE.closetDoor" value={formData.ADDITIONAL_PAINT_USAGE.closetDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_closetDoor" name="ADDITIONAL_PAINT_USAGE.closetDoor" value={formData.ADDITIONAL_PAINT_USAGE.closetDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_vanityDoor" className="block text-sm text-gray-600">Vanity Door Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_vanityDoor" name="ADDITIONAL_PAINT_USAGE.vanityDoor" value={formData.ADDITIONAL_PAINT_USAGE.vanityDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_vanityDoor" name="ADDITIONAL_PAINT_USAGE.vanityDoor" value={formData.ADDITIONAL_PAINT_USAGE.vanityDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_vanityDrawer" className="block text-sm text-gray-600">Vanity Drawer Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_vanityDrawer" name="ADDITIONAL_PAINT_USAGE.vanityDrawer" value={formData.ADDITIONAL_PAINT_USAGE.vanityDrawer} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_vanityDrawer" name="ADDITIONAL_PAINT_USAGE.vanityDrawer" value={formData.ADDITIONAL_PAINT_USAGE.vanityDrawer} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_cabinetDoor" className="block text-sm text-gray-600">Cabinet Door Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_cabinetDoor" name="ADDITIONAL_PAINT_USAGE.cabinetDoor" value={formData.ADDITIONAL_PAINT_USAGE.cabinetDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_cabinetDoor" name="ADDITIONAL_PAINT_USAGE.cabinetDoor" value={formData.ADDITIONAL_PAINT_USAGE.cabinetDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_cabinetDrawer" className="block text-sm text-gray-600">Cabinet Drawer Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_cabinetDrawer" name="ADDITIONAL_PAINT_USAGE.cabinetDrawer" value={formData.ADDITIONAL_PAINT_USAGE.cabinetDrawer} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_cabinetDrawer" name="ADDITIONAL_PAINT_USAGE.cabinetDrawer" value={formData.ADDITIONAL_PAINT_USAGE.cabinetDrawer} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_exteriorDoor" className="block text-sm text-gray-600">Exterior Door Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_exteriorDoor" name="ADDITIONAL_PAINT_USAGE.exteriorDoor" value={formData.ADDITIONAL_PAINT_USAGE.exteriorDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_exteriorDoor" name="ADDITIONAL_PAINT_USAGE.exteriorDoor" value={formData.ADDITIONAL_PAINT_USAGE.exteriorDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_garageDoor" className="block text-sm text-gray-600">Garage Door Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_garageDoor" name="ADDITIONAL_PAINT_USAGE.garageDoor" value={formData.ADDITIONAL_PAINT_USAGE.garageDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_garageDoor" name="ADDITIONAL_PAINT_USAGE.garageDoor" value={formData.ADDITIONAL_PAINT_USAGE.garageDoor} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_shutter" className="block text-sm text-gray-600">Shutter Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_shutter" name="ADDITIONAL_PAINT_USAGE.shutter" value={formData.ADDITIONAL_PAINT_USAGE.shutter} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_shutter" name="ADDITIONAL_PAINT_USAGE.shutter" value={formData.ADDITIONAL_PAINT_USAGE.shutter} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_windowFrame" className="block text-sm text-gray-600">Window Frame Paint Usage (sqft/item)</label>
-                                <input type="number" inputMode="decimal" id="paint_windowFrame" name="ADDITIONAL_PAINT_USAGE.windowFrame" value={formData.ADDITIONAL_PAINT_USAGE.windowFrame} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="1" min="0" id="paint_windowFrame" name="ADDITIONAL_PAINT_USAGE.windowFrame" value={formData.ADDITIONAL_PAINT_USAGE.windowFrame} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_gutter" className="block text-sm text-gray-600">Gutter Paint Usage (sqft/lnft)</label>
-                                <input type="number" inputMode="decimal" id="paint_gutter" name="ADDITIONAL_PAINT_USAGE.gutter" value={formData.ADDITIONAL_PAINT_USAGE.gutter} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="paint_gutter" name="ADDITIONAL_PAINT_USAGE.gutter" value={formData.ADDITIONAL_PAINT_USAGE.gutter} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                             <div>
                                 <label htmlFor="paint_deck" className="block text-sm text-gray-600">Deck Paint Usage (sqft/sqft)</label>
-                                <input type="number" inputMode="decimal" id="paint_deck" name="ADDITIONAL_PAINT_USAGE.deck" value={formData.ADDITIONAL_PAINT_USAGE.deck} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
+                                <input type="number" inputMode="decimal" step="0.01" min="0" id="paint_deck" name="ADDITIONAL_PAINT_USAGE.deck" value={formData.ADDITIONAL_PAINT_USAGE.deck} onChange={handleChange} className="mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:border-[#093373] focus:ring-[#093373] text-gray-900" />
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className="flex justify-end gap-4 mt-6">
+                    <button onClick={handleReset} className="btn-secondary font-bold py-2 px-4 rounded-lg">Reset to Default</button>
                     <button onClick={onClose} className="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
                     <button onClick={handleSave} className="btn-primary font-bold py-2 px-4 rounded-lg">Save Changes</button>
                 </div>
@@ -1378,10 +1395,51 @@ export default function PaintingEstimator() {
             return itemCogs;
         };
 
+        // Calculate interior prep hours using unique room keys based on dimensions
+        let interiorPrepHours = 0;
+        const interiorRoomMap: Map<string, PrepCondition[]> = new Map();
+        const addToRoomMap = (length: number, width: number, height: number, condition: PrepCondition) => {
+            const key = `${length}_${width}_${height}`;
+            if (!interiorRoomMap.has(key)) {
+                interiorRoomMap.set(key, []);
+            }
+            interiorRoomMap.get(key)!.push(condition);
+        };
+
         if (projectType === 'interior' || projectType === 'both') {
+            interiorWalls.forEach((w) => {
+                const length = parseFloat(String(w.length)) || 0;
+                const width = parseFloat(String(w.width)) || 0;
+                const ceilingHeight = parseFloat(String(w.ceilingHeight)) || 8;
+                addToRoomMap(length, width, ceilingHeight, w.prepCondition);
+            });
+            interiorCeilings.forEach((c) => {
+                const length = parseFloat(String(c.length)) || 0;
+                const width = parseFloat(String(c.width)) || 0;
+                const ceilingHeight = parseFloat(String(c.ceilingHeight)) || 8;
+                addToRoomMap(length, width, ceilingHeight, c.prepCondition);
+            });
+            popcornRemovals.forEach((p) => {
+                const length = parseFloat(String(p.length)) || 0;
+                const width = parseFloat(String(p.width)) || 0;
+                const ceilingHeight = parseFloat(String(p.ceilingHeight)) || 8;
+                addToRoomMap(length, width, ceilingHeight, p.prepCondition);
+            });
+
+            for (const conditions of interiorRoomMap.values()) {
+                if (conditions.length > 0) {
+                    const maxMult = Math.max(...conditions.map((c) => pricing.PREP_CONDITION_MULTIPLIERS[c]));
+                    interiorPrepHours += pricing.BASE_PREP_HOURS_PER_ROOM * maxMult;
+                }
+            }
+
+            if (interiorPrepHours > 0) {
+                const prepLaborCost = interiorPrepHours * pricing.PAINTER_BURDENED_HOURLY_COST;
+                breakdownItems.push({ name: 'Interior Preparation', cogs: prepLaborCost });
+                totalCogs += prepLaborCost;
+            }
+
             interiorWalls.forEach((w: InteriorWall) => {
-                const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[w.prepCondition] || 1.0;
-                const prepHours = pricing.BASE_PREP_HOURS_PER_ROOM * prepMultiplier;
                 const length = parseFloat(String(w.length)) || 0;
                 const width = parseFloat(String(w.width)) || 0;
                 const ceilingHeight = parseFloat(String(w.ceilingHeight)) || 8;
@@ -1390,7 +1448,7 @@ export default function PaintingEstimator() {
                 const highCeilingMult = ceilingHeight > 10 ? pricing.HIGH_CEILING_MULTIPLIER : 1.0;
                 const sqFt = (length + width) * 2 * ceilingHeight;
                 const paintingHours = (sqFt / pricing.PRODUCTION_RATES.walls) * textureMult * coatMult * highCeilingMult;
-                const laborHours = paintingHours + prepHours;
+                const laborHours = paintingHours; // prep handled separately
                 const effectivePaintSqFt = sqFt * w.coats;
                 const primerSqFt = sqFt * getPrimerFactor(w.prepCondition);
                 let addon = 0;
@@ -1402,8 +1460,6 @@ export default function PaintingEstimator() {
             });
 
             interiorCeilings.forEach((c: InteriorCeiling) => {
-                const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[c.prepCondition] || 1.0;
-                const prepHours = pricing.BASE_PREP_HOURS_PER_ROOM * prepMultiplier;
                 const length = parseFloat(String(c.length)) || 0;
                 const width = parseFloat(String(c.width)) || 0;
                 const ceilingHeight = parseFloat(String(c.ceilingHeight)) || 8;
@@ -1412,7 +1468,7 @@ export default function PaintingEstimator() {
                 const highCeilingMult = ceilingHeight > 10 ? pricing.HIGH_CEILING_MULTIPLIER : 1.0;
                 const sqFt = length * width;
                 const paintingHours = (sqFt / pricing.PRODUCTION_RATES.ceilings) * textureMult * coatMult * highCeilingMult;
-                const laborHours = paintingHours + prepHours;
+                const laborHours = paintingHours; // prep handled separately
                 const effectivePaintSqFt = sqFt * c.coats;
                 const primerSqFt = sqFt * getPrimerFactor(c.prepCondition);
                 let addon = 0;
@@ -1427,14 +1483,13 @@ export default function PaintingEstimator() {
 
             popcornRemovals.forEach((p: PopcornRemoval) => {
                 const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[p.prepCondition] || 1.0;
-                const prepHours = pricing.BASE_PREP_HOURS_PER_ROOM * prepMultiplier;
                 const length = parseFloat(String(p.length)) || 0;
                 const width = parseFloat(String(p.width)) || 0;
                 const ceilingHeight = parseFloat(String(p.ceilingHeight)) || 8;
                 const highCeilingMult = ceilingHeight > 10 ? pricing.HIGH_CEILING_MULTIPLIER : 1.0;
                 const sqFt = length * width;
                 const removalHours = (sqFt / pricing.PRODUCTION_RATES.popcornRemoval) * prepMultiplier * highCeilingMult;
-                const laborHours = removalHours + prepHours;
+                const laborHours = removalHours; // prep handled separately, but keep mult on removal
                 const effectivePaintSqFt = 0;
                 const primerSqFt = 0;
                 const addon = 0;
@@ -1444,11 +1499,10 @@ export default function PaintingEstimator() {
 
             interiorTrims.forEach((t: TrimItem) => {
                 const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[t.prepCondition] || 1.0;
-                const prepHours = 0;
                 const lnFt = parseFloat(String(t.lnFt)) || 0;
                 const coatMult = 1 + (t.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
-                const paintingHours = (lnFt / pricing.PRODUCTION_RATES.trim) * coatMult;
-                const laborHours = paintingHours + prepHours;
+                const paintingHours = (lnFt / pricing.PRODUCTION_RATES.trim) * coatMult * prepMultiplier;
+                const laborHours = paintingHours;
                 const itemSqFt = lnFt * pricing.ADDITIONAL_PAINT_USAGE.trim;
                 const effectivePaintSqFt = itemSqFt * t.coats;
                 const primerSqFt = itemSqFt * getPrimerFactor(t.prepCondition);
@@ -1460,17 +1514,34 @@ export default function PaintingEstimator() {
             });
         }
 
+        // Calculate exterior prep hours once with max multiplier
+        let exteriorPrepHours = 0;
+        let exteriorConditions: PrepCondition[] = [];
         if (projectType === 'exterior' || projectType === 'both') {
+            exteriorSidings.forEach((s) => exteriorConditions.push(s.prepCondition));
+            exteriorTrims.forEach((t) => exteriorConditions.push(t.prepCondition));
+            additionalItems.forEach((i) => {
+                if (exteriorTypes.includes(i.type as any)) {
+                    exteriorConditions.push(i.prepCondition);
+                }
+            });
+
+            if (exteriorConditions.length > 0) {
+                const maxMult = Math.max(...exteriorConditions.map((c) => pricing.PREP_CONDITION_MULTIPLIERS[c]));
+                exteriorPrepHours = pricing.BASE_PREP_HOURS_EXTERIOR * maxMult;
+                const prepLaborCost = exteriorPrepHours * pricing.PAINTER_BURDENED_HOURLY_COST;
+                breakdownItems.push({ name: 'Exterior Preparation', cogs: prepLaborCost });
+                totalCogs += prepLaborCost;
+            }
+
             exteriorSidings.forEach((s: ExteriorSiding) => {
-                const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[s.prepCondition] || 1.0;
-                const prepHours = pricing.BASE_PREP_HOURS_EXTERIOR * prepMultiplier;
                 const sqFt = parseFloat(String(s.sqft)) || 0;
                 const textureMult = pricing.TEXTURE_MULTIPLIERS[s.texture] || 1.0;
                 const coatMult = 1 + (s.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
                 const sidingMult = pricing.SIDING_LABOR_MULTIPLIERS[s.siding as keyof typeof pricing.SIDING_LABOR_MULTIPLIERS] || 1.0;
                 const storyMult = pricing.STORY_MULTIPLIERS[s.stories as keyof typeof pricing.STORY_MULTIPLIERS] || 1.0;
                 const paintingHours = (sqFt / pricing.PRODUCTION_RATES.walls) * textureMult * coatMult * sidingMult * storyMult;
-                const laborHours = paintingHours + prepHours;
+                const laborHours = paintingHours; // prep handled separately
                 const effectivePaintSqFt = sqFt * s.coats;
                 const primerSqFt = sqFt * getPrimerFactor(s.prepCondition);
                 const addon = 0;
@@ -1482,11 +1553,10 @@ export default function PaintingEstimator() {
 
             exteriorTrims.forEach((t: TrimItem) => {
                 const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[t.prepCondition] || 1.0;
-                const prepHours = 0;
                 const lnFt = parseFloat(String(t.lnFt)) || 0;
                 const coatMult = 1 + (t.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
-                const paintingHours = (lnFt / pricing.PRODUCTION_RATES.trim) * coatMult;
-                const laborHours = paintingHours + prepHours;
+                const paintingHours = (lnFt / pricing.PRODUCTION_RATES.trim) * coatMult * prepMultiplier;
+                const laborHours = paintingHours;
                 const itemSqFt = lnFt * pricing.ADDITIONAL_PAINT_USAGE.trim;
                 const effectivePaintSqFt = itemSqFt * t.coats;
                 const primerSqFt = itemSqFt * getPrimerFactor(t.prepCondition);
@@ -1502,7 +1572,7 @@ export default function PaintingEstimator() {
             const qty = parseFloat(String(item.quantity)) || 0;
             const rate = pricing.PRODUCTION_RATES[item.type] || 0;
             const paintUsage = pricing.ADDITIONAL_PAINT_USAGE[item.type] || 0;
-            const coatMult = 1 + (2 - 2) * pricing.EXTRA_COAT_MULTIPLIER;
+            const coatMult = 1 + (item.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER;
             let itemHours = (item.type === 'gutter' || item.type === 'deck' ? qty * rate : qty * rate);
             let materialMult = 1.0;
             const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[item.prepCondition] || 1.0;
@@ -1540,7 +1610,7 @@ export default function PaintingEstimator() {
             }
             itemHours *= materialMult * prepMultiplier * coatMult;
             const itemSqFt = qty * paintUsage;
-            const effectivePaintSqFt = itemSqFt * 2; // assume 2 coats
+            const effectivePaintSqFt = itemSqFt * item.coats;
             const primerSqFt = itemSqFt * getPrimerFactor(item.prepCondition);
             const laborHours = itemHours;
             const addon = 0;
@@ -1658,7 +1728,7 @@ export default function PaintingEstimator() {
             </div>
             <div className="mt-10 flex justify-center gap-4">
                 <button onClick={() => setCurrentStep(1)} className="btn-secondary font-bold py-2 px-6 rounded-lg">Back</button>
-                <button onClick={() => setCurrentStep(3)} className="btn-primary font-bold py-2 px-6 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed" disabled={!projectType}>Continue</button>
+                <button onClick={() => setCurrentStep(3)} className="btn-primary font-bold py-2 px-6 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed" disabled={!projectType} title={projectType ? '' : 'Select a project type to continue'}>Continue</button>
             </div>
         </div>
     );
@@ -1675,7 +1745,7 @@ export default function PaintingEstimator() {
                                 <div className="space-y-4 mb-6">{interiorWalls.length > 0 ? interiorWalls.map(wall => (
                                     <div key={wall.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                         <div><p className="font-bold text-lg text-[#162733]">Walls</p><p className="text-sm text-gray-600">{wall.length}&apos;x{wall.width}&apos; height {wall.ceilingHeight}&apos;</p></div>
-                                        <div className="flex gap-2"><button onClick={() => { setEditingWall(wall); setIsWallModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => setInteriorWalls(interiorWalls.filter(w => w.id !== wall.id))} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
+                                        <div className="flex gap-2"><button onClick={() => { setEditingWall(wall); setIsWallModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => { if (confirm("Are you sure you want to delete this item?")) setInteriorWalls(interiorWalls.filter(w => w.id !== wall.id)) }} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
                                     </div>
                                 )) : <p className="text-center text-gray-500 py-4">No walls added yet.</p>}</div>
                                 <button onClick={() => { setEditingWall(null); setIsWallModalOpen(true); }} className="w-full btn-secondary font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Walls</button>
@@ -1685,7 +1755,7 @@ export default function PaintingEstimator() {
                                 <div className="space-y-4 mb-6">{interiorCeilings.length > 0 ? interiorCeilings.map(ceiling => (
                                     <div key={ceiling.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                         <div><p className="font-bold text-lg text-[#162733]">Ceiling Painting</p><p className="text-sm text-gray-600">{ceiling.length}&apos;x{ceiling.width}&apos;</p></div>
-                                        <div className="flex gap-2"><button onClick={() => { setEditingCeiling(ceiling); setIsCeilingModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => setInteriorCeilings(interiorCeilings.filter(c => c.id !== ceiling.id))} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
+                                        <div className="flex gap-2"><button onClick={() => { setEditingCeiling(ceiling); setIsCeilingModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => { if (confirm("Are you sure you want to delete this item?")) setInteriorCeilings(interiorCeilings.filter(c => c.id !== ceiling.id)) }} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
                                     </div>
                                 )) : <p className="text-center text-gray-500 py-4">No ceilings added yet.</p>}</div>
                                 <button onClick={() => { setEditingCeiling(null); setIsCeilingModalOpen(true); }} className="w-full btn-secondary font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Ceiling Painting</button>
@@ -1695,7 +1765,7 @@ export default function PaintingEstimator() {
                                 <div className="space-y-4 mb-6">{popcornRemovals.length > 0 ? popcornRemovals.map(popcorn => (
                                     <div key={popcorn.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                         <div><p className="font-bold text-lg text-[#162733]">Popcorn Removal</p><p className="text-sm text-gray-600">{popcorn.length}&apos;x{popcorn.width}&apos;</p></div>
-                                        <div className="flex gap-2"><button onClick={() => { setEditingPopcorn(popcorn); setIsPopcornModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => setPopcornRemovals(popcornRemovals.filter(p => p.id !== popcorn.id))} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
+                                        <div className="flex gap-2"><button onClick={() => { setEditingPopcorn(popcorn); setIsPopcornModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => { if (confirm("Are you sure you want to delete this item?")) setPopcornRemovals(popcornRemovals.filter(p => p.id !== popcorn.id)) }} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
                                     </div>
                                 )) : <p className="text-center text-gray-500 py-4">No popcorn removals added yet.</p>}</div>
                                 <button onClick={() => { setEditingPopcorn(null); setIsPopcornModalOpen(true); }} className="w-full btn-secondary font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Popcorn Removal</button>
@@ -1705,7 +1775,7 @@ export default function PaintingEstimator() {
                                 <div className="space-y-4 mb-6">{interiorTrims.length > 0 ? interiorTrims.map(trim => (
                                     <div key={trim.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                         <div><p className="font-bold text-lg text-[#162733]">Trim</p><p className="text-sm text-gray-600">{trim.lnFt} ln ft</p></div>
-                                        <div className="flex gap-2"><button onClick={() => { setEditingTrim(trim); setIsInteriorTrim(true); setIsTrimModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => setInteriorTrims(interiorTrims.filter(t => t.id !== trim.id))} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
+                                        <div className="flex gap-2"><button onClick={() => { setEditingTrim(trim); setIsInteriorTrim(true); setIsTrimModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => { if (confirm("Are you sure you want to delete this item?")) setInteriorTrims(interiorTrims.filter(t => t.id !== trim.id)) }} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
                                     </div>
                                 )) : <p className="text-center text-gray-500 py-4">No trims added yet.</p>}</div>
                                 <button onClick={() => { setEditingTrim(null); setIsInteriorTrim(true); setIsTrimModalOpen(true); }} className="w-full btn-secondary font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Trim</button>
@@ -1719,7 +1789,7 @@ export default function PaintingEstimator() {
                                 <div className="space-y-4 mb-6">{exteriorSidings.length > 0 ? exteriorSidings.map(siding => (
                                     <div key={siding.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                         <div><p className="font-bold text-lg text-[#162733]">{siding.sqft} sq ft {siding.siding}</p><p className="text-sm text-gray-600">{siding.stories}-story</p></div>
-                                        <div className="flex gap-2"><button onClick={() => { setEditingSiding(siding); setIsSidingModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => setExteriorSidings(exteriorSidings.filter(s => s.id !== siding.id))} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
+                                        <div className="flex gap-2"><button onClick={() => { setEditingSiding(siding); setIsSidingModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => { if (confirm("Are you sure you want to delete this item?")) setExteriorSidings(exteriorSidings.filter(s => s.id !== siding.id)) }} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
                                     </div>
                                 )) : <p className="text-center text-gray-500 py-4">No siding added yet.</p>}</div>
                                 <button onClick={() => { setEditingSiding(null); setIsSidingModalOpen(true); }} className="w-full btn-secondary font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Siding</button>
@@ -1729,7 +1799,7 @@ export default function PaintingEstimator() {
                                 <div className="space-y-4 mb-6">{exteriorTrims.length > 0 ? exteriorTrims.map(trim => (
                                     <div key={trim.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                         <div><p className="font-bold text-lg text-[#162733]">Trim</p><p className="text-sm text-gray-600">{trim.lnFt} ln ft</p></div>
-                                        <div className="flex gap-2"><button onClick={() => { setEditingTrim(trim); setIsInteriorTrim(false); setIsTrimModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => setExteriorTrims(exteriorTrims.filter(t => t.id !== trim.id))} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
+                                        <div className="flex gap-2"><button onClick={() => { setEditingTrim(trim); setIsInteriorTrim(false); setIsTrimModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => { if (confirm("Are you sure you want to delete this item?")) setExteriorTrims(exteriorTrims.filter(t => t.id !== trim.id)) }} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
                                     </div>
                                 )) : <p className="text-center text-gray-500 py-4">No trims added yet.</p>}</div>
                                 <button onClick={() => { setEditingTrim(null); setIsInteriorTrim(false); setIsTrimModalOpen(true); }} className="w-full btn-secondary font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Trim</button>
@@ -1741,7 +1811,7 @@ export default function PaintingEstimator() {
                         <div className="space-y-4 mb-6">{additionalItems.length > 0 ? additionalItems.map(item => (
                             <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                 <div><p className="font-bold text-lg text-[#162733]">{formatTypeLabel(item.type)}</p><p className="text-sm text-gray-600">Quantity: {item.quantity}{item.material ? ` (${item.material})` : ''}</p></div>
-                                <div className="flex gap-2"><button onClick={() => { setEditingAdditionalItem(item); setIsAdditionalModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => setAdditionalItems(additionalItems.filter(i => i.id !== item.id))} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
+                                <div className="flex gap-2"><button onClick={() => { setEditingAdditionalItem(item); setIsAdditionalModalOpen(true); }} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button><button onClick={() => { if (confirm("Are you sure you want to delete this item?")) setAdditionalItems(additionalItems.filter(i => i.id !== item.id)) }} className="text-red-600 hover:text-red-800 font-semibold">Delete</button></div>
                             </div>
                         )) : <p className="text-center text-gray-500 py-4">No additional items added yet.</p>}</div>
                         <button onClick={() => { setEditingAdditionalItem(null); setIsAdditionalModalOpen(true); }} className="w-full btn-secondary font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Additional Item</button>
@@ -1749,7 +1819,7 @@ export default function PaintingEstimator() {
                 </div>
                 <div className="mt-10 flex justify-center gap-4">
                     <button onClick={() => setCurrentStep(2)} className="btn-secondary font-bold py-2 px-6 rounded-lg">Back</button>
-                    <button onClick={() => setCurrentStep(4)} className="btn-primary font-bold py-3 px-6 rounded-lg shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed" disabled={interiorWalls.length === 0 && interiorCeilings.length === 0 && popcornRemovals.length === 0 && interiorTrims.length === 0 && exteriorSidings.length === 0 && exteriorTrims.length === 0 && additionalItems.length === 0}>Next: Quality</button>
+                    <button onClick={() => setCurrentStep(4)} className="btn-primary font-bold py-3 px-6 rounded-lg shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed" disabled={interiorWalls.length === 0 && interiorCeilings.length === 0 && popcornRemovals.length === 0 && interiorTrims.length === 0 && exteriorSidings.length === 0 && exteriorTrims.length === 0 && additionalItems.length === 0} title="Add at least one item to proceed">Next: Quality</button>
                 </div>
             </div>
         </div>
@@ -1768,7 +1838,7 @@ export default function PaintingEstimator() {
             </div>
             <div className="text-center mt-10 flex justify-center gap-4">
                 <button onClick={() => setCurrentStep(3)} className="btn-secondary font-bold py-3 px-8 rounded-lg text-lg">Back</button>
-                <button onClick={handleFinalCalculate} className="btn-primary font-bold py-3 px-8 rounded-lg text-lg shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed" disabled={!selectedPaintQuality}>
+                <button onClick={handleFinalCalculate} className="btn-primary font-bold py-3 px-8 rounded-lg text-lg shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed" disabled={!selectedPaintQuality} title={selectedPaintQuality ? '' : 'Select a paint quality to continue'}>
                     Calculate Precise Quote
                 </button>
             </div>
@@ -1780,7 +1850,7 @@ export default function PaintingEstimator() {
             <h2 className="text-2xl font-serif text-[#162733] mb-2">Your Precise Project Quote</h2>
             <div className="text-4xl md:text-6xl font-bold text-[#093373] my-4 min-h-[72px] flex items-center justify-center">
                 {isLoading ? (
-                    <span className="animate-pulse">Calculating...</span>
+                    <span className="flex items-center animate-pulse"><span className="animate-spin mr-2">⏳</span>Calculating...</span>
                 ) : (
                     <span>{formatCurrency(estimate)}</span>
                 )}
@@ -1795,24 +1865,24 @@ export default function PaintingEstimator() {
                     <table className="min-w-full bg-white border border-gray-200">
                         <thead>
                             <tr>
-                                <th className="py-2 px-4 border-b text-left">Item</th>
-                                <th className="py-2 px-4 border-b text-right">Price</th>
+                                <th className="py-2 px-4 border-b text-left text-gray-900">Item</th>
+                                <th className="py-2 px-4 border-b text-right text-gray-900">Price</th>
                             </tr>
                         </thead>
                         <tbody>
                             {breakdown.map((item, idx) => (
                                 <tr key={idx}>
-                                    <td className="py-2 px-4 border-b text-left">{item.name}</td>
-                                    <td className="py-2 px-4 border-b text-right">{formatCurrency(item.price)}</td>
+                                    <td className="py-2 px-4 border-b text-left text-gray-900">{item.name}</td>
+                                    <td className="py-2 px-4 border-b text-right text-gray-900">{formatCurrency(item.price)}</td>
                                 </tr>
                             ))}
                         </tbody>
                         <tfoot>
-                        <tr className="border-t-2 border-gray-400">
-                            <td className="py-2 px-4 font-bold text-left">Total</td>
-                            <td className="py-2 px-4 font-bold text-right">{formatCurrency(estimate)}</td>
-                        </tr>
-                    </tfoot>
+                            <tr className="border-t-2 border-gray-400">
+                                <td className="py-2 px-4 font-bold text-left text-gray-900">Total</td>
+                                <td className="py-2 px-4 font-bold text-right text-gray-900">{formatCurrency(estimate)}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -1827,7 +1897,7 @@ export default function PaintingEstimator() {
     );
 
     return (
-        <div className="bg[#f0f2f5] min-h-screen px-6 py-24 font-sans">
+        <div className="bg-[#f0f2f5] min-h-screen px-6 py-24 font-sans">
             <style>{`
                 .btn-primary { background-color: #093373; color: #ffffff; }
                 .btn-primary:hover { background-color: #0c4194; }
@@ -1838,6 +1908,31 @@ export default function PaintingEstimator() {
                 .font-sans { font-family: 'Inter', sans-serif; }
                 @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
                 .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+                
+                /* --- DARK MODE FIXES --- */
+                @media (prefers-color-scheme: dark) {
+                    /* This rule changes the text on various gray backgrounds to be light */
+                    .text-gray-600, .text-gray-700, .text-gray-900, .text-[#162733] {
+                        color: #e2e8f0 !important; /* A light gray for dark mode */
+                    }
+                    
+                    /* This rule now correctly targets BOTH the white cards AND the main page background */
+                    .bg-white, .bg-\\[\\#f0f2f5\\] {
+                        background-color: #1a202c !important; /* A dark background for contrast */
+                    }
+                    .bg-gray-50 {
+                        background-color: #2d3748 !important;
+                    }
+                    .border-gray-200 {
+                        border-color: #4a5568 !important;
+                    }
+                    .border-gray-400 {
+                        border-color: #718096 !important;
+                    }
+                    .border-red-500 {
+                        border-color: #f56565 !important;
+                    }
+                }
             `}</style>
             <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl">
                 <div className="relative app-container p-6 md:p-10">
