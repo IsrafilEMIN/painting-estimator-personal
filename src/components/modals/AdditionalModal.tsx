@@ -40,9 +40,17 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose
       setFormData(prev => {
         // Keep material if it's compatible with the new type, otherwise reset to undefined
         const currentMaterial = prev.material;
-        const newMaterial = (newType && materialOptions[newType as typeof interiorTypes[number]] && currentMaterial && materialOptions[newType as typeof interiorTypes[number]].includes(currentMaterial)) 
-          ? currentMaterial 
+
+        // --- FIX START ---
+        // 1. Perform the lookup only ONCE and store the result.
+        const availableMaterials = newType ? materialOptions[newType as typeof interiorTypes[number]] : undefined;
+
+        // 2. Use the new variable. TypeScript now knows if `availableMaterials` exists, it's an array.
+        const newMaterial = (availableMaterials && currentMaterial && availableMaterials.includes(currentMaterial))
+          ? currentMaterial
           : undefined;
+        // --- FIX END ---
+
         return {
           ...prev,
           type: newType,
