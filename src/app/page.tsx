@@ -214,16 +214,6 @@ export default function PaintingEstimator() {
       {isAdditionalModalOpen && <AdditionalModal key={editingAdditionalItem?.id || 'new'} item={editingAdditionalItem} onSave={handleSaveAdditional} onClose={() => { setIsAdditionalModalOpen(false); setEditingAdditionalItem(null); }} />}
       
       {isSettingsOpen && <PricingSettingsModal pricing={pricing} onSave={savePricing} onClose={() => setIsSettingsOpen(false)} />}
-      <div className="mt-4 text-center">
-        {!user ? (
-          <button onClick={handleSignIn} className="btn-primary font-bold py-2 px-4 rounded-lg">Sign In with Google</button>
-        ) : (
-          <div>
-            <p>Welcome, {user.displayName}</p>
-            <button onClick={handleSignOut} className="btn-secondary font-bold py-2 px-4 rounded-lg">Sign Out</button>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
