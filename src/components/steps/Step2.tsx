@@ -65,7 +65,7 @@ const Step2: React.FC<Step2Props> = ({
                   <div key={wall.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                     <div>
                       <p className="font-bold text-lg text-[#162733]">Walls</p>
-                      <p className="text-sm text-gray-600">{wall.length}'x{wall.width}' height {wall.ceilingHeight}'</p>
+                      <p className="text-sm text-gray-600">{wall.length}&apos;x{wall.width}&apos; height {wall.ceilingHeight}&apos;</p>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => editWall(wall)} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button>
@@ -94,7 +94,7 @@ const Step2: React.FC<Step2Props> = ({
                   <div key={ceiling.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                     <div>
                       <p className="font-bold text-lg text-[#162733]">Ceiling Painting</p>
-                      <p className="text-sm text-gray-600">{ceiling.length}'x{ceiling.width}'</p>
+                      <p className="text-sm text-gray-600">{ceiling.length}&apos;x{ceiling.width}&apos;</p>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => editCeiling(ceiling)} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button>
@@ -123,7 +123,7 @@ const Step2: React.FC<Step2Props> = ({
                   <div key={popcorn.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                     <div>
                       <p className="font-bold text-lg text-[#162733]">Popcorn Removal</p>
-                      <p className="text-sm text-gray-600">{popcorn.length}'x{popcorn.width}'</p>
+                      <p className="text-sm text-gray-600">{popcorn.length}&apos;x{popcorn.width}&apos;</p>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => editPopcorn(popcorn)} className="text-blue-600 hover:text-blue-800 font-semibold">Edit</button>
