@@ -139,6 +139,13 @@ export const calculateEstimate = (
 
   // --- Additional Items ---
   additional.forEach((item) => {
+    // --- FIX START ---
+    // Add this guard clause to skip items with no type.
+    if (!item.type) {
+      return;
+    }
+    // --- FIX END ---
+
     const quantity = Number(item.quantity);
     const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[item.prepCondition];
     const coatsMultiplier = item.coats > 2 ? (item.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER + 1 : 1;
@@ -150,9 +157,11 @@ export const calculateEstimate = (
       materialMultiplier = pricing.CABINET_MATERIAL_MULTIPLIERS[item.material as keyof typeof pricing.CABINET_MATERIAL_MULTIPLIERS] || 1;
     }
 
+    // With the guard clause, TypeScript now knows item.type is a valid key here.
     const laborHours = (quantity / pricing.PRODUCTION_RATES[item.type]) * prepMultiplier * coatsMultiplier * materialMultiplier;
     const rawLaborCost = laborHours * pricing.PAINTER_BURDENED_HOURLY_COST;
 
+    // This line is also now safe.
     const paintUsedGallons = (quantity * pricing.ADDITIONAL_PAINT_USAGE[item.type] * item.coats) / pricing.COVERAGE_PER_GALLON;
     const paintCost = paintUsedGallons * paintCostPerGallon;
     const suppliesCost = paintCost * pricing.SUPPLIES_PERCENTAGE;
