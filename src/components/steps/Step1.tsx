@@ -21,7 +21,7 @@ const Step1: React.FC<Step1Props> = ({ setCurrentStep, setIsSettingsOpen, handle
           onClick={() => setCurrentStep(2)}
           className="btn-primary font-bold py-3 px-8 rounded-lg"
         >
-          Let's Get Started
+          Let&apos;s Get Started
         </button>
       </div>
     </div>
