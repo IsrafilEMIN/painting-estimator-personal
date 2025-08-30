@@ -11,7 +11,7 @@ interface PopcornModalProps {
 
 const PopcornModal: React.FC<PopcornModalProps> = ({ service, onClose, onSave, onBack }) => {
   const initialState: Partial<Service> = {
-    id: Date.now(),
+    id: service?.id || Date.now(),
     type: 'popcornRemoval',
     prepCondition: service?.prepCondition || 'good',
     asbestos: service?.asbestos || false,

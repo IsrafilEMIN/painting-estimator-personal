@@ -36,13 +36,14 @@ export default function PaintingEstimator() {
     primerCost, setPrimerCost,
     breakdown, setBreakdown,
     isLoading, setIsLoading,
+    asbestosCost, setAsbestosCost,
     startOver,
   } = useEstimatorState();
 
   useEffect(() => {
     if (currentStep === 3) {
       setIsLoading(true);
-      const { total, breakdown, subtotal, tax, paintCost: pc, primerCost: prc } = calculateEstimate(rooms, pricing);
+      const { total, breakdown, subtotal, tax, paintCost: pc, primerCost: prc, asbestosCost } = calculateEstimate(rooms, pricing);
       setEstimate(total);
       setBreakdown(breakdown);
       setSubtotal(subtotal);
@@ -50,8 +51,9 @@ export default function PaintingEstimator() {
       setPaintCost(pc);
       setPrimerCost(prc);
       setIsLoading(false);
+      setAsbestosCost(asbestosCost);
     }
-  }, [currentStep, rooms, pricing, setEstimate, setBreakdown, setSubtotal, setTax, setPaintCost, setPrimerCost, setIsLoading]);
+  }, [currentStep, rooms, pricing, setEstimate, setBreakdown, setSubtotal, setTax, setPaintCost, setPrimerCost, setIsLoading, setAsbestosCost]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -93,6 +95,7 @@ export default function PaintingEstimator() {
               deleteService={deleteService}
               setCurrentStep={setCurrentStep}
               canProceed={canProceedToCalculate}
+              setIsLoading={setIsLoading}
             />
           )}
           {currentStep === 3 && (
@@ -108,6 +111,7 @@ export default function PaintingEstimator() {
               setCurrentStep={setCurrentStep}
               startOver={startOver}
               setIsSettingsOpen={setIsSettingsOpen}
+              asbestosCost={asbestosCost}
             />
           )}
         </main>

@@ -16,6 +16,7 @@ export const useEstimatorState = () => {
   const [primerCost, setPrimerCost] = useState(0);
   const [breakdown, setBreakdown] = useState<DetailedBreakdownItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [asbestosCost, setAsbestosCost] = useState(0);
 
   const openRoomModal = (room?: Room) => {
     setEditingRoom(room ?? undefined);
@@ -90,6 +91,7 @@ export const useEstimatorState = () => {
     primerCost, setPrimerCost,
     breakdown, setBreakdown,
     isLoading, setIsLoading,
+    asbestosCost, setAsbestosCost,
     startOver,
   };
 };

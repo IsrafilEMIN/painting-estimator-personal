@@ -7,7 +7,7 @@ export type Texture = 'smooth' | 'light' | 'heavy';
 
 export type PrimerType = 'none' | 'spot' | 'full';
 
-export type PaintType = 'standard' | 'benjaminMooreAura' | 'sherwinWilliamsEmerald' | 'moldResistant' | 'benjaminMooreRegal' | 'sherwinWilliamsDuration' | 'behrPremiumPlus';
+export type PaintType = 'standard' | 'benjaminMooreAura' | 'sherwinWilliamsEmerald' | 'moldResistant' | 'benjaminMooreRegal' | 'sherwinWilliamsDuration' | 'behrPremiumPlus' | 'sherwinWilliamsSuperPaint' | 'sherwinWilliamsCashmere' | 'sherwinWilliamsProMar200' | 'sherwinWilliamsCaptivate' | 'sherwinWilliamsHarmony' | 'benjaminMooreBen' | 'benjaminMooreAdvance' | 'benjaminMooreUltraSpec' | 'benjaminMooreScuffX' | 'behrUltra' | 'behrMarquee' | 'behrDynasty';
 
 export interface Service {
   id: number;
@@ -29,6 +29,8 @@ export interface Service {
   quantity?: number;
   material?: string;
   asbestos?: boolean;
+  useCustomSqFt?: boolean; // New: Flag for custom ceiling sqFt (ceilingPainting only)
+  customSqFt?: number;     // New: Custom sqFt value if useCustomSqFt is true
 }
 
 export interface Room {
@@ -50,6 +52,7 @@ export interface DetailedBreakdownItem {
   services: Array<{
     serviceId: number;
     serviceType: string;
+    material?: string;
     laborCost: number;
     materialCost: number;
     total: number;
@@ -71,8 +74,6 @@ export interface Pricing {
   BASE_PREP_HOURS_FIXED: number;
   PREP_HOURS_PER_FLOOR_SQFT: number;
   PREP_HOURS_PER_PERIMETER_LFT: number;
-  COST_MOLD_RESISTANT_PAINT_UPCHARGE: number;
-  COST_FIREPLACE_MANTEL: number;
   PREP_CONDITION_ADDITIVES: Record<PrepCondition, number>;
   TEXTURE_ADDITIVES: Record<Texture, number>;
   EXTRA_COAT_ADDITIVE: number;
@@ -82,6 +83,7 @@ export interface Pricing {
   WINDOW_DEDUCTION_SQFT: number;
   INTERIOR_DOOR_MATERIAL_ADDITIVES: Record<string, number>;
   CABINET_MATERIAL_ADDITIVES: Record<string, number>;
+  MANTEL_MATERIAL_ADDITIVES: Record<string, number>;
   STAIRWELL_COMPLEXITY_ADDITIVE: number;
   COST_ASBESTOS_TEST: number;
   COST_RAILINGS_SPINDLES: number;

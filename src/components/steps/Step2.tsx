@@ -11,6 +11,7 @@ interface Step2Props {
   deleteService: (roomId: number, serviceId: number) => void;
   setCurrentStep: (step: number) => void;
   canProceed: boolean;
+  setIsLoading: (loading: boolean) => void;
 }
 
 const Step2: React.FC<Step2Props> = ({
@@ -21,7 +22,8 @@ const Step2: React.FC<Step2Props> = ({
   openServiceModal,
   deleteService,
   setCurrentStep,
-  canProceed
+  canProceed,
+  setIsLoading
 }) => {
   const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
 
@@ -57,7 +59,7 @@ const Step2: React.FC<Step2Props> = ({
       </button>
       <div className="flex justify-between">
         <button onClick={() => setCurrentStep(1)} className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition">Back</button>
-        <button onClick={() => setCurrentStep(3)} disabled={!canProceed} className={`bg-green-500 text-white py-2 px-6 rounded-lg transition ${!canProceed ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}>
+        <button onClick={() => { setIsLoading(true); setCurrentStep(3); }} disabled={!canProceed} className={`bg-green-500 text-white py-2 px-6 rounded-lg transition ${!canProceed ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}>
           Calculate Estimate
         </button>
       </div>

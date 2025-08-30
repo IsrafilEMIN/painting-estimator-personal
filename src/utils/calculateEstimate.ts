@@ -13,8 +13,21 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
     benjaminMooreRegal: 0,
     sherwinWilliamsDuration: 0,
     behrPremiumPlus: 0,
+    sherwinWilliamsSuperPaint: 0,
+    sherwinWilliamsCashmere: 0,
+    sherwinWilliamsProMar200: 0,
+    sherwinWilliamsCaptivate: 0,
+    sherwinWilliamsHarmony: 0,
+    benjaminMooreBen: 0,
+    benjaminMooreAdvance: 0,
+    benjaminMooreUltraSpec: 0,
+    benjaminMooreScuffX: 0,
+    behrUltra: 0,
+    behrMarquee: 0,
+    behrDynasty: 0,
   };
   let totalPrimerSqFt = 0;
+  let hasAsbestos = false;
 
   rooms.forEach(room => {
     const length = Number(room.length) || 0;
@@ -44,8 +57,17 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
       const textureAdd = pricing.TEXTURE_ADDITIVES[service.texture || 'smooth'] || 0;
       const paintTypeSafe = service.paintType || 'standard';
       const primerTypeSafe = service.primerType || 'none';
-      const matAdd = pricing.INTERIOR_DOOR_MATERIAL_ADDITIVES[service.material || ''] ||
-                     pricing.CABINET_MATERIAL_ADDITIVES[service.material || ''] || 0;
+      let additiveMap;
+      if (service.type === 'doorPainting') {
+        additiveMap = pricing.INTERIOR_DOOR_MATERIAL_ADDITIVES;
+      } else if (['cabinetDoors', 'cabinetDrawers', 'vanityDoors', 'vanityDrawers'].includes(service.type)) {
+        additiveMap = pricing.CABINET_MATERIAL_ADDITIVES;
+      } else if (['fireplaceMantel'].includes(service.type)) {
+        additiveMap = pricing.MANTEL_MATERIAL_ADDITIVES;
+      } else {
+        additiveMap = {}; // Or handle other types
+      }
+      const matAdd = additiveMap[service.material || ''] || 0;
 
       let sqFt = 0;
       let laborHours = 0;
@@ -78,14 +100,16 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
           if (service.hasStairway && service.hasRailings) materialCost += pricing.COST_RAILINGS_SPINDLES;
           break;
         case 'ceilingPainting':
-          sqFt = floorSqFt;
+          sqFt = service.useCustomSqFt ? (Number(service.customSqFt) || floorSqFt) : floorSqFt; // New: Conditional custom sqFt
           laborHours = sqFt / rate;
           break;
         case 'popcornRemoval':
           sqFt = floorSqFt;
           laborHours = sqFt / rate;
           materialCost += sqFt * pricing.COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT;
-          if (service.asbestos) materialCost += pricing.COST_ASBESTOS_TEST;
+          if (service.type === 'popcornRemoval' && service.asbestos) {
+            hasAsbestos = true;
+          }
           break;
         case 'crownMolding':
           const lnFtCrown = lnFtNum > 0 ? lnFtNum : perimeter;
@@ -101,8 +125,8 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
           break;
         case 'fireplaceMantel':
           laborHours = quantityNum / rate;
+          laborHours *= (1 + matAdd);
           sqFt = quantityNum * pricing.ADDITIONAL_PAINT_USAGE.fireplaceMantel;
-          materialCost += quantityNum * pricing.COST_FIREPLACE_MANTEL;
           break;
         default:
           const paintUsageAdd = pricing.ADDITIONAL_PAINT_USAGE[service.type] ?? 0;
@@ -112,8 +136,8 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
           break;
       }
 
-      laborHours *= (1 + prepAdd);
-      laborHours *= (1 + textureAdd);
+      let cumulativeAdd = prepAdd + textureAdd; // New: Sum prep and texture to avoid compounding
+      laborHours *= (1 + cumulativeAdd); // New: Apply single cumulative multiplier
 
       let highCeilAdd = 0;
       let scaffoldingKey = '';
@@ -141,7 +165,8 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
       const paintSqFt = sqFt * coats;
       paintUsage[paintTypeSafe] += paintSqFt;
 
-      if (service.useSpray) laborHours *= (1 + pricing.sprayUpcharge / 100);
+      if (service.useSpray) laborHours *= 0.8;
+      if (service.useSpray) materialCost *= 1 + pricing.sprayUpcharge;
 
       let laborCost = laborHours * pricing.laborRate;
       materialCost += laborCost * pricing.SUPPLIES_PERCENTAGE;
@@ -176,6 +201,8 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
     });
   });
 
+  let asbestosCost = hasAsbestos ? pricing.COST_ASBESTOS_TEST : 0;
+
   // Safeguard globals
   let paintCoverage = pricing.paintCoverage;
   if (typeof paintCoverage !== 'number' || isNaN(paintCoverage) || paintCoverage <= 0) {
@@ -206,7 +233,7 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   let totalPrimerCost = isNaN(primerGallons * primerCost) ? 0 : primerGallons * primerCost;
   totalPrimerCost *= pricing.PROFIT_MARKUP;
 
-  subtotal += totalPaintCost + totalPrimerCost;
+  subtotal += totalPaintCost + totalPrimerCost + asbestosCost;
 
   let taxAmount = subtotal * pricing.TAX_RATE;
   let total = subtotal + taxAmount;
@@ -216,5 +243,5 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   if (isNaN(taxAmount)) taxAmount = 0;
   if (isNaN(total)) total = pricing.MIN_JOB_FEE;
 
-  return { total, breakdown, subtotal, tax: taxAmount, paintCost: totalPaintCost, primerCost: totalPrimerCost };
+  return { total, breakdown, subtotal, tax: taxAmount, paintCost: totalPaintCost, primerCost: totalPrimerCost, asbestosCost };
 };

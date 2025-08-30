@@ -11,7 +11,7 @@ interface WallModalProps {
 
 const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) => {
   const initialState: Partial<Service> = {
-    id: Date.now(),
+    id: wall?.id || Date.now(),
     type: 'wallPainting',
     hasStairway: wall?.hasStairway || false,
     stairwaySqFt: wall?.stairwaySqFt || 0,

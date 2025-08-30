@@ -11,7 +11,7 @@ interface CeilingModalProps {
 
 const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, onBack }) => {
   const initialState: Partial<Service> = {
-    id: Date.now(),
+    id: service?.id || Date.now(),
     type: 'ceilingPainting',
     texture: service?.texture || 'smooth',
     prepCondition: service?.prepCondition || 'good',
@@ -20,6 +20,8 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
     primerCoats: service?.primerCoats || 1,
     paintType: service?.paintType || 'standard',
     useSpray: service?.useSpray || false,
+    useCustomSqFt: service?.useCustomSqFt || false, // New: Initialize custom flag
+    customSqFt: service?.customSqFt || undefined,   // New: Initialize custom sqFt
   };
   const [formData, setFormData] = useState<Partial<Service>>(initialState);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
@@ -32,7 +34,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
       return;
     }
     let num;
-    if (name === 'coats' || name === 'primerCoats') {
+    if (name === 'coats' || name === 'primerCoats' || name === 'customSqFt') { // New: Handle customSqFt as number
       num = parseFloat(value) || 0;
       if (value !== '' && !isNaN(num) && num < 0) {
         setFieldErrors(prev => ({ ...prev, [name]: 'Cannot be negative' }));
@@ -47,6 +49,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
   const handleSave = () => {
     if ((formData.coats || 0) < 1) return alert("Coats >= 1");
     if (!formData.prepCondition) return alert("Select condition");
+    if (formData.useCustomSqFt && ((formData.customSqFt || 0) <= 0)) return alert("Custom SqFt must be positive if enabled"); // New: Validation for customSqFt
     onSave(formData as Service);
   };
 
@@ -73,7 +76,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
           </div>
           <div>
             <label htmlFor="coats" className="block text-sm font-semibold text-gray-700 mb-1">Coats</label>
-            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
+            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
             {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
           </div>
           <div>
@@ -87,7 +90,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
           {formData.primerType === 'full' && (
             <div>
               <label htmlFor="primerCoats" className="block text-sm font-semibold text-gray-700 mb-1">Primer Coats</label>
-              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition" />
+              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
             </div>
           )}
           <div>
@@ -106,6 +109,17 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
             <input type="checkbox" name="useSpray" checked={formData.useSpray} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
             <span>Use Spray (upcharge)</span>
           </label>
+          <label className="flex items-center space-x-2"> {/* New: Checkbox for custom sqFt */}
+            <input type="checkbox" name="useCustomSqFt" checked={formData.useCustomSqFt} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+            <span>Use Custom Ceiling Surface Area</span>
+          </label>
+          {formData.useCustomSqFt && ( /* New: Conditional input for customSqFt */
+            <div>
+              <label htmlFor="customSqFt" className="block text-sm font-semibold text-gray-700 mb-1">Custom Sq Ft</label>
+              <input type="number" min="1" id="customSqFt" name="customSqFt" value={formData.customSqFt || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${fieldErrors.customSqFt ? 'border-red-500' : ''}`} />
+              {fieldErrors.customSqFt && <p className="text-red-500 text-sm mt-1">{fieldErrors.customSqFt}</p>}
+            </div>
+          )}
           <div className="flex justify-end gap-4 mt-6">
             <button onClick={onBack} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Back</button>
             <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Cancel</button>

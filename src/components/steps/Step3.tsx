@@ -10,6 +10,7 @@ interface Step3Props {
   total: number;
   paintCost: number;
   primerCost: number;
+  asbestosCost: number;
   formatCurrency: (value: number) => string;
   setCurrentStep: (step: number) => void;
   startOver: () => void;
@@ -24,6 +25,7 @@ const Step3: React.FC<Step3Props> = ({
   total,
   paintCost,
   primerCost,
+  asbestosCost,
   formatCurrency,
   setCurrentStep,
   startOver,
@@ -82,6 +84,12 @@ const Step3: React.FC<Step3Props> = ({
               <td className="py-3 px-4 text-right"></td>
               <td className="py-3 px-4 text-right">{formatCurrency(primerCost)}</td>
               <td className="py-3 px-4 text-right font-semibold">{formatCurrency(primerCost)}</td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100 transition">
+              <td className="py-3 px-4 font-semibold">Asbestos Check Fee</td>
+              <td className="py-3 px-4 text-right"></td>
+              <td className="py-3 px-4 text-right">{formatCurrency(asbestosCost)}</td>
+              <td className="py-3 px-4 text-right font-semibold">{formatCurrency(asbestosCost)}</td>
             </tr>
           </tbody>
           <tfoot>

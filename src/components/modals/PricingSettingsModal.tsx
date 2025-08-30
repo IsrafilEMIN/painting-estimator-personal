@@ -104,7 +104,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
                   <InputField label="Labor Rate ($/hr)" name="laborRate" value={formData.laborRate} onChange={handleChange} error={errors['laborRate']} />
                   <InputField label="Paint Coverage (sqft/gal)" name="paintCoverage" value={formData.paintCoverage} onChange={handleChange} error={errors['paintCoverage']} />
                   <InputField label="Primer Cost ($/gal)" name="primerCost" value={formData.primerCost} onChange={handleChange} error={errors['primerCost']} />
-                  <InputField label="Spray Upcharge (%)" name="sprayUpcharge" value={formData.sprayUpcharge} onChange={handleChange} error={errors['sprayUpcharge']} />
+                  <InputField label="Spray Upcharge (/100%)" name="sprayUpcharge" value={formData.sprayUpcharge} onChange={handleChange} error={errors['sprayUpcharge']} />
                   <InputField label="Profit Markup" name="PROFIT_MARKUP" value={formData.PROFIT_MARKUP} onChange={handleChange} step={0.01} error={errors['PROFIT_MARKUP']} />
                   <InputField label="Tax Rate" name="TAX_RATE" value={formData.TAX_RATE} onChange={handleChange} step={0.001} error={errors['TAX_RATE']} />
                   <InputField label="Supplies Percentage" name="SUPPLIES_PERCENTAGE" value={formData.SUPPLIES_PERCENTAGE} onChange={handleChange} step={0.01} error={errors['SUPPLIES_PERCENTAGE']} />
@@ -113,8 +113,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
                   <InputField label="Base Prep Hours Fixed" name="BASE_PREP_HOURS_FIXED" value={formData.BASE_PREP_HOURS_FIXED} onChange={handleChange} step={0.01} error={errors['BASE_PREP_HOURS_FIXED']} />
                   <InputField label="Prep Hours Per Floor Sqft" name="PREP_HOURS_PER_FLOOR_SQFT" value={formData.PREP_HOURS_PER_FLOOR_SQFT} onChange={handleChange} step={0.001} error={errors['PREP_HOURS_PER_FLOOR_SQFT']} />
                   <InputField label="Prep Hours Per Perimeter Lft" name="PREP_HOURS_PER_PERIMETER_LFT" value={formData.PREP_HOURS_PER_PERIMETER_LFT} onChange={handleChange} step={0.001} error={errors['PREP_HOURS_PER_PERIMETER_LFT']} />
-                  <InputField label="Mold Resistant Paint Upcharge" name="COST_MOLD_RESISTANT_PAINT_UPCHARGE" value={formData.COST_MOLD_RESISTANT_PAINT_UPCHARGE} onChange={handleChange} error={errors['COST_MOLD_RESISTANT_PAINT_UPCHARGE']} />
-                  <InputField label="Fireplace Mantel Cost" name="COST_FIREPLACE_MANTEL" value={formData.COST_FIREPLACE_MANTEL} onChange={handleChange} error={errors['COST_FIREPLACE_MANTEL']} />
                   <InputField label="Extra Coat Additive" name="EXTRA_COAT_ADDITIVE" value={formData.EXTRA_COAT_ADDITIVE} onChange={handleChange} step={0.01} error={errors['EXTRA_COAT_ADDITIVE']} />
                   <InputField label="Door Deduction Sqft" name="DOOR_DEDUCTION_SQFT" value={formData.DOOR_DEDUCTION_SQFT} onChange={handleChange} error={errors['DOOR_DEDUCTION_SQFT']} />
                   <InputField label="Window Deduction Sqft" name="WINDOW_DEDUCTION_SQFT" value={formData.WINDOW_DEDUCTION_SQFT} onChange={handleChange} error={errors['WINDOW_DEDUCTION_SQFT']} />
