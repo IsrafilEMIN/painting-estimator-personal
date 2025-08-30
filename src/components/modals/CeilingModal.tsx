@@ -51,34 +51,34 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full animate-fade-in-up max-h-[90vh] overflow-y-auto">
-        <h3 className="text-2xl font-serif font-semibold text-[#162733] mb-6">{service ? 'Edit' : 'Add'} Ceiling Painting</h3>
-        <div className="space-y-4">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">{service ? 'Edit' : 'Add'} Ceiling Painting</h3>
+        <div className="space-y-5">
           <div>
-            <label htmlFor="texture" className="block text-sm font-medium text-gray-700">Texture</label>
-            <select id="texture" name="texture" value={formData.texture} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+            <label htmlFor="texture" className="block text-sm font-semibold text-gray-700 mb-1">Texture</label>
+            <select id="texture" name="texture" value={formData.texture} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
               <option value="smooth">Smooth</option>
               <option value="light">Light</option>
               <option value="heavy">Heavy</option>
             </select>
           </div>
           <div>
-            <label htmlFor="prepCondition" className="block text-sm font-medium text-gray-700">Condition</label>
-            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+            <label htmlFor="prepCondition" className="block text-sm font-semibold text-gray-700 mb-1">Condition</label>
+            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
               <option value="good">Good</option>
               <option value="fair">Fair</option>
               <option value="poor">Poor</option>
             </select>
           </div>
           <div>
-            <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Coats</label>
-            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500' : 'focus:border-[#093373]'}`} />
-            {fieldErrors.coats && <p className="text-red-500 text-sm">{fieldErrors.coats}</p>}
+            <label htmlFor="coats" className="block text-sm font-semibold text-gray-700 mb-1">Coats</label>
+            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
+            {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
           </div>
           <div>
-            <label htmlFor="primerType" className="block text-sm font-medium text-gray-700">Primer</label>
-            <select id="primerType" name="primerType" value={formData.primerType} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+            <label htmlFor="primerType" className="block text-sm font-semibold text-gray-700 mb-1">Primer</label>
+            <select id="primerType" name="primerType" value={formData.primerType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
               <option value="none">None</option>
               <option value="spot">Spot</option>
               <option value="full">Full</option>
@@ -86,13 +86,13 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
           </div>
           {formData.primerType === 'full' && (
             <div>
-              <label htmlFor="primerCoats" className="block text-sm font-medium text-gray-700">Primer Coats</label>
-              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900`} />
+              <label htmlFor="primerCoats" className="block text-sm font-semibold text-gray-700 mb-1">Primer Coats</label>
+              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition" />
             </div>
           )}
           <div>
-            <label htmlFor="paintType" className="block text-sm font-medium text-gray-700">Paint Type</label>
-            <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+            <label htmlFor="paintType" className="block text-sm font-semibold text-gray-700 mb-1">Paint Type</label>
+            <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
               <option value="standard">Standard</option>
               <option value="benjaminMooreAura">Benjamin Moore Aura</option>
               <option value="sherwinWilliamsEmerald">Sherwin Williams Emerald</option>
@@ -102,14 +102,14 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
               <option value="behrPremiumPlus">Behr Premium Plus</option>
             </select>
           </div>
-          <label className="flex items-center">
-            <input type="checkbox" name="useSpray" checked={formData.useSpray} onChange={handleChange} className="h-4 w-4 rounded border-2 border-gray-400 text-[#093373] focus:ring-[#093373] mr-2" />
-            Use Spray (upcharge)
+          <label className="flex items-center space-x-2">
+            <input type="checkbox" name="useSpray" checked={formData.useSpray} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+            <span>Use Spray (upcharge)</span>
           </label>
           <div className="flex justify-end gap-4 mt-6">
-            <button onClick={onBack} className="btn-secondary font-bold py-2 px-4 rounded-lg">Back</button>
-            <button onClick={onClose} className="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
-            <button onClick={handleSave} className="btn-primary font-bold py-2 px-4 rounded-lg">Save</button>
+            <button onClick={onBack} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Back</button>
+            <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Cancel</button>
+            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">Save</button>
           </div>
         </div>
       </div>

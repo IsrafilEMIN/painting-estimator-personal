@@ -12,6 +12,8 @@ export const useEstimatorState = () => {
   const [estimate, setEstimate] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
   const [tax, setTax] = useState(0);
+  const [paintCost, setPaintCost] = useState(0);
+  const [primerCost, setPrimerCost] = useState(0);
   const [breakdown, setBreakdown] = useState<DetailedBreakdownItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,6 +71,8 @@ export const useEstimatorState = () => {
     setEstimate(0);
     setSubtotal(0);
     setTax(0);
+    setPaintCost(0);
+    setPrimerCost(0);
     setBreakdown([]);
   };
 
@@ -82,6 +86,8 @@ export const useEstimatorState = () => {
     estimate, setEstimate,
     subtotal, setSubtotal,
     tax, setTax,
+    paintCost, setPaintCost,
+    primerCost, setPrimerCost,
     breakdown, setBreakdown,
     isLoading, setIsLoading,
     startOver,

@@ -1,3 +1,4 @@
+// src/components/modals/RoomModal.tsx
 import React, { useState } from 'react';
 import type { Room } from '@/types/paintingEstimator';
 
@@ -36,44 +37,40 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
   };
 
   const handleSave = () => {
-    // The error occurs because `formData` is of type `Partial<Room>`, 
-    // meaning its properties can be `undefined`.
-    // Using the nullish coalescing operator (??) provides a default value (0) 
-    // if the property is null or undefined, satisfying TypeScript's type checker.
     if (!formData.name?.trim()) return alert("Enter room name");
-    if ((formData.length ?? 0) <= 0) return alert("Length must be greater than 0");
-    if ((formData.width ?? 0) <= 0) return alert("Width must be greater than 0");
-    if ((formData.height ?? 0) <= 0) return alert("Height must be greater than 0");
+    if ((formData.length ?? 0) <= 0) return alert("Length > 0");
+    if ((formData.width ?? 0) <= 0) return alert("Width > 0");
+    if ((formData.height ?? 0) <= 0) return alert("Height > 0");
     onSave(formData as Room);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full animate-fade-in-up max-h-[90vh] overflow-y-auto">
-        <h3 className="text-2xl font-serif font-semibold text-[#162733] mb-6">{room ? 'Edit' : 'Add'} Room</h3>
-        <div className="space-y-4">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">{room ? 'Edit' : 'Add'} Room</h3>
+        <div className="space-y-5">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Room Name</label>
-            <input type="text" id="name" name="name" value={formData.name || ''} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900" />
+            <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1">Room Name</label>
+            <input type="text" id="name" name="name" value={formData.name || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
           </div>
           <div>
-            <label htmlFor="length" className="block text-sm font-medium text-gray-700">Length (ft)</label>
-            <input type="number" min="0" step="0.1" id="length" name="length" value={formData.length ?? ''} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500' : 'focus:border-[#093373]'}`} />
-            {fieldErrors.length && <p className="text-red-500 text-sm">{fieldErrors.length}</p>}
+            <label htmlFor="length" className="block text-sm font-semibold text-gray-700 mb-1">Length (ft)</label>
+            <input type="number" min="0" step="0.1" id="length" name="length" value={formData.length ?? ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.length ? 'border-red-500' : ''}`} />
+            {fieldErrors.length && <p className="text-red-500 text-sm mt-1">{fieldErrors.length}</p>}
           </div>
           <div>
-            <label htmlFor="width" className="block text-sm font-medium text-gray-700">Width (ft)</label>
-            <input type="number" min="0" step="0.1" id="width" name="width" value={formData.width ?? ''} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500' : 'focus:border-[#093373]'}`} />
-            {fieldErrors.width && <p className="text-red-500 text-sm">{fieldErrors.width}</p>}
+            <label htmlFor="width" className="block text-sm font-semibold text-gray-700 mb-1">Width (ft)</label>
+            <input type="number" min="0" step="0.1" id="width" name="width" value={formData.width ?? ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.width ? 'border-red-500' : ''}`} />
+            {fieldErrors.width && <p className="text-red-500 text-sm mt-1">{fieldErrors.width}</p>}
           </div>
           <div>
-            <label htmlFor="height" className="block text-sm font-medium text-gray-700">Height (ft)</label>
-            <input type="number" min="0" step="0.1" id="height" name="height" value={formData.height ?? ''} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.height ? 'border-red-500' : 'focus:border-[#093373]'}`} />
-            {fieldErrors.height && <p className="text-red-500 text-sm">{fieldErrors.height}</p>}
+            <label htmlFor="height" className="block text-sm font-semibold text-gray-700 mb-1">Height (ft)</label>
+            <input type="number" min="0" step="0.1" id="height" name="height" value={formData.height ?? ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.height ? 'border-red-500' : ''}`} />
+            {fieldErrors.height && <p className="text-red-500 text-sm mt-1">{fieldErrors.height}</p>}
           </div>
           <div className="flex justify-end gap-4 mt-6">
-            <button onClick={onClose} className="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
-            <button onClick={handleSave} className="btn-primary font-bold py-2 px-4 rounded-lg">Save</button>
+            <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Cancel</button>
+            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">Save</button>
           </div>
         </div>
       </div>

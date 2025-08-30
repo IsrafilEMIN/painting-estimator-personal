@@ -26,38 +26,38 @@ const Step2: React.FC<Step2Props> = ({
   const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Rooms</h2>
+    <div className="space-y-6">
+      <h2 className="text-3xl font-bold text-gray-800 mb-4">Rooms</h2>
       {rooms.map((room) => (
-        <div key={room.id} className="bg-white p-4 rounded-lg shadow mb-4">
-          <h3 className="font-bold text-lg">{room.name}</h3>
-          <p>{room.length}x{room.width}x{room.height}</p>
-          <div className="mt-2 space-x-2">
-            <button onClick={() => openRoomModal(room)} className="text-sm text-blue-500">Edit</button>
-            <button onClick={() => duplicateRoom(room)} className="text-sm text-green-500">Duplicate</button>
-            <button onClick={() => deleteRoom(room.id)} className="text-sm text-red-500">Delete</button>
+        <div key={room.id} className="bg-white p-6 rounded-xl shadow-md transition-shadow hover:shadow-lg">
+          <h3 className="font-bold text-xl text-gray-800">{room.name}</h3>
+          <p className="text-gray-600">{room.length}x{room.width}x{room.height}</p>
+          <div className="mt-2 space-x-3 text-sm">
+            <button onClick={() => openRoomModal(room)} className="text-blue-600 hover:underline">Edit</button>
+            <button onClick={() => duplicateRoom(room)} className="text-green-600 hover:underline">Duplicate</button>
+            <button onClick={() => deleteRoom(room.id)} className="text-red-600 hover:underline">Delete</button>
           </div>
           <div className="mt-4">
-            <h4 className="font-bold">Services</h4>
+            <h4 className="font-semibold text-gray-800 mb-2">Services</h4>
             {room.services.map(service => (
-              <div key={service.id} className="flex justify-between">
-                <span>{formatTypeLabel(service.type)}</span>
-                <div>
-                  <button onClick={() => openServiceModal(room.id, service)} className="text-sm text-blue-500">Edit</button>
-                  <button onClick={() => deleteService(room.id, service.id)} className="text-sm text-red-500 ml-2">Delete</button>
+              <div key={service.id} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0">
+                <span className="text-gray-700">{formatTypeLabel(service.type)}</span>
+                <div className="space-x-3 text-sm">
+                  <button onClick={() => openServiceModal(room.id, service)} className="text-blue-600 hover:underline">Edit</button>
+                  <button onClick={() => deleteService(room.id, service.id)} className="text-red-600 hover:underline">Delete</button>
                 </div>
               </div>
             ))}
-            <button onClick={() => openServiceModal(room.id)} className="text-sm text-indigo-500 mt-2">+ Add Service</button>
+            <button onClick={() => openServiceModal(room.id)} className="text-indigo-600 hover:underline text-sm mt-2">+ Add Service</button>
           </div>
         </div>
       ))}
-      <button onClick={() => openRoomModal()} className="bg-gray-200 hover:bg-gray-300 text-black font-bold py-2 px-4 rounded-lg w-full mb-4">
+      <button onClick={() => openRoomModal()} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg w-full transition">
         + Add Room
       </button>
       <div className="flex justify-between">
-        <button onClick={() => setCurrentStep(1)} className="bg-gray-500 text-white py-2 px-4 rounded">Back</button>
-        <button onClick={() => setCurrentStep(3)} disabled={!canProceed} className={`bg-green-500 text-white py-2 px-4 rounded ${!canProceed ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}>
+        <button onClick={() => setCurrentStep(1)} className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition">Back</button>
+        <button onClick={() => setCurrentStep(3)} disabled={!canProceed} className={`bg-green-500 text-white py-2 px-6 rounded-lg transition ${!canProceed ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}>
           Calculate Estimate
         </button>
       </div>

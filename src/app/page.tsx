@@ -32,6 +32,8 @@ export default function PaintingEstimator() {
     estimate, setEstimate,
     subtotal, setSubtotal,
     tax, setTax,
+    paintCost, setPaintCost,
+    primerCost, setPrimerCost,
     breakdown, setBreakdown,
     isLoading, setIsLoading,
     startOver,
@@ -40,11 +42,13 @@ export default function PaintingEstimator() {
   useEffect(() => {
     if (currentStep === 3) {
       setIsLoading(true);
-      const { total, breakdown, subtotal, tax } = calculateEstimate(rooms, pricing);
+      const { total, breakdown, subtotal, tax, paintCost: pc, primerCost: prc } = calculateEstimate(rooms, pricing);
       setEstimate(total);
       setBreakdown(breakdown);
       setSubtotal(subtotal);
       setTax(tax);
+      setPaintCost(pc);
+      setPrimerCost(prc);
       setIsLoading(false);
     }
   }, [currentStep, rooms, pricing]);
@@ -61,23 +65,23 @@ export default function PaintingEstimator() {
   const canProceedToCalculate = rooms.length > 0 && rooms.every(room => room.services.length > 0);
 
   return (
-    <div className="bg-gray-100 min-h-screen font-sans flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl mx-auto">
-        <header className="mb-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-800">Painting Estimator</h1>
-          <div>
+    <div className="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen font-sans flex items-center justify-center p-4 md:p-8">
+      <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <header className="mb-8 flex justify-between items-center px-8 py-6 bg-blue-600 text-white">
+          <h1 className="text-3xl font-bold">Painting Estimator</h1>
+          <div className="flex items-center gap-4">
             {user ? (
-              <div className="flex items-center gap-4">
-                <button onClick={() => setIsSettingsOpen(true)} className="text-gray-600 hover:text-blue-500">Settings</button>
-                <button onClick={handleSignOut} className="bg-red-500 text-white py-1 px-3 rounded-md">Sign Out</button>
-              </div>
+              <>
+                <button onClick={() => setIsSettingsOpen(true)} className="hover:underline">Settings</button>
+                <button onClick={handleSignOut} className="bg-red-500 hover:bg-red-600 py-1 px-3 rounded-md transition">Sign Out</button>
+              </>
             ) : (
-              <button onClick={handleSignIn} className="bg-blue-500 text-white py-1 px-3 rounded-md">Sign In</button>
+              <button onClick={handleSignIn} className="bg-white text-blue-600 py-1 px-3 rounded-md transition hover:bg-gray-100">Sign In</button>
             )}
           </div>
         </header>
 
-        <main className="bg-white rounded-xl shadow-lg p-8">
+        <main className="p-8 transition-all duration-300">
           {currentStep === 1 && <Step1 setCurrentStep={setCurrentStep} setIsSettingsOpen={setIsSettingsOpen} handleLogout={handleSignOut} />}
           {currentStep === 2 && (
             <Step2
@@ -92,12 +96,14 @@ export default function PaintingEstimator() {
             />
           )}
           {currentStep === 3 && (
-            isLoading ? <p>Calculating...</p> : <Step3
+            isLoading ? <p className="text-center text-lg">Calculating...</p> : <Step3
               isLoading={isLoading}
               breakdown={breakdown}
               subtotal={subtotal}
               tax={tax}
               total={estimate}
+              paintCost={paintCost}
+              primerCost={primerCost}
               formatCurrency={formatCurrency}
               setCurrentStep={setCurrentStep}
               startOver={startOver}

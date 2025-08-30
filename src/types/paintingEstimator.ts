@@ -45,6 +45,7 @@ export interface DetailedBreakdownItem {
   roomName: string;
   baseLabor: number;
   baseMaterial: number;
+  baseTotal: number;
   roomTotal: number;
   services: Array<{
     serviceId: number;
