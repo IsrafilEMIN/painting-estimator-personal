@@ -1,6 +1,6 @@
 // src/components/modals/AdditionalModal.tsx
 import React, { useState } from 'react';
-import type { Service, PrepCondition, ServiceType } from '@/types/paintingEstimator';
+import type { Service, ServiceType } from '@/types/paintingEstimator';
 
 interface AdditionalModalProps {
   service?: Service;

@@ -1,7 +1,7 @@
 // src/app/page.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase'; // Assuming this exists
 import { useAuth } from '@/hooks/useAuth';
@@ -22,7 +22,7 @@ export default function PaintingEstimator() {
   const { pricing, isSettingsOpen, setIsSettingsOpen, savePricing } = usePricing(user?.uid);
   const {
     currentStep, setCurrentStep,
-    rooms, setRooms,
+    rooms,
     isRoomModalOpen, setIsRoomModalOpen,
     editingRoom, setEditingRoom,
     openRoomModal, handleSaveRoom, duplicateRoom, deleteRoom,
@@ -51,7 +51,7 @@ export default function PaintingEstimator() {
       setPrimerCost(prc);
       setIsLoading(false);
     }
-  }, [currentStep, rooms, pricing]);
+  }, [currentStep, rooms, pricing, setEstimate, setBreakdown, setSubtotal, setTax, setPaintCost, setPrimerCost, setIsLoading]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();

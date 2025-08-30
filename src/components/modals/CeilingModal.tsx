@@ -1,6 +1,6 @@
 // src/components/modals/CeilingModal.tsx
 import React, { useState } from 'react';
-import type { Service, PrepCondition, Texture } from '@/types/paintingEstimator';
+import type { Service } from '@/types/paintingEstimator';
 
 interface CeilingModalProps {
   service?: Service;

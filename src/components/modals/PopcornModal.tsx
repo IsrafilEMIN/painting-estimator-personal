@@ -1,6 +1,6 @@
 // src/components/modals/PopcornModal.tsx
 import React, { useState } from 'react';
-import type { Service, PrepCondition } from '@/types/paintingEstimator';
+import type { Service } from '@/types/paintingEstimator';
 
 interface PopcornModalProps {
   service?: Service;
