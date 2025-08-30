@@ -1,4 +1,3 @@
-// src/components/modals/RoomModal.tsx
 import React, { useState } from 'react';
 import type { Room } from '@/types/paintingEstimator';
 
@@ -37,10 +36,14 @@ const RoomModal: React.FC<RoomModalProps> = ({ room, onSave, onClose }) => {
   };
 
   const handleSave = () => {
+    // The error occurs because `formData` is of type `Partial<Room>`, 
+    // meaning its properties can be `undefined`.
+    // Using the nullish coalescing operator (??) provides a default value (0) 
+    // if the property is null or undefined, satisfying TypeScript's type checker.
     if (!formData.name?.trim()) return alert("Enter room name");
-    if (formData.length <= 0) return alert("Length > 0");
-    if (formData.width <= 0) return alert("Width > 0");
-    if (formData.height <= 0) return alert("Height > 0");
+    if ((formData.length ?? 0) <= 0) return alert("Length must be greater than 0");
+    if ((formData.width ?? 0) <= 0) return alert("Width must be greater than 0");
+    if ((formData.height ?? 0) <= 0) return alert("Height must be greater than 0");
     onSave(formData as Room);
   };
 
