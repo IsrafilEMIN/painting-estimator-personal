@@ -1,104 +1,53 @@
 // src/app/page.tsx
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { auth } from '../lib/firebase';
-
-import { useEstimatorState } from '@/hooks/useEstimatorState';
+import { auth } from '@/lib/firebase'; // Assuming this exists
 import { useAuth } from '@/hooks/useAuth';
 import { usePricing } from '@/hooks/usePricing';
+import { useEstimatorState } from '@/hooks/useEstimatorState';
 import { calculateEstimate } from '@/utils/calculateEstimate';
 import Step1 from '@/components/steps/Step1';
 import Step2 from '@/components/steps/Step2';
 import Step3 from '@/components/steps/Step3';
-import Step4 from '@/components/steps/Step4';
-import WallModal from '@/components/modals/WallModal';
-import CeilingModal from '@/components/modals/CeilingModal';
-import PopcornModal from '@/components/modals/PopcornModal';
-import TrimModal from '@/components/modals/TrimModal';
-import AdditionalModal from '@/components/modals/AdditionalModal';
+import RoomModal from '@/components/modals/RoomModal';
+import ServiceModal from '@/components/modals/ServiceModal'; // New unified ServiceModal
 import PricingSettingsModal from '@/components/modals/PricingSettingsModal';
+
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
 export default function PaintingEstimator() {
   const { user } = useAuth();
   const { pricing, isSettingsOpen, setIsSettingsOpen, savePricing } = usePricing(user?.uid);
   const {
-    currentStep,
-    setCurrentStep,
-    interiorWalls,
-    interiorCeilings,
-    popcornRemovals,
-    interiorTrims,
-    additionalItems,
-    selectedPaintQuality,
-    setSelectedPaintQuality,
-    isWallModalOpen,
-    setIsWallModalOpen,
-    isCeilingModalOpen,
-    setIsCeilingModalOpen,
-    isPopcornModalOpen,
-    setIsPopcornModalOpen,
-    isTrimModalOpen,
-    setIsTrimModalOpen,
-    isAdditionalModalOpen,
-    setIsAdditionalModalOpen,
-    editingWall,
-    setEditingWall,
-    editingCeiling,
-    setEditingCeiling,
-    editingPopcorn,
-    setEditingPopcorn,
-    editingTrim,
-    setEditingTrim,
-    editingAdditionalItem,
-    setEditingAdditionalItem,
-    estimate,
-    setEstimate,
-    breakdown,
-    setBreakdown,
-    isLoading,
-    setIsLoading,
-    handleSaveWall,
-    handleSaveCeiling,
-    handleSavePopcorn,
-    handleSaveTrim,
-    handleSaveAdditional,
-    openWallModal,
-    openCeilingModal,
-    openPopcornModal,
-    openTrimModal,
-    openAdditionalModal,
-    editWall,
-    editCeiling,
-    editPopcorn,
-    editTrim,
-    editAdditionalItem,
-    deleteWall,
-    deleteCeiling,
-    deletePopcorn,
-    deleteTrim,
-    deleteAdditionalItem,
+    currentStep, setCurrentStep,
+    rooms, setRooms,
+    isRoomModalOpen, setIsRoomModalOpen,
+    editingRoom, setEditingRoom,
+    openRoomModal, handleSaveRoom, duplicateRoom, deleteRoom,
+    isServiceModalOpen, setIsServiceModalOpen,
+    editingService, setEditingService,
+    openServiceModal, handleSaveService, deleteService,
+    estimate, setEstimate,
+    subtotal, setSubtotal,
+    tax, setTax,
+    breakdown, setBreakdown,
+    isLoading, setIsLoading,
     startOver,
   } = useEstimatorState();
 
-  React.useEffect(() => {
-    if (currentStep === 4 && selectedPaintQuality) {
+  useEffect(() => {
+    if (currentStep === 3) {
       setIsLoading(true);
-      const { total, breakdown } = calculateEstimate(
-        interiorWalls,
-        interiorCeilings,
-        popcornRemovals,
-        interiorTrims,
-        additionalItems,
-        selectedPaintQuality,
-        pricing
-      );
+      const { total, breakdown, subtotal, tax } = calculateEstimate(rooms, pricing);
       setEstimate(total);
       setBreakdown(breakdown);
+      setSubtotal(subtotal);
+      setTax(tax);
       setIsLoading(false);
     }
-  }, [currentStep, interiorWalls, interiorCeilings, popcornRemovals, interiorTrims, additionalItems, selectedPaintQuality, pricing]);
+  }, [currentStep, rooms, pricing]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -109,111 +58,79 @@ export default function PaintingEstimator() {
     await signOut(auth);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-  };
+  const canProceedToCalculate = rooms.length > 0 && rooms.every(room => room.services.length > 0);
 
   return (
-    <div className="bg-[#f0f2f5] min-h-screen px-6 py-24 font-sans">
-      <style>{`
-        .btn-primary { background-color: #093373; color: #ffffff; }
-        .btn-primary:hover { background-color: #0c4194; }
-        .btn-secondary { background-color: #e0e7ff; color: #162733; }
-        .btn-secondary:hover { background-color: #c7d2fe; }
-        @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inter:wght@400;700&display=swap');
-        .font-serif { font-family: 'Lora', serif; }
-        .font-sans { font-family: 'Inter', sans-serif; }
-        @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
-        
-        /* --- DARK MODE FIXES --- */
-        @media (prefers-color-scheme: dark) {
-            /* This rule changes the text on various gray backgrounds to be light */
-            .text-gray-600, .text-gray-700, .text-gray-900, .text-[#162733] {
-                color: #e2e8f0 !important; /* A light gray for dark mode */
-            }
-            
-            /* This rule now correctly targets BOTH the white cards AND the main page background */
-            .bg-white, .bg-[#f0f2f5] {
-                background-color: #1a202c !important; /* A dark background for contrast */
-            }
-            .bg-gray-50 {
-                background-color: #2d3748 !important;
-            }
-            .border-gray-200 {
-                border-color: #4a5568 !important;
-            }
-            .border-gray-400 {
-                border-color: #718096 !important;
-            }
-            .border-red-500 {
-                border-color: #f56565 !important;
-            }
-        }
-      `}</style>
-      <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl">
-        <div className="relative app-container p-6 md:p-10">
-          {currentStep === 1 && (
-            <Step1
-              setCurrentStep={setCurrentStep}
-              setIsSettingsOpen={setIsSettingsOpen}
-              handleLogout={handleSignOut}
-            />
-          )}
+    <div className="bg-gray-100 min-h-screen font-sans flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl mx-auto">
+        <header className="mb-8 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-800">Painting Estimator</h1>
+          <div>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <button onClick={() => setIsSettingsOpen(true)} className="text-gray-600 hover:text-blue-500">Settings</button>
+                <button onClick={handleSignOut} className="bg-red-500 text-white py-1 px-3 rounded-md">Sign Out</button>
+              </div>
+            ) : (
+              <button onClick={handleSignIn} className="bg-blue-500 text-white py-1 px-3 rounded-md">Sign In</button>
+            )}
+          </div>
+        </header>
+
+        <main className="bg-white rounded-xl shadow-lg p-8">
+          {currentStep === 1 && <Step1 setCurrentStep={setCurrentStep} setIsSettingsOpen={setIsSettingsOpen} handleLogout={handleSignOut} />}
           {currentStep === 2 && (
             <Step2
-              interiorWalls={interiorWalls}
-              editWall={editWall}
-              deleteWall={deleteWall}
-              interiorCeilings={interiorCeilings}
-              editCeiling={editCeiling}
-              deleteCeiling={deleteCeiling}
-              popcornRemovals={popcornRemovals}
-              editPopcorn={editPopcorn}
-              deletePopcorn={deletePopcorn}
-              interiorTrims={interiorTrims}
-              editTrim={editTrim}
-              deleteTrim={deleteTrim}
-              additionalItems={additionalItems}
-              editAdditionalItem={editAdditionalItem}
-              deleteAdditionalItem={deleteAdditionalItem}
-              openWallModal={openWallModal}
-              openCeilingModal={openCeilingModal}
-              openPopcornModal={openPopcornModal}
-              openTrimModal={openTrimModal}
-              openAdditionalModal={openAdditionalModal}
+              rooms={rooms}
+              openRoomModal={openRoomModal}
+              duplicateRoom={duplicateRoom}
+              deleteRoom={deleteRoom}
+              openServiceModal={openServiceModal}
+              deleteService={deleteService}
               setCurrentStep={setCurrentStep}
+              canProceed={canProceedToCalculate}
             />
           )}
           {currentStep === 3 && (
-            <Step3
-              selectedPaintQuality={selectedPaintQuality}
-              setSelectedPaintQuality={setSelectedPaintQuality}
-              setCurrentStep={setCurrentStep}
-            />
-          )}
-          {currentStep === 4 && (
-            <Step4
+            isLoading ? <p>Calculating...</p> : <Step3
               isLoading={isLoading}
               breakdown={breakdown}
-              estimate={estimate}
+              subtotal={subtotal}
+              tax={tax}
+              total={estimate}
               formatCurrency={formatCurrency}
               setCurrentStep={setCurrentStep}
               startOver={startOver}
               setIsSettingsOpen={setIsSettingsOpen}
             />
           )}
-        </div>
+        </main>
+
+        {isRoomModalOpen && (
+          <RoomModal
+            room={editingRoom}
+            onSave={handleSaveRoom}
+            onClose={() => { setIsRoomModalOpen(false); setEditingRoom(undefined); }}
+          />
+        )}
+
+        {isServiceModalOpen && editingService && (
+          <ServiceModal
+            room={rooms.find(r => r.id === editingService.roomId)}
+            service={editingService.service}
+            onSave={handleSaveService}
+            onClose={() => { setIsServiceModalOpen(false); setEditingService(null); }}
+          />
+        )}
+
+        {isSettingsOpen && (
+          <PricingSettingsModal
+            pricing={pricing}
+            onSave={savePricing}
+            onClose={() => setIsSettingsOpen(false)}
+          />
+        )}
       </div>
-      {isWallModalOpen && <WallModal key={editingWall?.id || 'new'} wall={editingWall} onSave={handleSaveWall} onClose={() => { setIsWallModalOpen(false); setEditingWall(null); }} />}
-      {isCeilingModalOpen && <CeilingModal key={editingCeiling?.id || 'new'} ceiling={editingCeiling} onSave={handleSaveCeiling} onClose={() => { setIsCeilingModalOpen(false); setEditingCeiling(null); }} />}
-      {isPopcornModalOpen && <PopcornModal key={editingPopcorn?.id || 'new'} popcorn={editingPopcorn} onSave={handleSavePopcorn} onClose={() => { setIsPopcornModalOpen(false); setEditingPopcorn(null); }} />}
-      {isTrimModalOpen && <TrimModal key={editingTrim?.id || 'new'} trim={editingTrim} onSave={handleSaveTrim} onClose={() => { setIsTrimModalOpen(false); setEditingTrim(null); }} />}
-      
-      {/* --- THIS IS THE FIX --- */}
-      {isAdditionalModalOpen && <AdditionalModal key={editingAdditionalItem?.id || 'new'} item={editingAdditionalItem} onSave={handleSaveAdditional} onClose={() => { setIsAdditionalModalOpen(false); setEditingAdditionalItem(null); }} />}
-      
-      {isSettingsOpen && <PricingSettingsModal pricing={pricing} onSave={savePricing} onClose={() => setIsSettingsOpen(false)} />}
     </div>
   );
 }

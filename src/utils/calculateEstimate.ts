@@ -1,209 +1,162 @@
-// src/utils/calculateEstimate.ts
-import type {
-  InteriorWall,
-  InteriorCeiling,
-  PopcornRemoval,
-  TrimItem,
-  AdditionalItem,
-  PricingConfig,
-  PaintQuality,
-  DetailedBreakdownItem, // Make sure to export this type from your types file
-} from '@/types/paintingEstimator';
+// src/utils/calculateEstimate.ts (or wherever this is defined; adjust path if needed)
+import type { Room, Service, DetailedBreakdownItem, Pricing, PaintType } from '@/types/paintingEstimator';
 
-export const calculateEstimate = (
-  walls: InteriorWall[],
-  ceilings: InteriorCeiling[],
-  popcorns: PopcornRemoval[],
-  trims: TrimItem[],
-  additional: AdditionalItem[],
-  paintQuality: PaintQuality,
-  pricing: PricingConfig
-): { total: number; breakdown: DetailedBreakdownItem[] } => {
+export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
+  let subtotal = 0;
   const breakdown: DetailedBreakdownItem[] = [];
-  const effectivePaintQuality = paintQuality || 'good';
-  const paintCostPerGallon = pricing.PAINT_COST_PER_GALLON[effectivePaintQuality];
+  const paintUsage: Record<PaintType, number> = {
+    standard: 0,
+    benjaminMooreAura: 0,
+    sherwinWilliamsEmerald: 0,
+    moldResistant: 0,
+    benjaminMooreRegal: 0,
+    sherwinWilliamsDuration: 0,
+    behrPremiumPlus: 0,
+  };
+  let totalPrimerSqFt = 0;
 
-  const calculateArea = (length: number | string, width: number | string) => Number(length) * Number(width);
+  rooms.forEach(room => {
+    const floorSqFt = room.length * room.width;
+    const perimeter = 2 * (room.length + room.width);
+    const basePrepHours = pricing.BASE_PREP_HOURS_FIXED + floorSqFt * pricing.PREP_HOURS_PER_FLOOR_SQFT + perimeter * pricing.PREP_HOURS_PER_PERIMETER_LFT;
+    const baseLabor = basePrepHours * pricing.laborRate;
+    const baseMaterial = baseLabor * pricing.SUPPLIES_PERCENTAGE;
+    let roomTotal = baseLabor + baseMaterial;
 
-  // --- Walls ---
-  walls.forEach((wall, index) => {
-    const area = 2 * (Number(wall.length) + Number(wall.width)) * Number(wall.ceilingHeight);
-    const textureMultiplier = pricing.TEXTURE_MULTIPLIERS[wall.texture];
-    const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[wall.prepCondition];
-    const highCeilingMultiplier = Number(wall.ceilingHeight) > 10 ? pricing.HIGH_CEILING_MULTIPLIER : 1;
-    const coatsMultiplier = wall.coats > 2 ? (wall.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER + 1 : 1;
+    const servicesBreakdown: DetailedBreakdownItem['services'] = [];
 
-    const laborHours = (area / pricing.PRODUCTION_RATES.walls) * textureMultiplier * prepMultiplier * highCeilingMultiplier * coatsMultiplier;
-    const rawLaborCost = laborHours * pricing.PAINTER_BURDENED_HOURLY_COST;
+    room.services.forEach(service => {
+      const coats = Number(service.coats) || 2;
+      const primerCoats = Number(service.primerCoats) || 1;
+      const quantityNum = Number(service.quantity) || 0;
+      const lnFtNum = Number(service.lnFt) || 0;
+      const stairwaySqFtNum = Number(service.stairwaySqFt) || 0;
 
-    const paintUsed = (area * wall.coats) / pricing.COVERAGE_PER_GALLON;
-    const paintCost = paintUsed * paintCostPerGallon;
-    const suppliesCost = paintCost * pricing.SUPPLIES_PERCENTAGE;
-    const rawMaterialCost = paintCost + suppliesCost;
+      const prepAdd = pricing.PREP_CONDITION_ADDITIVES[service.prepCondition] || 0;
+      const textureAdd = pricing.TEXTURE_ADDITIVES[service.texture || 'smooth'] || 0;
+      const paintTypeSafe = service.paintType || 'standard';
+      const primerTypeSafe = service.primerType || 'none';
+      const matAdd = pricing.INTERIOR_DOOR_MATERIAL_ADDITIVES[service.material || ''] ||
+                     pricing.CABINET_MATERIAL_ADDITIVES[service.material || ''] || 0;
 
-    breakdown.push({
-      id: `Wall ${index + 1} (${wall.length}' x ${wall.width}')`,
-      laborCost: rawLaborCost * pricing.PROFIT_MARKUP,
-      materialCost: rawMaterialCost * pricing.PROFIT_MARKUP,
-      totalPrice: (rawLaborCost + rawMaterialCost) * pricing.PROFIT_MARKUP,
-    });
+      let sqFt = 0;
+      let laborHours = 0;
+      let materialCost = 0;
+      let primerSqFt = 0;
 
-    if (wall.paintStairwell) {
-      breakdown.push({
-        id: 'Stairwell Addition',
-        laborCost: pricing.COST_STAIRWELL * pricing.PROFIT_MARKUP,
-        materialCost: 0,
-        totalPrice: pricing.COST_STAIRWELL * pricing.PROFIT_MARKUP,
-      });
-    }
-  });
-
-  // --- Ceilings ---
-  ceilings.forEach((ceiling, index) => {
-    const area = calculateArea(ceiling.length, ceiling.width);
-    const textureMultiplier = pricing.TEXTURE_MULTIPLIERS[ceiling.texture];
-    const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[ceiling.prepCondition];
-    const highCeilingMultiplier = Number(ceiling.ceilingHeight) > 10 ? pricing.HIGH_CEILING_MULTIPLIER : 1;
-    const coatsMultiplier = ceiling.coats > 2 ? (ceiling.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER + 1 : 1;
-
-    const laborHours = (area / pricing.PRODUCTION_RATES.ceilings) * textureMultiplier * prepMultiplier * highCeilingMultiplier * coatsMultiplier;
-    const rawLaborCost = laborHours * pricing.PAINTER_BURDENED_HOURLY_COST;
-
-    const paintUsed = (area * ceiling.coats) / pricing.COVERAGE_PER_GALLON;
-    const paintCostForThis = paintUsed * (paintCostPerGallon + (ceiling.useMoldResistantPaint ? 15 : 0));
-    const suppliesCost = paintCostForThis * pricing.SUPPLIES_PERCENTAGE;
-    const rawMaterialCost = paintCostForThis + suppliesCost;
-
-    breakdown.push({
-      id: `Ceiling ${index + 1} (${ceiling.length}' x ${ceiling.width}')`,
-      laborCost: rawLaborCost * pricing.PROFIT_MARKUP,
-      materialCost: rawMaterialCost * pricing.PROFIT_MARKUP,
-      totalPrice: (rawLaborCost + rawMaterialCost) * pricing.PROFIT_MARKUP,
-    });
-
-    if (ceiling.paintCrownMolding) {
-      breakdown.push({
-        id: 'Crown Molding Addition',
-        laborCost: pricing.COST_CROWN_MOLDING * pricing.PROFIT_MARKUP,
-        materialCost: 0,
-        totalPrice: pricing.COST_CROWN_MOLDING * pricing.PROFIT_MARKUP,
-      });
-    }
-    if (ceiling.paintFireplaceMantel) {
-        breakdown.push({
-          id: 'Fireplace Mantel Addition',
-          laborCost: pricing.COST_FIREPLACE_MANTEL * pricing.PROFIT_MARKUP,
-          materialCost: 0,
-          totalPrice: pricing.COST_FIREPLACE_MANTEL * pricing.PROFIT_MARKUP,
-        });
+      switch (service.type) {
+        case 'wallPainting':
+          sqFt = perimeter * room.height;
+          if (service.hasStairway) sqFt += stairwaySqFtNum;
+          laborHours = sqFt / pricing.PRODUCTION_RATES.wallPainting;
+          if (service.hasStairway && service.hasRisers) laborHours *= (1 + pricing.STAIRWELL_COMPLEXITY_ADDITIVE);
+          if (service.hasStairway && service.hasRailings) materialCost += pricing.COST_RAILINGS_SPINDLES;
+          break;
+        case 'ceilingPainting':
+          sqFt = floorSqFt;
+          laborHours = sqFt / pricing.PRODUCTION_RATES.ceilingPainting;
+          break;
+        case 'popcornRemoval':
+          sqFt = floorSqFt;
+          laborHours = sqFt / pricing.PRODUCTION_RATES.popcornRemoval;
+          materialCost += sqFt * pricing.COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT;
+          if (service.asbestos) materialCost += pricing.COST_ASBESTOS_TEST;
+          break;
+        case 'crownMolding':
+          const lnFtCrown = lnFtNum > 0 ? lnFtNum : perimeter;
+          laborHours = lnFtCrown / pricing.PRODUCTION_RATES.crownMolding;
+          if (service.sameAsWallCeiling) laborHours *= 0.8;
+          sqFt = lnFtCrown * pricing.ADDITIONAL_PAINT_USAGE.crownMolding;
+          break;
+        case 'trims':
+          const trimLnFt = lnFtNum > 0 ? lnFtNum : perimeter;
+          laborHours = trimLnFt / pricing.PRODUCTION_RATES.trims;
+          if (service.hasCarpet) laborHours *= 1.2;
+          sqFt = trimLnFt * pricing.ADDITIONAL_PAINT_USAGE.trims;
+          break;
+        case 'fireplaceMantel':
+          laborHours = quantityNum / pricing.PRODUCTION_RATES.fireplaceMantel;
+          sqFt = quantityNum * pricing.ADDITIONAL_PAINT_USAGE.fireplaceMantel;
+          materialCost += quantityNum * pricing.COST_FIREPLACE_MANTEL;
+          break;
+        default:
+          sqFt = quantityNum * pricing.ADDITIONAL_PAINT_USAGE[service.type];
+          laborHours = quantityNum / pricing.PRODUCTION_RATES[service.type];
+          laborHours *= (1 + matAdd);
+          break;
       }
-  });
 
-  // --- Popcorn Removal ---
-  popcorns.forEach((popcorn, index) => {
-    const area = calculateArea(popcorn.length, popcorn.width);
-    const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[popcorn.prepCondition];
-    const laborHours = (area / pricing.PRODUCTION_RATES.popcornRemoval) * prepMultiplier;
-    const rawLaborCost = laborHours * pricing.PAINTER_BURDENED_HOURLY_COST;
+      laborHours *= (1 + prepAdd);
+      laborHours *= (1 + textureAdd);
 
+      let highCeilAdd = 0;
+      let scaffoldingKey = '';
+      if (room.height > 14) {
+        highCeilAdd = pricing.HIGH_CEILING_TIERS['14+'];
+        scaffoldingKey = '14+';
+      } else if (room.height > 12) {
+        highCeilAdd = pricing.HIGH_CEILING_TIERS['12'];
+        scaffoldingKey = '12';
+      } else if (room.height > 10) {
+        highCeilAdd = pricing.HIGH_CEILING_TIERS['10'];
+        scaffoldingKey = '10';
+      }
+      laborHours *= (1 + highCeilAdd);
+      if (highCeilAdd > 0) {
+        materialCost += pricing.SCAFFOLDING_COST_TIERS[scaffoldingKey];
+      }
+
+      if (coats > 2) laborHours *= (1 + (coats - 2) * pricing.EXTRA_COAT_ADDITIVE);
+
+      if (primerTypeSafe === 'spot') primerSqFt = sqFt * 0.2;
+      else if (primerTypeSafe === 'full') primerSqFt = sqFt * primerCoats;
+      totalPrimerSqFt += primerSqFt;
+
+      const paintSqFt = sqFt * coats;
+      paintUsage[paintTypeSafe] += paintSqFt;
+
+      if (service.useSpray) laborHours *= (1 + pricing.sprayUpcharge / 100);
+
+      const laborCost = laborHours * pricing.laborRate;
+      materialCost += laborCost * pricing.SUPPLIES_PERCENTAGE;
+
+      const serviceTotal = laborCost + materialCost;
+      servicesBreakdown.push({
+        serviceId: service.id,
+        serviceType: service.type,
+        laborCost,
+        materialCost,
+        total: serviceTotal,
+      });
+      roomTotal += serviceTotal;
+    });
+
+    subtotal += roomTotal;
     breakdown.push({
-      id: `Popcorn Removal ${index + 1} (${popcorn.length}' x ${popcorn.width}')`,
-      laborCost: rawLaborCost * pricing.PROFIT_MARKUP,
-      materialCost: 0,
-      totalPrice: rawLaborCost * pricing.PROFIT_MARKUP,
+      roomId: room.id,
+      roomName: room.name,
+      baseLabor,
+      baseMaterial,
+      services: servicesBreakdown,
+      roomTotal,
     });
   });
 
-  // --- Trims ---
-  trims.forEach((trim, index) => {
-    const lnFt = Number(trim.lnFt);
-    const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[trim.prepCondition];
-    const coatsMultiplier = trim.coats > 2 ? (trim.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER + 1 : 1;
-    const trimRate = trim.hasCarpet ? 30 : pricing.PRODUCTION_RATES.trim;
-
-    const laborHours = (lnFt / trimRate) * prepMultiplier * coatsMultiplier;
-    const rawLaborCost = laborHours * pricing.PAINTER_BURDENED_HOURLY_COST;
-    
-    const paintUsedGallons = (lnFt * pricing.ADDITIONAL_PAINT_USAGE.trim * trim.coats) / pricing.COVERAGE_PER_GALLON;
-    const paintCost = paintUsedGallons * paintCostPerGallon;
-    const suppliesCost = paintCost * pricing.SUPPLIES_PERCENTAGE;
-    const rawMaterialCost = paintCost + suppliesCost;
-
-    breakdown.push({
-      id: `Trim ${index + 1} (${trim.lnFt} ln ft)`,
-      laborCost: rawLaborCost * pricing.PROFIT_MARKUP,
-      materialCost: rawMaterialCost * pricing.PROFIT_MARKUP,
-      totalPrice: (rawLaborCost + rawMaterialCost) * pricing.PROFIT_MARKUP,
-    });
+  let totalPaintCost = 0;
+  Object.entries(paintUsage).forEach(([type, sqFt]) => {
+    const gallons = (sqFt / pricing.paintCoverage) * pricing.WASTE_FACTOR;
+    totalPaintCost += gallons * pricing.paintCosts[type as PaintType];
   });
 
-  // --- Additional Items ---
-  additional.forEach((item) => {
-    // --- FIX START ---
-    // Add this guard clause to skip items with no type.
-    if (!item.type) {
-      return;
-    }
-    // --- FIX END ---
+  const primerGallons = (totalPrimerSqFt / pricing.paintCoverage) * pricing.WASTE_FACTOR;
+  const totalPrimerCost = primerGallons * pricing.primerCost;
 
-    const quantity = Number(item.quantity);
-    const prepMultiplier = pricing.PREP_CONDITION_MULTIPLIERS[item.prepCondition];
-    const coatsMultiplier = item.coats > 2 ? (item.coats - 2) * pricing.EXTRA_COAT_MULTIPLIER + 1 : 1;
-    let materialMultiplier = 1;
+  subtotal += totalPaintCost + totalPrimerCost;
+  subtotal *= pricing.PROFIT_MARKUP;
 
-    if (['interiorDoor', 'closetDoor', 'vanityDoor'].includes(item.type) && item.material) {
-      materialMultiplier = pricing.INTERIOR_DOOR_MATERIAL_MULTIPLIERS[item.material as keyof typeof pricing.INTERIOR_DOOR_MATERIAL_MULTIPLIERS] || 1;
-    } else if (['cabinetDoor', 'cabinetDrawer', 'vanityDrawer'].includes(item.type) && item.material) {
-      materialMultiplier = pricing.CABINET_MATERIAL_MULTIPLIERS[item.material as keyof typeof pricing.CABINET_MATERIAL_MULTIPLIERS] || 1;
-    }
+  const taxAmount = subtotal * pricing.TAX_RATE;
+  let total = subtotal + taxAmount;
+  total = Math.max(total, pricing.MIN_JOB_FEE);
 
-    // With the guard clause, TypeScript now knows item.type is a valid key here.
-    const laborHours = (quantity / pricing.PRODUCTION_RATES[item.type]) * prepMultiplier * coatsMultiplier * materialMultiplier;
-    const rawLaborCost = laborHours * pricing.PAINTER_BURDENED_HOURLY_COST;
-
-    // This line is also now safe.
-    const paintUsedGallons = (quantity * pricing.ADDITIONAL_PAINT_USAGE[item.type] * item.coats) / pricing.COVERAGE_PER_GALLON;
-    const paintCost = paintUsedGallons * paintCostPerGallon;
-    const suppliesCost = paintCost * pricing.SUPPLIES_PERCENTAGE;
-    const rawMaterialCost = paintCost + suppliesCost;
-
-    breakdown.push({
-      id: `${item.id || item.type} (Qty: ${item.quantity})`,
-      laborCost: rawLaborCost * pricing.PROFIT_MARKUP,
-      materialCost: rawMaterialCost * pricing.PROFIT_MARKUP,
-      totalPrice: (rawLaborCost + rawMaterialCost) * pricing.PROFIT_MARKUP,
-    });
-  });
-
-  // --- Prep Hours ---
-  if (walls.length > 0 || ceilings.length > 0 || popcorns.length > 0) {
-    const totalFloorSqFt = [...walls, ...ceilings, ...popcorns].reduce((sum, item) => sum + calculateArea(item.length, item.width), 0);
-    const totalPerimeterLft = walls.reduce((sum, wall) => sum + (Number(wall.length) + Number(wall.width)) * 2, 0);
-    const prepHours = pricing.BASE_PREP_HOURS_FIXED + totalFloorSqFt * pricing.PREP_HOURS_PER_FLOOR_SQFT + totalPerimeterLft * pricing.PREP_HOURS_PER_PERIMETER_LFT;
-    const rawLaborCost = prepHours * pricing.PAINTER_BURDENED_HOURLY_COST;
-
-    breakdown.push({
-      id: 'General Site Preparation',
-      laborCost: rawLaborCost * pricing.PROFIT_MARKUP,
-      materialCost: 0,
-      totalPrice: rawLaborCost * pricing.PROFIT_MARKUP,
-    });
-  }
-
-  // --- Totals ---
-  const subtotal = breakdown.reduce((sum, item) => sum + item.totalPrice, 0);
-  const tax = subtotal * pricing.TAX_RATE;
-
-  if (tax > 0) {
-    breakdown.push({
-      id: 'Tax',
-      laborCost: 0,
-      materialCost: tax,
-      totalPrice: tax,
-    });
-  }
-  
-  const total = subtotal + tax;
-
-  return { total, breakdown };
+  return { total, breakdown, subtotal, tax: taxAmount };
 };

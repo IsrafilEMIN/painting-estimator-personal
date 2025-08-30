@@ -1,207 +1,89 @@
 // src/hooks/useEstimatorState.ts
 import { useState } from 'react';
-import type {
-  InteriorWall, InteriorCeiling, PopcornRemoval, TrimItem, AdditionalItem,
-  PaintQuality, DetailedBreakdownItem
-} from '@/types/paintingEstimator';
+import type { Room, Service, DetailedBreakdownItem } from '@/types/paintingEstimator';
 
 export const useEstimatorState = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [interiorWalls, setInteriorWalls] = useState<InteriorWall[]>([]);
-  const [interiorCeilings, setInteriorCeilings] = useState<InteriorCeiling[]>([]);
-  const [popcornRemovals, setPopcornRemovals] = useState<PopcornRemoval[]>([]);
-  const [interiorTrims, setInteriorTrims] = useState<TrimItem[]>([]);
-  const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
-  const [selectedPaintQuality, setSelectedPaintQuality] = useState<PaintQuality>('');
-  const [isWallModalOpen, setIsWallModalOpen] = useState(false);
-  const [isCeilingModalOpen, setIsCeilingModalOpen] = useState(false);
-  const [isPopcornModalOpen, setIsPopcornModalOpen] = useState(false);
-  const [isTrimModalOpen, setIsTrimModalOpen] = useState(false);
-  const [isAdditionalModalOpen, setIsAdditionalModalOpen] = useState(false);
-  const [editingWall, setEditingWall] = useState<InteriorWall | null>(null);
-  const [editingCeiling, setEditingCeiling] = useState<InteriorCeiling | null>(null);
-  const [editingPopcorn, setEditingPopcorn] = useState<PopcornRemoval | null>(null);
-  const [editingTrim, setEditingTrim] = useState<TrimItem | null>(null);
-  const [editingAdditionalItem, setEditingAdditionalItem] = useState<AdditionalItem | null>(null);
-  const [estimate, setEstimate] = useState<number>(0);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+  const [editingRoom, setEditingRoom] = useState<Room | undefined>(undefined);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<{ roomId: number; service?: Service } | null>(null);
+  const [estimate, setEstimate] = useState(0);
+  const [subtotal, setSubtotal] = useState(0);
+  const [tax, setTax] = useState(0);
   const [breakdown, setBreakdown] = useState<DetailedBreakdownItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSaveWall = (wallData: InteriorWall) => {
-    setInteriorWalls((prev) => {
-      const index = prev.findIndex((w) => w.id === wallData.id);
-      if (index !== -1) {
-        const updated = [...prev];
-        updated[index] = wallData;
-        return updated;
+  const openRoomModal = (room?: Room) => {
+    setEditingRoom(room ?? undefined);
+    setIsRoomModalOpen(true);
+  };
+
+  const handleSaveRoom = (room: Room) => {
+    setRooms(prev => 
+      editingRoom 
+        ? prev.map(r => r.id === room.id ? room : r)
+        : [...prev, { ...room, id: Date.now() }]
+    );
+    setIsRoomModalOpen(false);
+    setEditingRoom(undefined);
+  };
+
+  const duplicateRoom = (room: Room) => {
+    setRooms(prev => [...prev, { ...room, id: Date.now(), name: `${room.name} (Copy)` }]);
+  };
+
+  const deleteRoom = (roomId: number) => {
+    setRooms(prev => prev.filter(r => r.id !== roomId));
+  };
+
+  const openServiceModal = (roomId: number, service?: Service) => {
+    setEditingService({ roomId, service });
+    setIsServiceModalOpen(true);
+  };
+
+  const handleSaveService = (service: Service) => {
+    if (!editingService) return;
+    const { roomId } = editingService;
+    setRooms(prevRooms => prevRooms.map(room => {
+      if (room.id === roomId) {
+        const services = editingService.service
+          ? room.services.map(s => s.id === service.id ? service : s)
+          : [...room.services, { ...service, id: Date.now() }];
+        return { ...room, services };
       }
-      return [...prev, { ...wallData, id: Date.now() }];
-    });
-    setIsWallModalOpen(false);
-    setEditingWall(null);
+      return room;
+    }));
+    setIsServiceModalOpen(false);
+    setEditingService(null);
   };
 
-  const handleSaveCeiling = (ceilingData: InteriorCeiling) => {
-    setInteriorCeilings((prev) => {
-      const index = prev.findIndex((c) => c.id === ceilingData.id);
-      if (index !== -1) {
-        const updated = [...prev];
-        updated[index] = ceilingData;
-        return updated;
-      }
-      return [...prev, { ...ceilingData, id: Date.now() }];
-    });
-    setIsCeilingModalOpen(false);
-    setEditingCeiling(null);
+  const deleteService = (roomId: number, serviceId: number) => {
+    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, services: r.services.filter(s => s.id !== serviceId) } : r));
   };
-
-  const handleSavePopcorn = (popcornData: PopcornRemoval) => {
-    setPopcornRemovals((prev) => {
-      const index = prev.findIndex((p) => p.id === popcornData.id);
-      if (index !== -1) {
-        const updated = [...prev];
-        updated[index] = popcornData;
-        return updated;
-      }
-      return [...prev, { ...popcornData, id: Date.now() }];
-    });
-    setIsPopcornModalOpen(false);
-    setEditingPopcorn(null);
-  };
-
-  const handleSaveTrim = (trimData: TrimItem) => {
-    setInteriorTrims((prev) => {
-      const index = prev.findIndex((t) => t.id === trimData.id);
-      if (index !== -1) {
-        const updated = [...prev];
-        updated[index] = trimData;
-        return updated;
-      }
-      return [...prev, { ...trimData, id: Date.now() }];
-    });
-    setIsTrimModalOpen(false);
-    setEditingTrim(null);
-  };
-
-  const handleSaveAdditional = (itemData: AdditionalItem) => {
-    setAdditionalItems((prev) => {
-      const index = prev.findIndex((a) => a.id === itemData.id);
-      if (index !== -1) {
-        const updated = [...prev];
-        updated[index] = itemData;
-        return updated;
-      }
-      return [...prev, { ...itemData, id: Date.now() }];
-    });
-    setIsAdditionalModalOpen(false);
-    setEditingAdditionalItem(null);
-  };
-
-  const openWallModal = (wall?: InteriorWall) => {
-    setEditingWall(wall || null);
-    setIsWallModalOpen(true);
-  };
-
-  const openCeilingModal = (ceiling?: InteriorCeiling) => {
-    setEditingCeiling(ceiling || null);
-    setIsCeilingModalOpen(true);
-  };
-
-  const openPopcornModal = (popcorn?: PopcornRemoval) => {
-    setEditingPopcorn(popcorn || null);
-    setIsPopcornModalOpen(true);
-  };
-
-  const openTrimModal = (trim?: TrimItem) => {
-    setEditingTrim(trim || null);
-    setIsTrimModalOpen(true);
-  };
-
-  const openAdditionalModal = (item?: AdditionalItem) => {
-    setEditingAdditionalItem(item || null);
-    setIsAdditionalModalOpen(true);
-  };
-
-  const editWall = (wall: InteriorWall) => openWallModal(wall);
-  const editCeiling = (ceiling: InteriorCeiling) => openCeilingModal(ceiling);
-  const editPopcorn = (popcorn: PopcornRemoval) => openPopcornModal(popcorn);
-  const editTrim = (trim: TrimItem) => openTrimModal(trim);
-  const editAdditionalItem = (item: AdditionalItem) => openAdditionalModal(item);
-
-  const deleteWall = (id: number) => setInteriorWalls((prev) => prev.filter((w) => w.id !== id));
-  const deleteCeiling = (id: number) => setInteriorCeilings((prev) => prev.filter((c) => c.id !== id));
-  const deletePopcorn = (id: number) => setPopcornRemovals((prev) => prev.filter((p) => p.id !== id));
-  const deleteTrim = (id: number) => setInteriorTrims((prev) => prev.filter((t) => t.id !== id));
-  const deleteAdditionalItem = (id: number) => setAdditionalItems((prev) => prev.filter((a) => a.id !== id));
 
   const startOver = () => {
     setCurrentStep(1);
-    setInteriorWalls([]);
-    setInteriorCeilings([]);
-    setPopcornRemovals([]);
-    setInteriorTrims([]);
-    setAdditionalItems([]);
-    setSelectedPaintQuality('');
+    setRooms([]);
     setEstimate(0);
+    setSubtotal(0);
+    setTax(0);
     setBreakdown([]);
   };
 
   return {
-    currentStep,
-    setCurrentStep,
-    interiorWalls,
-    interiorCeilings,
-    popcornRemovals,
-    interiorTrims,
-    additionalItems,
-    selectedPaintQuality,
-    setSelectedPaintQuality,
-    isWallModalOpen,
-    setIsWallModalOpen,
-    isCeilingModalOpen,
-    setIsCeilingModalOpen,
-    isPopcornModalOpen,
-    setIsPopcornModalOpen,
-    isTrimModalOpen,
-    setIsTrimModalOpen,
-    isAdditionalModalOpen,
-    setIsAdditionalModalOpen,
-    editingWall,
-    setEditingWall,
-    editingCeiling,
-    setEditingCeiling,
-    editingPopcorn,
-    setEditingPopcorn,
-    editingTrim,
-    setEditingTrim,
-    editingAdditionalItem,
-    setEditingAdditionalItem,
-    estimate,
-    setEstimate,
-    breakdown,
-    setBreakdown,
-    isLoading,
-    setIsLoading,
-    handleSaveWall,
-    handleSaveCeiling,
-    handleSavePopcorn,
-    handleSaveTrim,
-    handleSaveAdditional,
-    openWallModal,
-    openCeilingModal,
-    openPopcornModal,
-    openTrimModal,
-    openAdditionalModal,
-    editWall,
-    editCeiling,
-    editPopcorn,
-    editTrim,
-    editAdditionalItem,
-    deleteWall,
-    deleteCeiling,
-    deletePopcorn,
-    deleteTrim,
-    deleteAdditionalItem,
+    currentStep, setCurrentStep,
+    rooms, setRooms,
+    isRoomModalOpen, setIsRoomModalOpen,
+    editingRoom, setEditingRoom, openRoomModal, handleSaveRoom, duplicateRoom, deleteRoom,
+    isServiceModalOpen, setIsServiceModalOpen,
+    editingService, setEditingService, openServiceModal, handleSaveService, deleteService,
+    estimate, setEstimate,
+    subtotal, setSubtotal,
+    tax, setTax,
+    breakdown, setBreakdown,
+    isLoading, setIsLoading,
     startOver,
   };
 };
