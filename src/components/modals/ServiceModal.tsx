@@ -15,7 +15,7 @@ interface ServiceModalProps {
   onClose: () => void;
 }
 
-const ServiceModal: React.FC<ServiceModalProps> = ({ room, service, onSave, onClose }) => {
+const ServiceModal: React.FC<ServiceModalProps> = ({ service, onSave, onClose }) => {
   const [selectedType, setSelectedType] = useState<ServiceType | ''>(service?.type || '');
 
   const handleTypeChange = (type: ServiceType) => {

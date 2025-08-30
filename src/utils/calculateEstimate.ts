@@ -1,5 +1,5 @@
 // src/utils/calculateEstimate.ts
-import type { Room, Service, DetailedBreakdownItem, Pricing, PaintType } from '@/types/paintingEstimator';
+import type { Room, DetailedBreakdownItem, Pricing, PaintType } from '@/types/paintingEstimator';
 import { DEFAULT_PRICING } from '@/constants/pricing';
 
 export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {

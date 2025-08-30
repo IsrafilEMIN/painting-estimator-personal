@@ -15,7 +15,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const parts = name.split('.');
-    let num = parseFloat(value);
+    const num = parseFloat(value);
 
     if (isNaN(num)) {
       setErrors(prev => ({ ...prev, [name]: 'Must be a number' }));

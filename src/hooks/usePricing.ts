@@ -6,27 +6,46 @@ import { DEFAULT_PRICING } from '@/constants/pricing';
 import type { Pricing } from '@/types/paintingEstimator';
 
 // Helper to deeply sanitize pricing: ensure all numeric fields are valid positive numbers, fallback to 0 or defaults
-const sanitizePricing = (data: any, defaults: Pricing): Pricing => {
-  const sanitized: any = { ...data };
-  Object.keys(defaults).forEach(key => {
+const sanitizePricing = <T extends object>(data: unknown, defaults: T): T => {
+  const sanitized: { [key: string]: unknown } =
+    typeof data === 'object' && data !== null ? { ...data } : {};
+
+  Object.keys(defaults).forEach((key) => {
+    const keyOfT = key as keyof T;
+
     if (!(key in sanitized)) {
-      sanitized[key] = defaults[key as keyof Pricing]; // Fill missing with defaults
+      sanitized[key] = defaults[keyOfT]; // Fill missing with defaults
     }
+
     const value = sanitized[key];
-    if (typeof defaults[key as keyof Pricing] === 'object' && value !== null) {
-      sanitized[key] = sanitizePricing(value, defaults[key as keyof Pricing] as any); // Recurse for nested (e.g., paintCosts)
+    const defaultValue = defaults[keyOfT];
+
+    // Check if the default value is a non-array object, indicating a nested structure we should recurse into.
+    if (typeof defaultValue === 'object' && defaultValue !== null && !Array.isArray(defaultValue)) {
+      sanitized[key] = sanitizePricing(value, defaultValue); // Recurse for nested objects
     } else {
+      // Otherwise, assume the value should be a number and sanitize it.
       let num = Number(value);
-      if (isNaN(num) || num < 0) { // Invalid or negative? Fallback to default
-        num = defaults[key as keyof Pricing] as number || 0;
+      if (isNaN(num) || num < 0) {
+        // Fallback to the default value if the current value is not a valid positive number.
+        num = (defaultValue as number) || 0;
       }
-      if (key.includes('RATE') || key.includes('COST') || key.includes('Coverage') || key.includes('FACTOR')) {
-        if (num <= 0) num = defaults[key as keyof Pricing] as number || 1; // Ensure positive for rates/costs
+      if (
+        (key.includes('RATE') ||
+          key.includes('COST') ||
+          key.includes('Coverage') ||
+          key.includes('FACTOR')) &&
+        num <= 0
+      ) {
+        // For specific keys that must be positive, ensure they are at least 1.
+        num = (defaultValue as number) || 1;
       }
       sanitized[key] = num;
     }
   });
-  return sanitized as Pricing;
+
+  // We are confident the sanitized object now matches the shape of T.
+  return sanitized as T;
 };
 
 export const usePricing = (userId: string | undefined) => {
