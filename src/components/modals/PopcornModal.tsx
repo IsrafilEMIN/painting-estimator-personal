@@ -1,78 +1,59 @@
 // src/components/modals/PopcornModal.tsx
 import React, { useState } from 'react';
-import type { PopcornModalProps, PopcornRemoval } from '@/types/paintingEstimator';
+import type { Service } from '@/types/paintingEstimator';
 
-const PopcornModal: React.FC<PopcornModalProps> = ({ popcorn, onSave, onClose }) => {
-  const initialPopcornState: PopcornRemoval = {
+interface PopcornModalProps {
+  service?: Service;
+  onSave: (service: Service) => void;
+  onClose: () => void;
+  onBack: () => void;
+}
+
+const PopcornModal: React.FC<PopcornModalProps> = ({ service, onClose, onSave, onBack }) => {
+  const initialState: Partial<Service> = {
     id: Date.now(),
-    length: '',
-    width: '',
-    ceilingHeight: 8,
-    prepCondition: 'good',
+    type: 'popcornRemoval',
+    prepCondition: service?.prepCondition || 'good',
+    asbestos: service?.asbestos || false,
   };
-  const [formData, setFormData] = useState<PopcornRemoval>({ ...initialPopcornState, ...popcorn });
-  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
+  const [formData, setFormData] = useState<Partial<Service>>(initialState);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    const newValue = value;
-    if (['length', 'width', 'ceilingHeight'].includes(name)) {
-      const num = parseFloat(value);
-      if (value !== '' && !isNaN(num) && num < 0) {
-        setFieldErrors(prev => ({ ...prev, [name]: 'Cannot be negative' }));
-        return;
-      } else {
-        setFieldErrors(prev => { const p = { ...prev }; delete p[name]; return p; });
-      }
+    const { name, value, type: inputType } = e.target;
+    if (inputType === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+      return;
     }
-    setFormData(prev => ({ ...prev, [name]: newValue }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSave = () => {
-    if (!formData.length || !formData.width || !formData.ceilingHeight || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0 || parseFloat(String(formData.ceilingHeight)) <= 0) {
-      alert("Please enter valid dimensions greater than 0.");
-      return;
-    }
-    if (!formData.prepCondition) {
-      alert("Please select a surface condition.");
-      return;
-    }
-    onSave(formData);
+    if (!formData.prepCondition) return alert("Select condition");
+    onSave(formData as Service);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full animate-fade-in-up max-h-[90vh] overflow-y-auto">
-        <h3 className="text-2xl font-serif font-semibold text-[#162733] mb-6">{popcorn ? 'Edit' : 'Add'} Popcorn Ceiling Removal</h3>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="popcorn-length" className="block text-sm font-medium text-gray-700">Length (ft)</label>
-              <input type="number" inputMode="decimal" step="0.1" min="0" id="popcorn-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
-              {fieldErrors.length && <p className="text-red-500 text-sm mt-1">{fieldErrors.length}</p>}
-            </div>
-            <div>
-              <label htmlFor="popcorn-width" className="block text-sm font-medium text-gray-700">Width (ft)</label>
-              <input type="number" inputMode="decimal" step="0.1" min="0" id="popcorn-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
-              {fieldErrors.width && <p className="text-red-500 text-sm mt-1">{fieldErrors.width}</p>}
-            </div>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">{service ? 'Edit' : 'Add'} Popcorn Removal</h3>
+        <div className="space-y-5">
           <div>
-            <label htmlFor="ceiling-height" className="block text-sm font-medium text-gray-700">Ceiling Height (ft)</label>
-            <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
-            {fieldErrors.ceilingHeight && <p className="text-red-500 text-sm mt-1">{fieldErrors.ceilingHeight}</p>}
-          </div>
-          <div>
-            <label htmlFor="prepCondition" className="block text-sm font-medium text-gray-700">Surface Condition</label>
-            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+            <label htmlFor="prepCondition" className="block text-sm font-semibold text-gray-700 mb-1">Condition</label>
+            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
               <option value="good">Good</option>
               <option value="fair">Fair</option>
               <option value="poor">Poor</option>
             </select>
           </div>
+          <label className="flex items-center space-x-2">
+            <input type="checkbox" name="asbestos" checked={formData.asbestos} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+            <span>Asbestos Check Required</span>
+          </label>
           <div className="flex justify-end gap-4 mt-6">
-            <button onClick={onClose} className="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
-            <button onClick={handleSave} className="btn-primary font-bold py-2 px-4 rounded-lg">Save</button>
+            <button onClick={onBack} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Back</button>
+            <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Cancel</button>
+            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">Save</button>
           </div>
         </div>
       </div>

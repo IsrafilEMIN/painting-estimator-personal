@@ -1,67 +1,50 @@
 // src/components/modals/AdditionalModal.tsx
 import React, { useState } from 'react';
-import type { AdditionalModalProps, AdditionalItem } from '@/types/paintingEstimator';
+import type { Service, ServiceType } from '@/types/paintingEstimator';
 
-// --- CONSTANTS DEFINED OUTSIDE THE COMPONENT ---
-// This is the key fix. These objects are now created only once.
-const interiorTypes = ['interiorDoor', 'closetDoor', 'vanityDoor', 'vanityDrawer', 'cabinetDoor', 'cabinetDrawer'] as const;
+interface AdditionalModalProps {
+  service?: Service;
+  serviceType?: ServiceType;
+  onSave: (service: Service) => void;
+  onClose: () => void;
+  onBack: () => void;
+}
 
-type ExtendedAdditionalItem = AdditionalItem & { type: AdditionalItem['type'] | '' };
-
-const initialState: ExtendedAdditionalItem = {
-  id: Date.now(),
-  type: '', // Set to empty initially
-  quantity: '',
-  material: undefined,
-  prepCondition: 'good',
-  coats: 2,
+const materialOptions: { [key in ServiceType]?: string[] } = {
+  doorPainting: ['Wood', 'MDF', 'Metal'],
+  vanityDoors: ['Wood', 'MDF', 'Metal'],
+  vanityDrawers: ['Wood', 'Laminate', 'Metal'],
+  cabinetDoors: ['Wood', 'Laminate', 'Metal'],
+  cabinetDrawers: ['Wood', 'Laminate', 'Metal'],
+  fireplaceMantel: ['Wood', 'Stone', 'Metal'],
 };
 
-const materialOptions: { [key in typeof interiorTypes[number]]?: string[] } = {
-  interiorDoor: ['Wood', 'MDF', 'Metal'],
-  closetDoor: ['Wood', 'MDF', 'Metal'],
-  vanityDoor: ['Wood', 'MDF', 'Metal'],
-  vanityDrawer: ['Wood', 'Laminate', 'Metal'],
-  cabinetDoor: ['Wood', 'Laminate', 'Metal'],
-  cabinetDrawer: ['Wood', 'Laminate', 'Metal'],
-};
-// --- END OF CONSTANTS ---
-
-
-const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose }) => {
-  const [formData, setFormData] = useState<ExtendedAdditionalItem>(item ? { ...initialState, ...item, type: item.type } : initialState);
+const AdditionalModal: React.FC<AdditionalModalProps> = ({ service, serviceType, onSave, onClose, onBack }) => {
+  const initialState: Partial<Service> = {
+    id: Date.now(),
+    type: service?.type || serviceType,
+    quantity: service?.quantity || 1,
+    material: service?.material,
+    prepCondition: service?.prepCondition || 'good',
+    coats: service?.coats || 2,
+    primerType: service?.primerType || 'none',
+    primerCoats: service?.primerCoats || 1,
+    paintType: service?.paintType || 'standard',
+    useSpray: service?.useSpray || false,
+  };
+  const [formData, setFormData] = useState<Partial<Service>>(initialState);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    
-    if (name === 'type') {
-      const newType = value as ExtendedAdditionalItem['type'];
-      setFormData(prev => {
-        // Keep material if it's compatible with the new type, otherwise reset to undefined
-        const currentMaterial = prev.material;
-
-        // --- FIX START ---
-        // 1. Perform the lookup only ONCE and store the result.
-        const availableMaterials = newType ? materialOptions[newType as typeof interiorTypes[number]] : undefined;
-
-        // 2. Use the new variable. TypeScript now knows if `availableMaterials` exists, it's an array.
-        const newMaterial = (availableMaterials && currentMaterial && availableMaterials.includes(currentMaterial))
-          ? currentMaterial
-          : undefined;
-        // --- FIX END ---
-
-        return {
-          ...prev,
-          type: newType,
-          material: newMaterial,
-        };
-      });
+    const { name, value, type: inputType } = e.target;
+    if (inputType === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
       return;
     }
-
-    if (name === 'quantity' || name === 'coats') {
-      const num = parseFloat(value);
+    let num;
+    if (name === 'quantity' || name === 'coats' || name === 'primerCoats') {
+      num = parseFloat(value) || 0;
       if (value !== '' && !isNaN(num) && num < 0) {
         setFieldErrors(prev => ({ ...prev, [name]: 'Cannot be negative' }));
         return;
@@ -73,73 +56,79 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ item, onSave, onClose
   };
 
   const handleSave = () => {
-    if (!formData.type) {
-      alert("Please select an item type.");
-      return;
-    }
-    if (!formData.quantity || parseFloat(String(formData.quantity)) <= 0) {
-      alert("Please enter valid quantity greater than 0.");
-      return;
-    }
-    if (parseFloat(String(formData.coats)) < 1) {
-      alert("Number of coats must be at least 1.");
-      return;
-    }
-    if (materialOptions[formData.type as typeof interiorTypes[number]] && !formData.material) {
-      alert("Please select a material.");
-      return;
-    }
-    if (!formData.prepCondition) {
-      alert("Please select a surface condition.");
-      return;
-    }
-    onSave(formData as AdditionalItem); // Cast back to AdditionalItem since type is now set
+    if ((formData.quantity || 0) <= 0) return alert("Quantity > 0");
+    if ((formData.coats || 0) < 1) return alert("Coats >= 1");
+    if (!formData.prepCondition) return alert("Select condition");
+    if (formData.type && materialOptions[formData.type as keyof typeof materialOptions] && !formData.material) return alert("Select material");
+    onSave(formData as Service);
   };
 
-  const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full animate-fade-in-up max-h-[90vh] overflow-y-auto">
-        <h3 className="text-2xl font-serif font-semibold text-[#162733] mb-6">{item ? 'Edit' : 'Add'} Additional Item</h3>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="item-type" className="block text-sm font-medium text-gray-700">Item Type</label>
-            <select id="item-type" name="type" value={formData.type} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
-              <option value="">Select Item Type</option>
-              {interiorTypes.map(t => <option key={t} value={t}>{formatTypeLabel(t)}</option>)}
-            </select>
-          </div>
-          {formData.type && materialOptions[formData.type as typeof interiorTypes[number]] && (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">{service ? 'Edit' : 'Add'} Additional Item</h3>
+        <div className="space-y-5">
+          {formData.type && materialOptions[formData.type as keyof typeof materialOptions] && (
             <div>
-              <label htmlFor="material" className="block text-sm font-medium text-gray-700">Material</label>
-              <select id="material" name="material" value={formData.material || ''} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+              <label htmlFor="material" className="block text-sm font-semibold text-gray-700 mb-1">Material</label>
+              <select id="material" name="material" value={formData.material || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                 <option value="">Select Material</option>
-                {materialOptions[formData.type as typeof interiorTypes[number]]!.map(m => <option key={m} value={m}>{m}</option>)}
+                {materialOptions[formData.type as keyof typeof materialOptions]!.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
           )}
           <div>
-            <label htmlFor="prepCondition" className="block text-sm font-medium text-gray-700">Surface Condition</label>
-            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+            <label htmlFor="prepCondition" className="block text-sm font-semibold text-gray-700 mb-1">Condition</label>
+            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
               <option value="good">Good</option>
               <option value="fair">Fair</option>
               <option value="poor">Poor</option>
             </select>
           </div>
           <div>
-            <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
-            <input type="number" inputMode="decimal" step="1" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+            <label htmlFor="coats" className="block text-sm font-semibold text-gray-700 mb-1">Coats</label>
+            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
             {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
           </div>
           <div>
-            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">Quantity</label>
-            <input type="number" inputMode="decimal" step="0.1" min="0" id="quantity" name="quantity" value={formData.quantity || ''} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.quantity ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+            <label htmlFor="quantity" className="block text-sm font-semibold text-gray-700 mb-1">Quantity</label>
+            <input type="number" min="0" step="0.1" id="quantity" name="quantity" value={formData.quantity || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.quantity ? 'border-red-500' : ''}`} />
             {fieldErrors.quantity && <p className="text-red-500 text-sm mt-1">{fieldErrors.quantity}</p>}
           </div>
+          <div>
+            <label htmlFor="primerType" className="block text-sm font-semibold text-gray-700 mb-1">Primer</label>
+            <select id="primerType" name="primerType" value={formData.primerType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              <option value="none">None</option>
+              <option value="spot">Spot</option>
+              <option value="full">Full</option>
+            </select>
+          </div>
+          {formData.primerType === 'full' && (
+            <div>
+              <label htmlFor="primerCoats" className="block text-sm font-semibold text-gray-700 mb-1">Primer Coats</label>
+              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition" />
+            </div>
+          )}
+          <div>
+            <label htmlFor="paintType" className="block text-sm font-semibold text-gray-700 mb-1">Paint Type</label>
+            <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              <option value="standard">Standard</option>
+              <option value="benjaminMooreAura">Benjamin Moore Aura</option>
+              <option value="sherwinWilliamsEmerald">Sherwin Williams Emerald</option>
+              <option value="moldResistant">Mold Resistant</option>
+              <option value="benjaminMooreRegal">Benjamin Moore Regal</option>
+              <option value="sherwinWilliamsDuration">Sherwin Williams Duration</option>
+              <option value="behrPremiumPlus">Behr Premium Plus</option>
+            </select>
+          </div>
+          <label className="flex items-center space-x-2">
+            <input type="checkbox" name="useSpray" checked={formData.useSpray} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+            <span>Use Spray (upcharge)</span>
+          </label>
           <div className="flex justify-end gap-4 mt-6">
-            <button onClick={onClose} className="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
-            <button onClick={handleSave} className="btn-primary font-bold py-2 px-4 rounded-lg">Save</button>
+            <button onClick={onBack} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Back</button>
+            <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Cancel</button>
+            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">Save</button>
           </div>
         </div>
       </div>

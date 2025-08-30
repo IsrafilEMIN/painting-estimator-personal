@@ -1,51 +1,109 @@
 // src/components/steps/Step3.tsx
 import React from 'react';
-import SelectableCard from '@/components/SelectableCard';
-import type { PaintQuality } from '@/types/paintingEstimator';
+import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
 interface Step3Props {
-  selectedPaintQuality: PaintQuality;
-  setSelectedPaintQuality: (quality: PaintQuality) => void;
+  isLoading: boolean;
+  breakdown: DetailedBreakdownItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  paintCost: number;
+  primerCost: number;
+  formatCurrency: (value: number) => string;
   setCurrentStep: (step: number) => void;
+  startOver: () => void;
+  setIsSettingsOpen: (open: boolean) => void;
 }
 
-const Step3: React.FC<Step3Props> = ({ selectedPaintQuality, setSelectedPaintQuality, setCurrentStep }) => {
+const Step3: React.FC<Step3Props> = ({
+  isLoading,
+  breakdown,
+  subtotal,
+  tax,
+  total,
+  paintCost,
+  primerCost,
+  formatCurrency,
+  setCurrentStep,
+  startOver,
+  setIsSettingsOpen,
+}) => {
+  const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
+
+  if (isLoading) return <div className="text-center p-8 text-lg text-gray-600">Calculating...</div>;
+
   return (
-    <div className="animate-fade-in-up">
-      <h2 className="text-3xl font-serif font-bold text-[#162733] mb-4">Select Paint Quality</h2>
-      <p className="text-gray-600 mb-8">Choose your preferred paint quality</p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <SelectableCard
-          label="Good"
-          selected={selectedPaintQuality === 'good'}
-          onClick={() => setSelectedPaintQuality('good')}
-        >
-          <p className="text-sm text-gray-600 mt-2">Basic coverage, affordable option</p>
-        </SelectableCard>
-        <SelectableCard
-          label="Better"
-          selected={selectedPaintQuality === 'better'}
-          onClick={() => setSelectedPaintQuality('better')}
-        >
-          <p className="text-sm text-gray-600 mt-2">Improved durability, mid-range</p>
-        </SelectableCard>
-        <SelectableCard
-          label="Best"
-          selected={selectedPaintQuality === 'best'}
-          onClick={() => setSelectedPaintQuality('best')}
-        >
-          <p className="text-sm text-gray-600 mt-2">Premium quality, long-lasting</p>
-        </SelectableCard>
+    <div className="space-y-6 transition-all duration-300">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">Estimate Breakdown</h2>
+      <div className="bg-gray-50 p-6 rounded-xl shadow-inner overflow-x-auto">
+        <table className="w-full text-left text-gray-800 min-w-max">
+          <thead>
+            <tr className="border-b-2 border-gray-300">
+              <th className="py-3 px-4 font-semibold">Room/Service</th>
+              <th className="py-3 px-4 text-right font-semibold">Labor</th>
+              <th className="py-3 px-4 text-right font-semibold">Material</th>
+              <th className="py-3 px-4 text-right font-semibold">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {breakdown.map(item => (
+              <React.Fragment key={item.roomId}>
+                <tr className="border-b border-gray-200 hover:bg-gray-100 transition">
+                  <td className="py-3 px-4 font-semibold">{item.roomName} (Base)</td>
+                  <td className="py-3 px-4 text-right">{formatCurrency(item.baseLabor)}</td>
+                  <td className="py-3 px-4 text-right">{formatCurrency(item.baseMaterial)}</td>
+                  <td className="py-3 px-4 text-right font-semibold">{formatCurrency(item.baseTotal)}</td>
+                </tr>
+                {item.services.map(svc => (
+                  <tr key={svc.serviceId} className="border-b border-gray-200 hover:bg-gray-100 transition">
+                    <td className="py-2 px-8 text-gray-600">› {formatTypeLabel(svc.serviceType)}</td>
+                    <td className="py-2 px-4 text-right text-gray-600">{formatCurrency(svc.laborCost)}</td>
+                    <td className="py-2 px-4 text-right text-gray-600">{formatCurrency(svc.materialCost)}</td>
+                    <td className="py-2 px-4 text-right">{formatCurrency(svc.total)}</td>
+                  </tr>
+                ))}
+                <tr className="border-b-2 border-gray-300 bg-gray-50">
+                  <td className="py-3 px-4 font-bold">{item.roomName} Subtotal</td>
+                  <td className="py-3 px-4 text-right"></td>
+                  <td className="py-3 px-4 text-right"></td>
+                  <td className="py-3 px-4 text-right font-bold">{formatCurrency(item.roomTotal)}</td>
+                </tr>
+              </React.Fragment>
+            ))}
+            <tr className="border-b border-gray-200 hover:bg-gray-100 transition">
+              <td className="py-3 px-4 font-semibold">Paint (Global)</td>
+              <td className="py-3 px-4 text-right"></td>
+              <td className="py-3 px-4 text-right">{formatCurrency(paintCost)}</td>
+              <td className="py-3 px-4 text-right font-semibold">{formatCurrency(paintCost)}</td>
+            </tr>
+            <tr className="border-b border-gray-200 hover:bg-gray-100 transition">
+              <td className="py-3 px-4 font-semibold">Primer (Global)</td>
+              <td className="py-3 px-4 text-right"></td>
+              <td className="py-3 px-4 text-right">{formatCurrency(primerCost)}</td>
+              <td className="py-3 px-4 text-right font-semibold">{formatCurrency(primerCost)}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-gray-300 bg-gray-50">
+              <td className="pt-4 pb-2 px-4 text-xl font-bold">Subtotal</td>
+              <td colSpan={3} className="pt-4 pb-2 px-4 text-xl font-bold text-right">{formatCurrency(subtotal)}</td>
+            </tr>
+            <tr className="bg-gray-50">
+              <td className="py-2 px-4">Tax</td>
+              <td colSpan={3} className="py-2 px-4 text-right">{formatCurrency(tax)}</td>
+            </tr>
+            <tr className="border-t-2 border-gray-300 bg-gray-50">
+              <td className="pt-4 pb-2 px-4 text-xl font-bold">Total</td>
+              <td colSpan={3} className="pt-4 pb-2 px-4 text-xl font-bold text-right">{formatCurrency(total)}</td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
-      <div className="flex justify-between">
-        <button onClick={() => setCurrentStep(2)} className="btn-secondary font-bold py-2 px-6 rounded-lg">Back</button>
-        <button
-          onClick={() => setCurrentStep(4)}
-          disabled={!selectedPaintQuality}
-          className={`btn-primary font-bold py-2 px-6 rounded-lg ${!selectedPaintQuality ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          Get Estimate
-        </button>
+      <div className="flex justify-between space-x-4">
+        <button onClick={() => setCurrentStep(2)} className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition">Back</button>
+        <button onClick={startOver} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition">Start Over</button>
+        <button onClick={() => setIsSettingsOpen(true)} className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition">Settings</button>
       </div>
     </div>
   );

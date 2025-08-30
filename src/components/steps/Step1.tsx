@@ -9,20 +9,15 @@ interface Step1Props {
 
 const Step1: React.FC<Step1Props> = ({ setCurrentStep, setIsSettingsOpen, handleLogout }) => {
   return (
-    <div className="animate-fade-in-up">
-      <h1 className="text-4xl font-serif font-bold text-[#162733] mb-4">Interior Painting Estimator</h1>
-      <p className="text-gray-600 mb-8">Build accurate, profitable quotes for your interior painting projects.</p>
-      <div className="flex justify-center mb-8 gap-4">
-        <button onClick={() => setIsSettingsOpen(true)} className="btn-secondary font-bold py-2 px-6 rounded-lg">Adjust Pricing</button>
-        <button onClick={handleLogout} className="btn-secondary font-bold py-2 px-6 rounded-lg">Logout</button>
-      </div>
-      <div className="flex justify-center">
-        <button
-          onClick={() => setCurrentStep(2)}
-          className="btn-primary font-bold py-3 px-8 rounded-lg"
-        >
-          Let&apos;s Get Started
-        </button>
+    <div className="text-center p-8 bg-white rounded-xl shadow-md">
+      <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome to the Painting Estimator</h2>
+      <p className="text-gray-600 mb-6">Get a quick and accurate estimate for your painting project.</p>
+      <button onClick={() => setCurrentStep(2)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+        Start Estimate
+      </button>
+      <div className="mt-6 flex justify-center space-x-4">
+        <button onClick={() => setIsSettingsOpen(true)} className="text-blue-600 hover:underline">Settings</button>
+        <button onClick={handleLogout} className="text-blue-600 hover:underline">Logout</button>
       </div>
     </div>
   );

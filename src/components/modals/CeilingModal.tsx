@@ -1,34 +1,39 @@
 // src/components/modals/CeilingModal.tsx
 import React, { useState } from 'react';
-import type { CeilingModalProps, InteriorCeiling } from '@/types/paintingEstimator';
+import type { Service } from '@/types/paintingEstimator';
 
-const CeilingModal: React.FC<CeilingModalProps> = ({ ceiling, onSave, onClose }) => {
-  const initialCeilingState: InteriorCeiling = {
+interface CeilingModalProps {
+  service?: Service;
+  onSave: (service: Service) => void;
+  onClose: () => void;
+  onBack: () => void;
+}
+
+const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, onBack }) => {
+  const initialState: Partial<Service> = {
     id: Date.now(),
-    length: '',
-    width: '',
-    ceilingHeight: 8,
-    texture: 'smooth',
-    coats: 2,
-    prepCondition: 'good',
-    useMoldResistantPaint: false,
-    paintCrownMolding: false,
-    paintFireplaceMantel: false,
+    type: 'ceilingPainting',
+    texture: service?.texture || 'smooth',
+    prepCondition: service?.prepCondition || 'good',
+    coats: service?.coats || 2,
+    primerType: service?.primerType || 'none',
+    primerCoats: service?.primerCoats || 1,
+    paintType: service?.paintType || 'standard',
+    useSpray: service?.useSpray || false,
   };
-  const [formData, setFormData] = useState<InteriorCeiling>({ ...initialCeilingState, ...ceiling });
+  const [formData, setFormData] = useState<Partial<Service>>(initialState);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    let checked: boolean | undefined;
-    if (type === 'checkbox') {
-      checked = (e.target as HTMLInputElement).checked;
+    const { name, value, type: inputType } = e.target;
+    if (inputType === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
       return;
     }
-    const newValue = value;
-    if (['length', 'width', 'ceilingHeight', 'coats'].includes(name)) {
-      const num = parseFloat(value);
+    let num;
+    if (name === 'coats' || name === 'primerCoats') {
+      num = parseFloat(value) || 0;
       if (value !== '' && !isNaN(num) && num < 0) {
         setFieldErrors(prev => ({ ...prev, [name]: 'Cannot be negative' }));
         return;
@@ -36,85 +41,75 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ ceiling, onSave, onClose })
         setFieldErrors(prev => { const p = { ...prev }; delete p[name]; return p; });
       }
     }
-    setFormData(prev => ({ ...prev, [name]: newValue }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSave = () => {
-    if (!formData.length || !formData.width || !formData.ceilingHeight || parseFloat(String(formData.length)) <= 0 || parseFloat(String(formData.width)) <= 0 || parseFloat(String(formData.ceilingHeight)) <= 0) {
-      alert("Please enter valid dimensions greater than 0.");
-      return;
-    }
-    if (parseFloat(String(formData.coats)) < 1) {
-      alert("Number of coats must be at least 1.");
-      return;
-    }
-    if (!formData.prepCondition) {
-      alert("Please select a surface condition.");
-      return;
-    }
-    onSave(formData);
+    if ((formData.coats || 0) < 1) return alert("Coats >= 1");
+    if (!formData.prepCondition) return alert("Select condition");
+    onSave(formData as Service);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full animate-fade-in-up max-h-[90vh] overflow-y-auto">
-        <h3 className="text-2xl font-serif font-semibold text-[#162733] mb-6">{ceiling ? 'Edit' : 'Add'} Interior Ceiling Painting</h3>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="ceiling-length" className="block text-sm font-medium text-gray-700">Length (ft)</label>
-              <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-length" name="length" value={formData.length} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.length ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
-              {fieldErrors.length && <p className="text-red-500 text-sm mt-1">{fieldErrors.length}</p>}
-            </div>
-            <div>
-              <label htmlFor="ceiling-width" className="block text-sm font-medium text-gray-700">Width (ft)</label>
-              <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-width" name="width" value={formData.width} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.width ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
-              {fieldErrors.width && <p className="text-red-500 text-sm mt-1">{fieldErrors.width}</p>}
-            </div>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">{service ? 'Edit' : 'Add'} Ceiling Painting</h3>
+        <div className="space-y-5">
           <div>
-            <label htmlFor="ceiling-height" className="block text-sm font-medium text-gray-700">Ceiling Height (ft)</label>
-            <input type="number" inputMode="decimal" step="0.1" min="0" id="ceiling-height" name="ceilingHeight" value={formData.ceilingHeight} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.ceilingHeight ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
-            {fieldErrors.ceilingHeight && <p className="text-red-500 text-sm mt-1">{fieldErrors.ceilingHeight}</p>}
-          </div>
-          <div>
-            <label htmlFor="texture" className="block text-sm font-medium text-gray-700">Surface Texture</label>
-            <select id="texture" name="texture" value={formData.texture} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+            <label htmlFor="texture" className="block text-sm font-semibold text-gray-700 mb-1">Texture</label>
+            <select id="texture" name="texture" value={formData.texture} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
               <option value="smooth">Smooth</option>
-              <option value="light">Light Texture</option>
-              <option value="heavy">Heavy Texture</option>
+              <option value="light">Light</option>
+              <option value="heavy">Heavy</option>
             </select>
           </div>
           <div>
-            <label htmlFor="prepCondition" className="block text-sm font-medium text-gray-700">Surface Condition</label>
-            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="mt-1 block w-full py-2 px-3 border-2 border-gray-400 bg-white rounded-md shadow-sm focus:outline-none focus:ring-[#093373] focus:border-[#093373] text-gray-900">
+            <label htmlFor="prepCondition" className="block text-sm font-semibold text-gray-700 mb-1">Condition</label>
+            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
               <option value="good">Good</option>
               <option value="fair">Fair</option>
               <option value="poor">Poor</option>
             </select>
           </div>
           <div>
-            <label htmlFor="coats" className="block text-sm font-medium text-gray-700">Number of Coats</label>
-            <input type="number" inputMode="decimal" step="1" min="1" id="coats" name="coats" value={formData.coats} onChange={handleChange} className={`mt-1 block w-full rounded-md shadow-sm border-2 border-gray-400 focus:ring-[#093373] text-gray-900 ${fieldErrors.coats ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'focus:border-[#093373]'}`} />
+            <label htmlFor="coats" className="block text-sm font-semibold text-gray-700 mb-1">Coats</label>
+            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
             {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
           </div>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input type="checkbox" name="useMoldResistantPaint" checked={formData.useMoldResistantPaint} onChange={handleChange} className="h-4 w-4 rounded border-2 border-gray-400 text-[#093373] focus:ring-[#093373] mr-2" />
-              Use Mold-Resistant Paint
-            </label>
-            <label className="flex items-center">
-              <input type="checkbox" name="paintCrownMolding" checked={formData.paintCrownMolding} onChange={handleChange} className="h-4 w-4 rounded border-2 border-gray-400 text-[#093373] focus:ring-[#093373] mr-2" />
-              Paint Crown Molding
-            </label>
-            <label className="flex items-center">
-              <input type="checkbox" name="paintFireplaceMantel" checked={formData.paintFireplaceMantel} onChange={handleChange} className="h-4 w-4 rounded border-2 border-gray-400 text-[#093373] focus:ring-[#093373] mr-2" />
-              Paint Fireplace Mantel
-            </label>
+          <div>
+            <label htmlFor="primerType" className="block text-sm font-semibold text-gray-700 mb-1">Primer</label>
+            <select id="primerType" name="primerType" value={formData.primerType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              <option value="none">None</option>
+              <option value="spot">Spot</option>
+              <option value="full">Full</option>
+            </select>
           </div>
+          {formData.primerType === 'full' && (
+            <div>
+              <label htmlFor="primerCoats" className="block text-sm font-semibold text-gray-700 mb-1">Primer Coats</label>
+              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition" />
+            </div>
+          )}
+          <div>
+            <label htmlFor="paintType" className="block text-sm font-semibold text-gray-700 mb-1">Paint Type</label>
+            <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              <option value="standard">Standard</option>
+              <option value="benjaminMooreAura">Benjamin Moore Aura</option>
+              <option value="sherwinWilliamsEmerald">Sherwin Williams Emerald</option>
+              <option value="moldResistant">Mold Resistant</option>
+              <option value="benjaminMooreRegal">Benjamin Moore Regal</option>
+              <option value="sherwinWilliamsDuration">Sherwin Williams Duration</option>
+              <option value="behrPremiumPlus">Behr Premium Plus</option>
+            </select>
+          </div>
+          <label className="flex items-center space-x-2">
+            <input type="checkbox" name="useSpray" checked={formData.useSpray} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+            <span>Use Spray (upcharge)</span>
+          </label>
           <div className="flex justify-end gap-4 mt-6">
-            <button onClick={onClose} className="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
-            <button onClick={handleSave} className="btn-primary font-bold py-2 px-4 rounded-lg">Save</button>
+            <button onClick={onBack} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Back</button>
+            <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Cancel</button>
+            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">Save</button>
           </div>
         </div>
       </div>
