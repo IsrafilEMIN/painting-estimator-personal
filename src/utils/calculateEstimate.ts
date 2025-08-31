@@ -136,7 +136,7 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
           break;
       }
 
-      let cumulativeAdd = prepAdd + textureAdd; // New: Sum prep and texture to avoid compounding
+      const cumulativeAdd = prepAdd + textureAdd; // New: Sum prep and texture to avoid compounding
       laborHours *= (1 + cumulativeAdd); // New: Apply single cumulative multiplier
 
       let highCeilAdd = 0;
@@ -201,7 +201,7 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
     });
   });
 
-  let asbestosCost = hasAsbestos ? pricing.COST_ASBESTOS_TEST : 0;
+  const asbestosCost = hasAsbestos ? pricing.COST_ASBESTOS_TEST : 0;
 
   // Safeguard globals
   let paintCoverage = pricing.paintCoverage;
