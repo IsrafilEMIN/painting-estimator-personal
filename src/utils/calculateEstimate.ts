@@ -104,7 +104,7 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
           laborHours = sqFt / rate;
           break;
         case 'popcornRemoval':
-          sqFt = floorSqFt;
+          sqFt = service.useCustomSqFt ? (Number(service.customSqFt) || floorSqFt) : floorSqFt;
           laborHours = sqFt / rate;
           materialCost += sqFt * pricing.COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT;
           if (service.type === 'popcornRemoval' && service.asbestos) {
