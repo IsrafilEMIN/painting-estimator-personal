@@ -13,15 +13,48 @@ interface PricingSettingsModalProps {
   onClose: () => void;
 }
 
+interface Field {
+  label: string;
+  name: string;
+  step?: number;
+}
+
 const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, onSave, onClose }) => {
   const [formData, setFormData] = useState<PricingFormData>({ ...pricing });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [openGroups, setOpenGroups] = useState<Set<number>>(new Set());
+  const [openSubGroups, setOpenSubGroups] = useState<{ [key: number]: Set<number> }>({});
+
+  const toggleGroup = (index: number) => {
+    setOpenGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSubGroup = (groupIndex: number, subIndex: number) => {
+    setOpenSubGroups((prev) => {
+      const newObj = { ...prev };
+      const currentSet = new Set(newObj[groupIndex]);
+      if (currentSet.has(subIndex)) {
+        currentSet.delete(subIndex);
+      } else {
+        currentSet.add(subIndex);
+      }
+      newObj[groupIndex] = currentSet;
+      return newObj;
+    });
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const parts = name.split('.');
 
-    // --- New handler logic ---
     const newErrors = { ...errors };
     delete newErrors[name]; // Clear previous error for this field
 
@@ -34,7 +67,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
       if (isNaN(num)) {
         newErrors[name] = 'Must be a number';
       } else {
-        // Validation checks
         if (num < 0) {
           newErrors[name] = 'Cannot be negative';
         } else if ((name.includes('PRODUCTION_RATES') || name.includes('paintCoverage') || name.includes('laborRate')) && num <= 0) {
@@ -46,7 +78,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
     
     setErrors(newErrors);
 
-    // Update form data state
     if (parts.length === 2) {
       const category = parts[0] as keyof Pricing;
       const key = parts[1] as string;
@@ -92,58 +123,333 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
 
   const formatLabel = (key: string) => key.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
 
+  const generalGroups: {
+    title: string;
+    fields?: Field[];
+    subGroups?: {
+      subTitle: string;
+      fields: Field[];
+    }[];
+  }[] = [
+    {
+      title: 'General Project Settings',
+      fields: [
+        { label: 'Labor Rate ($/hr)', name: 'laborRate' },
+        { label: 'Profit Markup', name: 'PROFIT_MARKUP', step: 0.01 },
+        { label: 'Tax Rate', name: 'TAX_RATE', step: 0.001 },
+        { label: 'Minimum Job Fee', name: 'MIN_JOB_FEE' },
+        { label: 'Supplies Percentage', name: 'SUPPLIES_PERCENTAGE', step: 0.01 },
+        { label: 'Waste Factor', name: 'WASTE_FACTOR', step: 0.01 },
+      ],
+    },
+    {
+      title: 'Paint and Primer Settings',
+      fields: [
+        { label: 'Paint Coverage (sqft/gal)', name: 'paintCoverage' },
+        { label: 'Primer Cost ($/gal)', name: 'primerCost', step: 0.01 },
+        { label: 'Spray Upcharge Percentage', name: 'sprayUpcharge', step: 0.01 },
+      ],
+    },
+    {
+      title: 'Paint Costs',
+      subGroups: [
+        {
+          subTitle: 'Behr',
+          fields: [
+            { label: formatLabel('behrDynasty'), name: 'paintCosts.behrDynasty', step: 0.01 },
+            { label: formatLabel('behrMarquee'), name: 'paintCosts.behrMarquee', step: 0.01 },
+            { label: formatLabel('behrPremiumPlus'), name: 'paintCosts.behrPremiumPlus', step: 0.01 },
+            { label: formatLabel('behrUltra'), name: 'paintCosts.behrUltra', step: 0.01 },
+          ],
+        },
+        {
+          subTitle: 'Benjamin Moore',
+          fields: [
+            { label: formatLabel('benjaminMooreAdvance'), name: 'paintCosts.benjaminMooreAdvance', step: 0.01 },
+            { label: formatLabel('benjaminMooreAura'), name: 'paintCosts.benjaminMooreAura', step: 0.01 },
+            { label: formatLabel('benjaminMooreBen'), name: 'paintCosts.benjaminMooreBen', step: 0.01 },
+            { label: formatLabel('benjaminMooreRegal'), name: 'paintCosts.benjaminMooreRegal', step: 0.01 },
+            { label: formatLabel('benjaminMooreScuffX'), name: 'paintCosts.benjaminMooreScuffX', step: 0.01 },
+            { label: formatLabel('benjaminMooreUltraSpec'), name: 'paintCosts.benjaminMooreUltraSpec', step: 0.01 },
+          ],
+        },
+        {
+          subTitle: 'Sherwin Williams',
+          fields: [
+            { label: formatLabel('sherwinWilliamsCaptivate'), name: 'paintCosts.sherwinWilliamsCaptivate', step: 0.01 },
+            { label: formatLabel('sherwinWilliamsCashmere'), name: 'paintCosts.sherwinWilliamsCashmere', step: 0.01 },
+            { label: formatLabel('sherwinWilliamsDuration'), name: 'paintCosts.sherwinWilliamsDuration', step: 0.01 },
+            { label: formatLabel('sherwinWilliamsEmerald'), name: 'paintCosts.sherwinWilliamsEmerald', step: 0.01 },
+            { label: formatLabel('sherwinWilliamsHarmony'), name: 'paintCosts.sherwinWilliamsHarmony', step: 0.01 },
+            { label: formatLabel('sherwinWilliamsProMar200'), name: 'paintCosts.sherwinWilliamsProMar200', step: 0.01 },
+            { label: formatLabel('sherwinWilliamsSuperPaint'), name: 'paintCosts.sherwinWilliamsSuperPaint', step: 0.01 },
+          ],
+        },
+        {
+          subTitle: 'Other',
+          fields: [
+            { label: formatLabel('moldResistant'), name: 'paintCosts.moldResistant', step: 0.01 },
+            { label: formatLabel('standard'), name: 'paintCosts.standard', step: 0.01 },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Supplies and Material Costs',
+      fields: [
+        { label: 'Popcorn Removal Materials ($/sqft)', name: 'COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT', step: 0.01 },
+        { label: 'Asbestos Test Cost', name: 'COST_ASBESTOS_TEST' },
+        { label: 'Railings Spindles Cost', name: 'COST_RAILINGS_SPINDLES' },
+      ],
+    },
+    {
+      title: 'Prep Settings',
+      fields: [
+        { label: 'Base Prep Hours Fixed', name: 'BASE_PREP_HOURS_FIXED', step: 0.01 },
+        { label: 'Prep Hours Per Floor Sqft', name: 'PREP_HOURS_PER_FLOOR_SQFT', step: 0.001 },
+        { label: 'Prep Hours Per Perimeter Lft', name: 'PREP_HOURS_PER_PERIMETER_LFT', step: 0.001 },
+      ],
+    },
+    {
+      title: 'Production Rates',
+      subGroups: [
+        {
+          subTitle: 'Walls and Ceilings',
+          fields: [
+            { label: formatLabel('wallPainting'), name: 'PRODUCTION_RATES.wallPainting', step: 0.01 },
+            { label: formatLabel('ceilingPainting'), name: 'PRODUCTION_RATES.ceilingPainting', step: 0.01 },
+          ],
+        },
+        {
+          subTitle: 'Trims and Moldings',
+          fields: [
+            { label: formatLabel('trims'), name: 'PRODUCTION_RATES.trims', step: 0.01 },
+            { label: formatLabel('crownMolding'), name: 'PRODUCTION_RATES.crownMolding', step: 0.01 },
+          ],
+        },
+        {
+          subTitle: 'Doors',
+          fields: [
+            { label: formatLabel('doorPainting'), name: 'PRODUCTION_RATES.doorPainting', step: 0.01 },
+          ],
+        },
+        {
+          subTitle: 'Cabinets',
+          fields: [
+            { label: formatLabel('cabinetDoors'), name: 'PRODUCTION_RATES.cabinetDoors', step: 0.01 },
+            { label: formatLabel('cabinetDrawers'), name: 'PRODUCTION_RATES.cabinetDrawers', step: 0.01 },
+          ],
+        },
+        {
+          subTitle: 'Vanities',
+          fields: [
+            { label: formatLabel('vanityDoors'), name: 'PRODUCTION_RATES.vanityDoors', step: 0.01 },
+            { label: formatLabel('vanityDrawers'), name: 'PRODUCTION_RATES.vanityDrawers', step: 0.01 },
+          ],
+        },
+        {
+          subTitle: 'Other',
+          fields: [
+            { label: formatLabel('popcornRemoval'), name: 'PRODUCTION_RATES.popcornRemoval', step: 0.01 },
+            { label: formatLabel('fireplaceMantel'), name: 'PRODUCTION_RATES.fireplaceMantel', step: 0.01 },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Additional Paint Usage',
+      subGroups: [
+        {
+          subTitle: 'Walls and Ceilings',
+          fields: [
+            { label: formatLabel('wallPainting'), name: 'ADDITIONAL_PAINT_USAGE.wallPainting' },
+            { label: formatLabel('ceilingPainting'), name: 'ADDITIONAL_PAINT_USAGE.ceilingPainting' },
+          ],
+        },
+        {
+          subTitle: 'Trims and Moldings',
+          fields: [
+            { label: formatLabel('trims'), name: 'ADDITIONAL_PAINT_USAGE.trims' },
+            { label: formatLabel('crownMolding'), name: 'ADDITIONAL_PAINT_USAGE.crownMolding' },
+          ],
+        },
+        {
+          subTitle: 'Doors',
+          fields: [
+            { label: formatLabel('doorPainting'), name: 'ADDITIONAL_PAINT_USAGE.doorPainting' },
+          ],
+        },
+        {
+          subTitle: 'Cabinets',
+          fields: [
+            { label: formatLabel('cabinetDoors'), name: 'ADDITIONAL_PAINT_USAGE.cabinetDoors' },
+            { label: formatLabel('cabinetDrawers'), name: 'ADDITIONAL_PAINT_USAGE.cabinetDrawers' },
+          ],
+        },
+        {
+          subTitle: 'Vanities',
+          fields: [
+            { label: formatLabel('vanityDoors'), name: 'ADDITIONAL_PAINT_USAGE.vanityDoors' },
+            { label: formatLabel('vanityDrawers'), name: 'ADDITIONAL_PAINT_USAGE.vanityDrawers' },
+          ],
+        },
+        {
+          subTitle: 'Other',
+          fields: [
+            { label: formatLabel('popcornRemoval'), name: 'ADDITIONAL_PAINT_USAGE.popcornRemoval' },
+            { label: formatLabel('fireplaceMantel'), name: 'ADDITIONAL_PAINT_USAGE.fireplaceMantel' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Prep Condition Additives',
+      fields: [
+        { label: formatLabel('good'), name: 'PREP_CONDITION_ADDITIVES.good', step: 0.01 },
+        { label: formatLabel('fair'), name: 'PREP_CONDITION_ADDITIVES.fair', step: 0.01 },
+        { label: formatLabel('poor'), name: 'PREP_CONDITION_ADDITIVES.poor', step: 0.01 },
+      ],
+    },
+    {
+      title: 'Texture Additives',
+      fields: [
+        { label: formatLabel('smooth'), name: 'TEXTURE_ADDITIVES.smooth', step: 0.01 },
+        { label: formatLabel('light'), name: 'TEXTURE_ADDITIVES.light', step: 0.01 },
+        { label: formatLabel('heavy'), name: 'TEXTURE_ADDITIVES.heavy', step: 0.01 },
+      ],
+    },
+    {
+      title: 'High Ceiling Tiers',
+      fields: [
+        { label: '10 ft', name: 'HIGH_CEILING_TIERS.10', step: 0.01 },
+        { label: '12 ft', name: 'HIGH_CEILING_TIERS.12', step: 0.01 },
+        { label: '14+ ft', name: 'HIGH_CEILING_TIERS.14+', step: 0.01 },
+      ],
+    },
+    {
+      title: 'Interior Door Material Additives',
+      fields: [
+        { label: formatLabel('Wood'), name: 'INTERIOR_DOOR_MATERIAL_ADDITIVES.Wood', step: 0.01 },
+        { label: formatLabel('MDF'), name: 'INTERIOR_DOOR_MATERIAL_ADDITIVES.MDF', step: 0.01 },
+        { label: formatLabel('Metal'), name: 'INTERIOR_DOOR_MATERIAL_ADDITIVES.Metal', step: 0.01 },
+      ],
+    },
+    {
+      title: 'Cabinet Material Additives',
+      fields: [
+        { label: formatLabel('Wood'), name: 'CABINET_MATERIAL_ADDITIVES.Wood', step: 0.01 },
+        { label: formatLabel('MDF'), name: 'CABINET_MATERIAL_ADDITIVES.MDF', step: 0.01 },
+        { label: formatLabel('Laminate'), name: 'CABINET_MATERIAL_ADDITIVES.Laminate', step: 0.01 },
+        { label: formatLabel('Metal'), name: 'CABINET_MATERIAL_ADDITIVES.Metal', step: 0.01 },
+      ],
+    },
+    {
+      title: 'Mantel Material Additives',
+      fields: [
+        { label: formatLabel('Wood'), name: 'MANTEL_MATERIAL_ADDITIVES.Wood', step: 0.01 },
+        { label: formatLabel('Stone'), name: 'MANTEL_MATERIAL_ADDITIVES.Stone', step: 0.01 },
+        { label: formatLabel('Metal'), name: 'MANTEL_MATERIAL_ADDITIVES.Metal', step: 0.01 },
+      ],
+    },
+    {
+      title: 'Scaffolding Cost Tiers',
+      fields: [
+        { label: '10 ft', name: 'SCAFFOLDING_COST_TIERS.10' },
+        { label: '12 ft', name: 'SCAFFOLDING_COST_TIERS.12' },
+        { label: '14+ ft', name: 'SCAFFOLDING_COST_TIERS.14+' },
+      ],
+    },
+    {
+      title: 'Additives and Deductions',
+      fields: [
+        { label: 'Extra Coat Additive', name: 'EXTRA_COAT_ADDITIVE', step: 0.01 },
+        { label: 'Stairwell Complexity Additive', name: 'STAIRWELL_COMPLEXITY_ADDITIVE', step: 0.01 },
+      ],
+    },
+  ];
+
+  const getMdCols = (len: number) => {
+    if (len === 1) return 1;
+    if (len === 2) return 2;
+    if (len === 3) return 3;
+    if (len === 4) return 2;
+    return 3;
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
         <h3 className="text-2xl font-bold text-gray-800 mb-6">Pricing Settings</h3>
         <div className="space-y-8">
-            {/* General Section */}
-            <div className="p-6 bg-gray-50 rounded-lg shadow-inner">
-              <h4 className="text-lg font-semibold text-gray-800 mb-4">General</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InputField label="Labor Rate ($/hr)" name="laborRate" value={formData.laborRate} onChange={handleChange} error={errors['laborRate']} />
-                  <InputField label="Paint Coverage (sqft/gal)" name="paintCoverage" value={formData.paintCoverage} onChange={handleChange} error={errors['paintCoverage']} />
-                  <InputField label="Primer Cost ($/gal)" name="primerCost" value={formData.primerCost} onChange={handleChange} error={errors['primerCost']} />
-                  <InputField label="Spray Upcharge (/100%)" name="sprayUpcharge" value={formData.sprayUpcharge} onChange={handleChange} error={errors['sprayUpcharge']} />
-                  <InputField label="Profit Markup" name="PROFIT_MARKUP" value={formData.PROFIT_MARKUP} onChange={handleChange} step={0.01} error={errors['PROFIT_MARKUP']} />
-                  <InputField label="Tax Rate" name="TAX_RATE" value={formData.TAX_RATE} onChange={handleChange} step={0.001} error={errors['TAX_RATE']} />
-                  <InputField label="Supplies Percentage" name="SUPPLIES_PERCENTAGE" value={formData.SUPPLIES_PERCENTAGE} onChange={handleChange} step={0.01} error={errors['SUPPLIES_PERCENTAGE']} />
-                  <InputField label="Waste Factor" name="WASTE_FACTOR" value={formData.WASTE_FACTOR} onChange={handleChange} step={0.01} error={errors['WASTE_FACTOR']} />
-                  <InputField label="Popcorn Removal Materials ($/sqft)" name="COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT" value={formData.COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT} onChange={handleChange} step={0.01} error={errors['COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT']} />
-                  <InputField label="Base Prep Hours Fixed" name="BASE_PREP_HOURS_FIXED" value={formData.BASE_PREP_HOURS_FIXED} onChange={handleChange} step={0.01} error={errors['BASE_PREP_HOURS_FIXED']} />
-                  <InputField label="Prep Hours Per Floor Sqft" name="PREP_HOURS_PER_FLOOR_SQFT" value={formData.PREP_HOURS_PER_FLOOR_SQFT} onChange={handleChange} step={0.001} error={errors['PREP_HOURS_PER_FLOOR_SQFT']} />
-                  <InputField label="Prep Hours Per Perimeter Lft" name="PREP_HOURS_PER_PERIMETER_LFT" value={formData.PREP_HOURS_PER_PERIMETER_LFT} onChange={handleChange} step={0.001} error={errors['PREP_HOURS_PER_PERIMETER_LFT']} />
-                  <InputField label="Extra Coat Additive" name="EXTRA_COAT_ADDITIVE" value={formData.EXTRA_COAT_ADDITIVE} onChange={handleChange} step={0.01} error={errors['EXTRA_COAT_ADDITIVE']} />
-                  <InputField label="Door Deduction Sqft" name="DOOR_DEDUCTION_SQFT" value={formData.DOOR_DEDUCTION_SQFT} onChange={handleChange} error={errors['DOOR_DEDUCTION_SQFT']} />
-                  <InputField label="Window Deduction Sqft" name="WINDOW_DEDUCTION_SQFT" value={formData.WINDOW_DEDUCTION_SQFT} onChange={handleChange} error={errors['WINDOW_DEDUCTION_SQFT']} />
-                  <InputField label="Stairwell Complexity Additive" name="STAIRWELL_COMPLEXITY_ADDITIVE" value={formData.STAIRWELL_COMPLEXITY_ADDITIVE} onChange={handleChange} step={0.01} error={errors['STAIRWELL_COMPLEXITY_ADDITIVE']} />
-                  <InputField label="Asbestos Test Cost" name="COST_ASBESTOS_TEST" value={formData.COST_ASBESTOS_TEST} onChange={handleChange} error={errors['COST_ASBESTOS_TEST']} />
-                  <InputField label="Railings Spindles Cost" name="COST_RAILINGS_SPINDLES" value={formData.COST_RAILINGS_SPINDLES} onChange={handleChange} error={errors['COST_RAILINGS_SPINDLES']} />
-                  <InputField label="Minimum Job Fee" name="MIN_JOB_FEE" value={formData.MIN_JOB_FEE} onChange={handleChange} error={errors['MIN_JOB_FEE']} />
+          {generalGroups.map((group, index) => (
+            <div key={index} className="p-6 bg-gray-50 rounded-lg shadow-inner">
+              <div
+                onClick={() => toggleGroup(index)}
+                className="cursor-pointer flex justify-between items-center mb-4"
+              >
+                <h4 className="text-lg font-semibold text-gray-800">{group.title}</h4>
+                <span className="text-xl font-bold text-gray-600">
+                  {openGroups.has(index) ? '-' : '+'}
+                </span>
               </div>
+              {openGroups.has(index) && (
+                <>
+                  {group.fields ? (
+                    <div className={`grid grid-cols-1 md:grid-cols-${getMdCols(group.fields.length)} gap-4`}>
+                      {group.fields.map((field) => (
+                        <InputField
+                          key={field.name}
+                          label={field.label}
+                          name={field.name}
+                          value={field.name.includes('.')
+                            ? (formData[field.name.split('.')[0] as keyof PricingFormData] as Record<string, number | ''>)[field.name.split('.')[1]]
+                            : formData[field.name as keyof PricingFormData] as number | ''}
+                          onChange={handleChange}
+                          step={field.step}
+                          error={errors[field.name]}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {group.subGroups!.map((subGroup, subIndex) => (
+                        <div key={subIndex}>
+                          <div
+                            onClick={() => toggleSubGroup(index, subIndex)}
+                            className="cursor-pointer flex justify-between items-center mb-2"
+                          >
+                            <h5 className="text-md font-medium text-gray-700">{subGroup.subTitle}</h5>
+                            <span className="text-lg font-bold text-gray-600">
+                              {openSubGroups[index]?.has(subIndex) ? '-' : '+'}
+                            </span>
+                          </div>
+                          {openSubGroups[index]?.has(subIndex) && (
+                            <div className={`grid grid-cols-1 md:grid-cols-${getMdCols(subGroup.fields.length)} gap-4`}>
+                              {subGroup.fields.map((field) => (
+                                <InputField
+                                  key={field.name}
+                                  label={field.label}
+                                  name={field.name}
+                                  value={field.name.includes('.')
+                                    ? (formData[field.name.split('.')[0] as keyof PricingFormData] as Record<string, number | ''>)[field.name.split('.')[1]]
+                                    : formData[field.name as keyof PricingFormData] as number | ''}
+                                  onChange={handleChange}
+                                  step={field.step}
+                                  error={errors[field.name]}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-            {/* Other Sections (paintCosts, PRODUCTION_RATES, etc.) */}
-            {Object.keys(pricing)
-              .filter(key => typeof pricing[key as keyof Pricing] === 'object')
-              .map(sectionKey => (
-                <div key={sectionKey} className="p-6 bg-gray-50 rounded-lg shadow-inner">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">{formatLabel(sectionKey)}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {Object.entries(formData[sectionKey as keyof PricingFormData] as Record<string, number | ''>).map(([key, value]) => (
-                      <InputField 
-                        key={key} 
-                        label={formatLabel(key)} 
-                        name={`${sectionKey}.${key}`} 
-                        value={value} 
-                        onChange={handleChange} 
-                        error={errors[`${sectionKey}.${key}`]} 
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
+          ))}
         </div>
-        <div className="flex justify-end gap-4 mt-8">
+        <div className="sticky bottom-0 left-0 right-0 bg-white pt-4 flex justify-end gap-4 -mx-8 px-8">
           <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Cancel</button>
           <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">Save</button>
         </div>
@@ -152,7 +458,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
   );
 };
 
-// --- InputField component updated to accept number | '' ---
 const InputField = ({ label, name, value, onChange, step = 'any', error }: { label: string; name: string; value: number | ''; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; step?: number | 'any'; error?: string }) => (
   <div>
     <label htmlFor={name} className="block text-sm font-semibold text-gray-700 mb-1">{label}</label>
@@ -160,7 +465,7 @@ const InputField = ({ label, name, value, onChange, step = 'any', error }: { lab
       type="number"
       id={name}
       name={name}
-      value={value} // No need for `?? ''` as state now holds it
+      value={value}
       onChange={onChange}
       step={step}
       className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${error ? 'border-red-500' : ''}`}

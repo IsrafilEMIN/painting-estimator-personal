@@ -79,8 +79,6 @@ export interface Pricing {
   EXTRA_COAT_ADDITIVE: number;
   HIGH_CEILING_TIERS: Record<string, number>;
   WASTE_FACTOR: number;
-  DOOR_DEDUCTION_SQFT: number;
-  WINDOW_DEDUCTION_SQFT: number;
   INTERIOR_DOOR_MATERIAL_ADDITIVES: Record<string, number>;
   CABINET_MATERIAL_ADDITIVES: Record<string, number>;
   MANTEL_MATERIAL_ADDITIVES: Record<string, number>;
