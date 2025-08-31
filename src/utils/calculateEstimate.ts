@@ -230,14 +230,14 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   totalPrimerCost *= pricing.PROFIT_MARKUP;
 
   subtotal += totalPaintCost + totalPrimerCost + asbestosCost;
+  subtotal = Math.max(subtotal, pricing.MIN_JOB_FEE);
 
   let taxAmount = subtotal * pricing.TAX_RATE;
   let total = subtotal + taxAmount;
-  total = Math.max(total, pricing.MIN_JOB_FEE);
 
-  if (isNaN(subtotal)) subtotal = 0;
-  if (isNaN(taxAmount)) taxAmount = 0;
-  if (isNaN(total)) total = pricing.MIN_JOB_FEE;
+  if (isNaN(subtotal)) subtotal = pricing.MIN_JOB_FEE;
+  if (isNaN(taxAmount)) taxAmount = pricing.MIN_JOB_FEE * pricing.TAX_RATE;
+  if (isNaN(total)) total = subtotal + taxAmount;
 
   return { total, breakdown, subtotal, tax: taxAmount, paintCost: totalPaintCost, primerCost: totalPrimerCost, asbestosCost };
 };
