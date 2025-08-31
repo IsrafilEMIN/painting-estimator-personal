@@ -1,6 +1,7 @@
 // src/components/modals/CeilingModal.tsx
 import React, { useState } from 'react';
 import type { Service } from '@/types/paintingEstimator';
+import { paintOptions } from '@/constants/paintTypes';
 
 interface CeilingModalProps {
   service?: Service;
@@ -96,13 +97,11 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
           <div>
             <label htmlFor="paintType" className="block text-sm font-semibold text-gray-700 mb-1">Paint Type</label>
             <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-              <option value="standard">Standard</option>
-              <option value="benjaminMooreAura">Benjamin Moore Aura</option>
-              <option value="sherwinWilliamsEmerald">Sherwin Williams Emerald</option>
-              <option value="moldResistant">Mold Resistant</option>
-              <option value="benjaminMooreRegal">Benjamin Moore Regal</option>
-              <option value="sherwinWilliamsDuration">Sherwin Williams Duration</option>
-              <option value="behrPremiumPlus">Behr Premium Plus</option>
+              {paintOptions.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <label className="flex items-center space-x-2">

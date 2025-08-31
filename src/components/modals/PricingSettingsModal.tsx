@@ -1,6 +1,7 @@
 // src/components/modals/PricingSettingsModal.tsx
 import React, { useState } from 'react';
 import type { Pricing } from '@/types/paintingEstimator';
+import { paintGroups } from '@/constants/paintTypes';
 
 // Define a type for the form data that allows empty strings for number fields
 type PricingFormData = {
@@ -152,47 +153,14 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
     },
     {
       title: 'Paint Costs',
-      subGroups: [
-        {
-          subTitle: 'Behr',
-          fields: [
-            { label: formatLabel('behrDynasty'), name: 'paintCosts.behrDynasty', step: 0.01 },
-            { label: formatLabel('behrMarquee'), name: 'paintCosts.behrMarquee', step: 0.01 },
-            { label: formatLabel('behrPremiumPlus'), name: 'paintCosts.behrPremiumPlus', step: 0.01 },
-            { label: formatLabel('behrUltra'), name: 'paintCosts.behrUltra', step: 0.01 },
-          ],
-        },
-        {
-          subTitle: 'Benjamin Moore',
-          fields: [
-            { label: formatLabel('benjaminMooreAdvance'), name: 'paintCosts.benjaminMooreAdvance', step: 0.01 },
-            { label: formatLabel('benjaminMooreAura'), name: 'paintCosts.benjaminMooreAura', step: 0.01 },
-            { label: formatLabel('benjaminMooreBen'), name: 'paintCosts.benjaminMooreBen', step: 0.01 },
-            { label: formatLabel('benjaminMooreRegal'), name: 'paintCosts.benjaminMooreRegal', step: 0.01 },
-            { label: formatLabel('benjaminMooreScuffX'), name: 'paintCosts.benjaminMooreScuffX', step: 0.01 },
-            { label: formatLabel('benjaminMooreUltraSpec'), name: 'paintCosts.benjaminMooreUltraSpec', step: 0.01 },
-          ],
-        },
-        {
-          subTitle: 'Sherwin Williams',
-          fields: [
-            { label: formatLabel('sherwinWilliamsCaptivate'), name: 'paintCosts.sherwinWilliamsCaptivate', step: 0.01 },
-            { label: formatLabel('sherwinWilliamsCashmere'), name: 'paintCosts.sherwinWilliamsCashmere', step: 0.01 },
-            { label: formatLabel('sherwinWilliamsDuration'), name: 'paintCosts.sherwinWilliamsDuration', step: 0.01 },
-            { label: formatLabel('sherwinWilliamsEmerald'), name: 'paintCosts.sherwinWilliamsEmerald', step: 0.01 },
-            { label: formatLabel('sherwinWilliamsHarmony'), name: 'paintCosts.sherwinWilliamsHarmony', step: 0.01 },
-            { label: formatLabel('sherwinWilliamsProMar200'), name: 'paintCosts.sherwinWilliamsProMar200', step: 0.01 },
-            { label: formatLabel('sherwinWilliamsSuperPaint'), name: 'paintCosts.sherwinWilliamsSuperPaint', step: 0.01 },
-          ],
-        },
-        {
-          subTitle: 'Other',
-          fields: [
-            { label: formatLabel('moldResistant'), name: 'paintCosts.moldResistant', step: 0.01 },
-            { label: formatLabel('standard'), name: 'paintCosts.standard', step: 0.01 },
-          ],
-        },
-      ],
+      subGroups: paintGroups.map((group) => ({
+        subTitle: group.subTitle,
+        fields: group.fields.map((field) => ({
+          label: field.label,
+          name: `paintCosts.${field.key}`,
+          step: 0.01,
+        })),
+      })),
     },
     {
       title: 'Supplies and Material Costs',
