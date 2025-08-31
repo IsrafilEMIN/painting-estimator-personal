@@ -9,6 +9,7 @@ export const paintGroups = [
       { key: 'sherwinWilliamsEmerald', label: 'Sherwin Williams Emerald' },
       { key: 'sherwinWilliamsHarmony', label: 'Sherwin Williams Harmony' },
       { key: 'sherwinWilliamsProMar200', label: 'Sherwin Williams Pro Mar 200' },
+      { key: 'sherwinWilliamsProMar400', label: 'Sherwin Williams Pro Mar 400' },
       { key: 'sherwinWilliamsSuperPaint', label: 'Sherwin Williams Super Paint' },
     ],
   },
