@@ -7,7 +7,7 @@ export type Texture = 'smooth' | 'light' | 'heavy';
 
 export type PrimerType = 'none' | 'spot' | 'full';
 
-export type PaintType = 'standard' | 'benjaminMooreAura' | 'sherwinWilliamsEmerald' | 'moldResistant' | 'benjaminMooreRegal' | 'sherwinWilliamsDuration' | 'behrPremiumPlus' | 'sherwinWilliamsSuperPaint' | 'sherwinWilliamsCashmere' | 'sherwinWilliamsProMar200' | 'sherwinWilliamsCaptivate' | 'sherwinWilliamsHarmony' | 'benjaminMooreBen' | 'benjaminMooreAdvance' | 'benjaminMooreUltraSpec' | 'benjaminMooreScuffX' | 'behrUltra' | 'behrMarquee' | 'behrDynasty';
+export type PaintType = 'benjaminMooreAura' | 'sherwinWilliamsEmerald' | 'benjaminMooreRegal' | 'sherwinWilliamsDuration' | 'behrPremiumPlus' | 'sherwinWilliamsSuperPaint' | 'sherwinWilliamsCashmere' | 'sherwinWilliamsProMar200' | 'sherwinWilliamsCaptivate' | 'sherwinWilliamsHarmony' | 'benjaminMooreBen' | 'benjaminMooreAdvance' | 'benjaminMooreUltraSpec' | 'benjaminMooreScuffX' | 'behrUltra' | 'behrMarquee' | 'behrDynasty';
 
 export interface Service {
   id: number;
@@ -31,6 +31,7 @@ export interface Service {
   asbestos?: boolean;
   useCustomSqFt?: boolean; // New: Flag for custom ceiling sqFt (ceilingPainting only)
   customSqFt?: number;     // New: Custom sqFt value if useCustomSqFt is true
+  moldResistant?: boolean;
 }
 
 export interface Room {
@@ -87,4 +88,5 @@ export interface Pricing {
   COST_RAILINGS_SPINDLES: number;
   SCAFFOLDING_COST_TIERS: Record<string, number>;
   MIN_JOB_FEE: number;
+  moldResistantUpcharge: number;
 }

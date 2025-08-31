@@ -5,27 +5,7 @@ import { DEFAULT_PRICING } from '@/constants/pricing';
 export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   let subtotal = 0;
   const breakdown: DetailedBreakdownItem[] = [];
-  const paintUsage: Record<PaintType, number> = {
-    standard: 0,
-    benjaminMooreAura: 0,
-    sherwinWilliamsEmerald: 0,
-    moldResistant: 0,
-    benjaminMooreRegal: 0,
-    sherwinWilliamsDuration: 0,
-    behrPremiumPlus: 0,
-    sherwinWilliamsSuperPaint: 0,
-    sherwinWilliamsCashmere: 0,
-    sherwinWilliamsProMar200: 0,
-    sherwinWilliamsCaptivate: 0,
-    sherwinWilliamsHarmony: 0,
-    benjaminMooreBen: 0,
-    benjaminMooreAdvance: 0,
-    benjaminMooreUltraSpec: 0,
-    benjaminMooreScuffX: 0,
-    behrUltra: 0,
-    behrMarquee: 0,
-    behrDynasty: 0,
-  };
+  const paintUsage: Record<string, number> = {};
   let totalPrimerSqFt = 0;
   let hasAsbestos = false;
 
@@ -162,8 +142,13 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
       else if (primerTypeSafe === 'full') primerSqFt = sqFt * primerCoats;
       totalPrimerSqFt += primerSqFt;
 
-      const paintSqFt = sqFt * coats;
-      paintUsage[paintTypeSafe] += paintSqFt;
+      let paintSqFt = sqFt * coats;
+      if (service.type === 'popcornRemoval') paintSqFt = 0;
+
+      if (paintSqFt > 0) {
+        const key = `${paintTypeSafe}${service.moldResistant ? '_mold' : ''}`;
+        paintUsage[key] = (paintUsage[key] || 0) + paintSqFt;
+      }
 
       if (service.useSpray) laborHours *= 0.8;
       if (service.useSpray) materialCost *= 1 + pricing.sprayUpcharge;
@@ -214,10 +199,15 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   }
 
   let totalPaintCost = 0;
-  Object.entries(paintUsage).forEach(([type, sqFt]) => {
+  Object.entries(paintUsage).forEach(([key, sqFt]) => {
+    const isMold = key.endsWith('_mold');
+    const type = isMold ? key.slice(0, -5) : key;
     let costPerGal = pricing.paintCosts[type as PaintType];
     if (typeof costPerGal !== 'number' || isNaN(costPerGal)) {
       costPerGal = DEFAULT_PRICING.paintCosts[type as PaintType] || 0;
+    }
+    if (isMold) {
+      costPerGal += pricing.moldResistantUpcharge;
     }
     const gallons = (sqFt / paintCoverage) * wasteFactor;
     const cost = gallons * costPerGal;
