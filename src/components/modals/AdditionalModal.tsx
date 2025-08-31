@@ -12,16 +12,16 @@ interface AdditionalModalProps {
 
 const materialOptions: { [key in ServiceType]?: string[] } = {
   doorPainting: ['Wood', 'MDF', 'Metal'],
-  vanityDoors: ['Wood', 'MDF', 'Metal'],
-  vanityDrawers: ['Wood', 'Laminate', 'Metal'],
-  cabinetDoors: ['Wood', 'Laminate', 'Metal'],
-  cabinetDrawers: ['Wood', 'Laminate', 'Metal'],
+  vanityDoors: ['Wood', 'MDF', 'Metal', 'Laminate'],
+  vanityDrawers: ['Wood', 'MDF', 'Metal', 'Laminate'],
+  cabinetDoors: ['Wood', 'MDF', 'Metal', 'Laminate'],
+  cabinetDrawers: ['Wood', 'MDF', 'Metal', 'Laminate'],
   fireplaceMantel: ['Wood', 'Stone', 'Metal'],
 };
 
 const AdditionalModal: React.FC<AdditionalModalProps> = ({ service, serviceType, onSave, onClose, onBack }) => {
   const initialState: Partial<Service> = {
-    id: Date.now(),
+    id: service?.id || Date.now(),
     type: service?.type || serviceType,
     quantity: service?.quantity || 1,
     material: service?.material,
@@ -87,12 +87,12 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ service, serviceType,
           </div>
           <div>
             <label htmlFor="coats" className="block text-sm font-semibold text-gray-700 mb-1">Coats</label>
-            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
+            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
             {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
           </div>
           <div>
             <label htmlFor="quantity" className="block text-sm font-semibold text-gray-700 mb-1">Quantity</label>
-            <input type="number" min="0" step="0.1" id="quantity" name="quantity" value={formData.quantity || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.quantity ? 'border-red-500' : ''}`} />
+            <input type="number" min="0" step="0.1" id="quantity" name="quantity" value={formData.quantity || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${fieldErrors.quantity ? 'border-red-500' : ''}`} />
             {fieldErrors.quantity && <p className="text-red-500 text-sm mt-1">{fieldErrors.quantity}</p>}
           </div>
           <div>
@@ -106,7 +106,7 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ service, serviceType,
           {formData.primerType === 'full' && (
             <div>
               <label htmlFor="primerCoats" className="block text-sm font-semibold text-gray-700 mb-1">Primer Coats</label>
-              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition" />
+              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
             </div>
           )}
           <div>

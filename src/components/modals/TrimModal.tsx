@@ -13,7 +13,7 @@ interface TrimModalProps {
 const TrimModal: React.FC<TrimModalProps> = ({ service, intendedType, onSave, onClose, onBack }) => {
   const serviceType = service?.type || intendedType || 'trims';
   const initialState: Partial<Service> = {
-    id: Date.now(),
+    id: service?.id || Date.now(),
     type: serviceType,
     lnFt: service?.lnFt || 0,
     prepCondition: service?.prepCondition || 'good',
