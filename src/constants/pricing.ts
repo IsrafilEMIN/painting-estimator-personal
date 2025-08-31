@@ -5,10 +5,8 @@ export const DEFAULT_PRICING: Pricing = {
   laborRate: 60.00, // Adjusted for Richmond Hill market
   paintCoverage: 350,
   paintCosts: {
-    standard: 40,
     benjaminMooreAura: 80,
     sherwinWilliamsEmerald: 90,
-    moldResistant: 70,
     benjaminMooreRegal: 70,
     sherwinWilliamsDuration: 75,
     behrPremiumPlus: 50,
@@ -28,6 +26,7 @@ export const DEFAULT_PRICING: Pricing = {
   },
   primerCost: 40,
   sprayUpcharge: 0.25,
+  moldResistantUpcharge: 10,
   PROFIT_MARKUP: 2.0,
   TAX_RATE: 0.13, // HST for Ontario
   SUPPLIES_PERCENTAGE: 0.15, // Adjusted

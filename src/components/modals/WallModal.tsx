@@ -23,8 +23,9 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
     coats: wall?.coats || 2,
     primerType: wall?.primerType || 'none',
     primerCoats: wall?.primerCoats || 1,
-    paintType: wall?.paintType || 'standard',
+    paintType: wall?.paintType || 'sherwinWilliamsCaptivate',
     useSpray: wall?.useSpray || false,
+    moldResistant: wall?.moldResistant || false,
   };
   const [formData, setFormData] = useState<Partial<Service>>(initialState);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
@@ -108,6 +109,10 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
               ))}
             </select>
           </div>
+          <label className="flex items-center space-x-2">
+            <input type="checkbox" name="moldResistant" checked={formData.moldResistant} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+            <span>Mold Resistance</span>
+          </label>
           <label className="flex items-center space-x-2">
             <input type="checkbox" name="hasStairway" checked={formData.hasStairway} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
             <span>Has Stairway</span>

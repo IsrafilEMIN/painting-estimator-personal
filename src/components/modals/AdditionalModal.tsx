@@ -30,8 +30,9 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ service, serviceType,
     coats: service?.coats || 2,
     primerType: service?.primerType || 'none',
     primerCoats: service?.primerCoats || 1,
-    paintType: service?.paintType || 'standard',
+    paintType: service?.paintType || 'sherwinWilliamsCaptivate',
     useSpray: service?.useSpray || false,
+    moldResistant: service?.moldResistant || false,
   };
   const [formData, setFormData] = useState<Partial<Service>>(initialState);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
@@ -120,6 +121,10 @@ const AdditionalModal: React.FC<AdditionalModalProps> = ({ service, serviceType,
               ))}
             </select>
           </div>
+          <label className="flex items-center space-x-2">
+            <input type="checkbox" name="moldResistant" checked={formData.moldResistant} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+            <span>Mold Resistance</span>
+          </label>
           <label className="flex items-center space-x-2">
             <input type="checkbox" name="useSpray" checked={formData.useSpray} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
             <span>Use Spray (upcharge)</span>

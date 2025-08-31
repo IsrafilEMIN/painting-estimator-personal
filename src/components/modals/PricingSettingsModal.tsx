@@ -149,6 +149,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
         { label: 'Paint Coverage (sqft/gal)', name: 'paintCoverage' },
         { label: 'Primer Cost ($/gal)', name: 'primerCost', step: 0.01 },
         { label: 'Spray Upcharge Percentage', name: 'sprayUpcharge', step: 0.01 },
+        { label: 'Mold Resistant Upcharge ($/gal)', name: 'moldResistantUpcharge', step: 0.01 },
       ],
     },
     {

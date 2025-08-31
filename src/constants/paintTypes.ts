@@ -1,12 +1,15 @@
 // src/constants/paintTypes.ts
 export const paintGroups = [
   {
-    subTitle: 'Behr',
+    subTitle: 'Sherwin Williams',
     fields: [
-      { key: 'behrDynasty', label: 'Behr Dynasty' },
-      { key: 'behrMarquee', label: 'Behr Marquee' },
-      { key: 'behrPremiumPlus', label: 'Behr Premium Plus' },
-      { key: 'behrUltra', label: 'Behr Ultra' },
+      { key: 'sherwinWilliamsCaptivate', label: 'Sherwin Williams Captivate' },
+      { key: 'sherwinWilliamsCashmere', label: 'Sherwin Williams Cashmere' },
+      { key: 'sherwinWilliamsDuration', label: 'Sherwin Williams Duration' },
+      { key: 'sherwinWilliamsEmerald', label: 'Sherwin Williams Emerald' },
+      { key: 'sherwinWilliamsHarmony', label: 'Sherwin Williams Harmony' },
+      { key: 'sherwinWilliamsProMar200', label: 'Sherwin Williams Pro Mar 200' },
+      { key: 'sherwinWilliamsSuperPaint', label: 'Sherwin Williams Super Paint' },
     ],
   },
   {
@@ -21,22 +24,12 @@ export const paintGroups = [
     ],
   },
   {
-    subTitle: 'Sherwin Williams',
+    subTitle: 'Behr',
     fields: [
-      { key: 'sherwinWilliamsCaptivate', label: 'Sherwin Williams Captivate' },
-      { key: 'sherwinWilliamsCashmere', label: 'Sherwin Williams Cashmere' },
-      { key: 'sherwinWilliamsDuration', label: 'Sherwin Williams Duration' },
-      { key: 'sherwinWilliamsEmerald', label: 'Sherwin Williams Emerald' },
-      { key: 'sherwinWilliamsHarmony', label: 'Sherwin Williams Harmony' },
-      { key: 'sherwinWilliamsProMar200', label: 'Sherwin Williams Pro Mar 200' },
-      { key: 'sherwinWilliamsSuperPaint', label: 'Sherwin Williams Super Paint' },
-    ],
-  },
-  {
-    subTitle: 'Other',
-    fields: [
-      { key: 'moldResistant', label: 'Mold Resistant' },
-      { key: 'standard', label: 'Standard' },
+      { key: 'behrDynasty', label: 'Behr Dynasty' },
+      { key: 'behrMarquee', label: 'Behr Marquee' },
+      { key: 'behrPremiumPlus', label: 'Behr Premium Plus' },
+      { key: 'behrUltra', label: 'Behr Ultra' },
     ],
   },
 ];
