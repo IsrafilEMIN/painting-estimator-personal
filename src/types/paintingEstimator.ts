@@ -29,6 +29,7 @@ export interface Service {
   quantity?: number;
   material?: string;
   asbestos?: boolean;
+  asbestosTest?: boolean;
   useCustomSqFt?: boolean; // New: Flag for custom ceiling sqFt (ceilingPainting only)
   customSqFt?: number;     // New: Custom sqFt value if useCustomSqFt is true
   moldResistant?: boolean;
@@ -66,10 +67,11 @@ export interface Pricing {
   paintCosts: Record<PaintType, number>;
   primerCost: number;
   sprayUpcharge: number;
+  moldResistantUpcharge: number;
   PROFIT_MARKUP: number;
   TAX_RATE: number;
   SUPPLIES_PERCENTAGE: number;
-  PRODUCTION_RATES: Record<ServiceType, number>;
+  PRODUCTION_RATES: Record<ServiceType, number> & { popcornRemovalAsbestos: number };
   ADDITIONAL_PAINT_USAGE: Record<ServiceType, number>;
   COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT: number;
   BASE_PREP_HOURS_FIXED: number;
@@ -88,5 +90,5 @@ export interface Pricing {
   COST_RAILINGS_SPINDLES: number;
   SCAFFOLDING_COST_TIERS: Record<string, number>;
   MIN_JOB_FEE: number;
-  moldResistantUpcharge: number;
+  ASBESTOS_ADDITIONAL_PER_SQFT: number;
 }

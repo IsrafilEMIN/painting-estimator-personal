@@ -34,6 +34,7 @@ export const DEFAULT_PRICING: Pricing = {
     wallPainting: 150,
     ceilingPainting: 150,
     popcornRemoval: 35,
+    popcornRemovalAsbestos: 10,
     crownMolding: 60,
     trims: 70,
     doorPainting: 1.5,
@@ -69,8 +70,9 @@ export const DEFAULT_PRICING: Pricing = {
   CABINET_MATERIAL_ADDITIVES: { Wood: 0.0, MDF: 0.1, Laminate: 0.3, Metal: 0.5 },
   MANTEL_MATERIAL_ADDITIVES: { Wood: 0.0, Stone: 0.4, Metal: 0.3 },
   STAIRWELL_COMPLEXITY_ADDITIVE: 0.3,
-  COST_ASBESTOS_TEST: 1000.00,
+  COST_ASBESTOS_TEST: 500.00,
   COST_RAILINGS_SPINDLES: 300.00,
   SCAFFOLDING_COST_TIERS: { '10': 100, '12': 300, '14+': 500 },
   MIN_JOB_FEE: 550.00,
+  ASBESTOS_ADDITIONAL_PER_SQFT: 6.0,
 };

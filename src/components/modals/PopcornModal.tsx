@@ -15,6 +15,7 @@ const PopcornModal: React.FC<PopcornModalProps> = ({ service, onClose, onSave, o
     type: 'popcornRemoval',
     prepCondition: service?.prepCondition || 'good',
     asbestos: service?.asbestos || false,
+    asbestosTest: service?.asbestosTest || false,
     useCustomSqFt: service?.useCustomSqFt || false,
     customSqFt: service?.customSqFt || undefined,
   };
@@ -61,8 +62,12 @@ const PopcornModal: React.FC<PopcornModalProps> = ({ service, onClose, onSave, o
             </select>
           </div>
           <label className="flex items-center space-x-2">
+            <input type="checkbox" name="asbestosTest" checked={formData.asbestosTest} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+            <span>Check Asbestos?</span>
+          </label>
+          <label className="flex items-center space-x-2">
             <input type="checkbox" name="asbestos" checked={formData.asbestos} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-            <span>Asbestos Check Required</span>
+            <span>Has Asbestos?</span>
           </label>
           <label className="flex items-center space-x-2">
             <input type="checkbox" name="useCustomSqFt" checked={formData.useCustomSqFt} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />

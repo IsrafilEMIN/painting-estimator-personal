@@ -7,6 +7,7 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   const breakdown: DetailedBreakdownItem[] = [];
   const paintUsage: Record<string, number> = {};
   let totalPrimerSqFt = 0;
+  let asbestosTest = false;
   let hasAsbestos = false;
 
   rooms.forEach(room => {
@@ -85,10 +86,15 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
           break;
         case 'popcornRemoval':
           sqFt = service.useCustomSqFt ? (Number(service.customSqFt) || floorSqFt) : floorSqFt;
+          rate = service.asbestos ? pricing.PRODUCTION_RATES.popcornRemovalAsbestos : pricing.PRODUCTION_RATES.popcornRemoval;
           laborHours = sqFt / rate;
           materialCost += sqFt * pricing.COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT;
-          if (service.type === 'popcornRemoval' && service.asbestos) {
+          if (service.asbestosTest) {
+            asbestosTest = true;
+          }
+          if (service.asbestos) {
             hasAsbestos = true;
+            materialCost += sqFt * pricing.ASBESTOS_ADDITIONAL_PER_SQFT;
           }
           break;
         case 'crownMolding':
@@ -186,7 +192,7 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
     });
   });
 
-  const asbestosCost = hasAsbestos ? pricing.COST_ASBESTOS_TEST : 0;
+  const asbestosCost = asbestosTest ? pricing.COST_ASBESTOS_TEST : 0;
 
   // Safeguard globals
   let paintCoverage = pricing.paintCoverage;
