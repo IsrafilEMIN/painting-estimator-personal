@@ -168,6 +168,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
       fields: [
         { label: 'Popcorn Removal Materials ($/sqft)', name: 'COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT', step: 0.01 },
         { label: 'Asbestos Test Cost', name: 'COST_ASBESTOS_TEST' },
+        { label: 'Asbestos Additional ($/sqft)', name: 'ASBESTOS_ADDITIONAL_PER_SQFT', step: 0.01 },
         { label: 'Railings Spindles Cost', name: 'COST_RAILINGS_SPINDLES' },
       ],
     },
@@ -220,6 +221,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
           subTitle: 'Other',
           fields: [
             { label: formatLabel('popcornRemoval'), name: 'PRODUCTION_RATES.popcornRemoval', step: 0.01 },
+            { label: formatLabel('popcornRemovalAsbestos'), name: 'PRODUCTION_RATES.popcornRemovalAsbestos', step: 0.01 },
             { label: formatLabel('fireplaceMantel'), name: 'PRODUCTION_RATES.fireplaceMantel', step: 0.01 },
           ],
         },
