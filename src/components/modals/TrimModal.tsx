@@ -1,7 +1,7 @@
 // src/components/modals/TrimModal.tsx
 import React, { useState } from 'react';
 import type { Service, ServiceType } from '@/types/paintingEstimator';
-import { paintOptions } from '@/constants/paintTypes';
+import { paintStructure } from '@/constants/paintTypes';
 
 interface TrimModalProps {
   service?: Service;
@@ -21,7 +21,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ service, intendedType, onSave, on
     coats: service?.coats || 2,
     primerType: service?.primerType || 'none',
     primerCoats: service?.primerCoats || 1,
-    paintType: service?.paintType || 'sherwinWilliamsCaptivate',
+    paintType: service?.paintType || 'sherwinWilliamsCaptivateFlat',
     useSpray: service?.useSpray || false,
     moldResistant: service?.moldResistant || false,
   };
@@ -112,10 +112,16 @@ const TrimModal: React.FC<TrimModalProps> = ({ service, intendedType, onSave, on
           <div>
             <label htmlFor="paintType" className="block text-sm font-semibold text-gray-700 mb-1">Paint Type</label>
             <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-              {paintOptions.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
+              {paintStructure.map((brand) => (
+                brand.lines.map((line) => (
+                  <optgroup key={line.name} label={`${brand.brand} - ${line.name}`}>
+                    {line.sheens.map((sheen) => (
+                      <option key={sheen.key} value={sheen.key}>
+                        {sheen.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))
               ))}
             </select>
           </div>

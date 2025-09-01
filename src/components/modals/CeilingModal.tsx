@@ -1,7 +1,7 @@
 // src/components/modals/CeilingModal.tsx
 import React, { useState } from 'react';
 import type { Service } from '@/types/paintingEstimator';
-import { paintOptions } from '@/constants/paintTypes';
+import { paintStructure } from '@/constants/paintTypes';
 
 interface CeilingModalProps {
   service?: Service;
@@ -19,7 +19,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
     coats: service?.coats || 2,
     primerType: service?.primerType || 'none',
     primerCoats: service?.primerCoats || 1,
-    paintType: service?.paintType || 'sherwinWilliamsCaptivate',
+    paintType: service?.paintType || 'sherwinWilliamsCaptivateFlat',
     useSpray: service?.useSpray || false,
     useCustomSqFt: service?.useCustomSqFt || false, // New: Initialize custom flag
     customSqFt: service?.customSqFt || undefined,   // New: Initialize custom sqFt
@@ -78,7 +78,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
           </div>
           <div>
             <label htmlFor="coats" className="block text-sm font-semibold text-gray-700 mb-1">Coats</label>
-            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
+            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition ${fieldErrors.coats ? 'border-red-500' : ''}`} />
             {fieldErrors.coats && <p className="text-red-500 text-sm mt-1">{fieldErrors.coats}</p>}
           </div>
           <div>
@@ -92,16 +92,22 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
           {formData.primerType === 'full' && (
             <div>
               <label htmlFor="primerCoats" className="block text-sm font-semibold text-gray-700 mb-1">Primer Coats</label>
-              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition" />
             </div>
           )}
           <div>
             <label htmlFor="paintType" className="block text-sm font-semibold text-gray-700 mb-1">Paint Type</label>
             <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-              {paintOptions.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
+              {paintStructure.map((brand) => (
+                brand.lines.map((line) => (
+                  <optgroup key={line.name} label={`${brand.brand} - ${line.name}`}>
+                    {line.sheens.map((sheen) => (
+                      <option key={sheen.key} value={sheen.key}>
+                        {sheen.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))
               ))}
             </select>
           </div>

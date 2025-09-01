@@ -1,7 +1,7 @@
 // src/components/modals/WallModal.tsx
 import React, { useState } from 'react';
 import type { Service } from '@/types/paintingEstimator';
-import { paintOptions } from '@/constants/paintTypes';
+import { paintStructure } from '@/constants/paintTypes';
 
 interface WallModalProps {
   wall?: Partial<Service>;
@@ -23,7 +23,7 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
     coats: wall?.coats || 2,
     primerType: wall?.primerType || 'none',
     primerCoats: wall?.primerCoats || 1,
-    paintType: wall?.paintType || 'sherwinWilliamsCaptivate',
+    paintType: wall?.paintType || 'sherwinWilliamsCaptivateFlat',
     useSpray: wall?.useSpray || false,
     moldResistant: wall?.moldResistant || false,
   };
@@ -102,10 +102,16 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
           <div>
             <label htmlFor="paintType" className="block text-sm font-semibold text-gray-700 mb-1">Paint Type</label>
             <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-              {paintOptions.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
+              {paintStructure.map((brand) => (
+                brand.lines.map((line) => (
+                  <optgroup key={line.name} label={`${brand.brand} - ${line.name}`}>
+                    {line.sheens.map((sheen) => (
+                      <option key={sheen.key} value={sheen.key}>
+                        {sheen.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))
               ))}
             </select>
           </div>

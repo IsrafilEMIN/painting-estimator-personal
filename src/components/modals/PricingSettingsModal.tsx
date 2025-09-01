@@ -1,7 +1,7 @@
 // src/components/modals/PricingSettingsModal.tsx
 import React, { useState } from 'react';
 import type { Pricing } from '@/types/paintingEstimator';
-import { paintGroups } from '@/constants/paintTypes';
+import { paintGroups, paintStructure } from '@/constants/paintTypes';
 
 // Define a type for the form data that allows empty strings for number fields
 type PricingFormData = {
@@ -25,6 +25,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [openGroups, setOpenGroups] = useState<Set<number>>(new Set());
   const [openSubGroups, setOpenSubGroups] = useState<{ [key: number]: Set<number> }>({});
+  const [openSubSubGroups, setOpenSubSubGroups] = useState<{ [key: number]: { [key: number]: Set<number> } }>({});
 
   const toggleGroup = (index: number) => {
     setOpenGroups((prev) => {
@@ -48,6 +49,23 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
         currentSet.add(subIndex);
       }
       newObj[groupIndex] = currentSet;
+      return newObj;
+    });
+  };
+
+  const toggleSubSubGroup = (groupIndex: number, subIndex: number, subSubIndex: number) => {
+    setOpenSubSubGroups((prev) => {
+      const newObj = { ...prev };
+      if (!newObj[groupIndex]) newObj[groupIndex] = {};
+      const subObj = { ...newObj[groupIndex] };
+      const currentSet = new Set(subObj[subIndex]);
+      if (currentSet.has(subSubIndex)) {
+        currentSet.delete(subSubIndex);
+      } else {
+        currentSet.add(subSubIndex);
+      }
+      subObj[subIndex] = currentSet;
+      newObj[groupIndex] = subObj;
       return newObj;
     });
   };
@@ -129,7 +147,11 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
     fields?: Field[];
     subGroups?: {
       subTitle: string;
-      fields: Field[];
+      fields?: Field[];
+      subSubGroups?: {
+        subSubTitle: string;
+        fields: Field[];
+      }[];
     }[];
   }[] = [
     {
@@ -154,12 +176,15 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
     },
     {
       title: 'Paint Costs',
-      subGroups: paintGroups.map((group) => ({
-        subTitle: group.subTitle,
-        fields: group.fields.map((field) => ({
-          label: field.label,
-          name: `paintCosts.${field.key}`,
-          step: 0.01,
+      subGroups: paintStructure.map((brand) => ({
+        subTitle: brand.brand,
+        subSubGroups: brand.lines.map((line) => ({
+          subSubTitle: line.name,
+          fields: line.sheens.map((sheen) => ({
+            label: `${brand.brand} ${line.name} ${sheen.label}`,
+            name: `paintCosts.${sheen.key}`,
+            step: 0.01,
+          })),
         })),
       })),
     },
@@ -339,14 +364,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
     },
   ];
 
-  const getMdCols = (len: number) => {
-    if (len === 1) return 1;
-    if (len === 2) return 2;
-    if (len === 3) return 3;
-    if (len === 4) return 2;
-    return 3;
-  };
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
@@ -366,7 +383,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
               {openGroups.has(index) && (
                 <>
                   {group.fields ? (
-                    <div className={`grid grid-cols-1 md:grid-cols-${getMdCols(group.fields.length)} gap-4`}>
+                    <div className={`grid grid-cols-1 md:grid-cols-1 gap-4`}>
                       {group.fields.map((field) => (
                         <InputField
                           key={field.name}
@@ -395,21 +412,58 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
                             </span>
                           </div>
                           {openSubGroups[index]?.has(subIndex) && (
-                            <div className={`grid grid-cols-1 md:grid-cols-${getMdCols(subGroup.fields.length)} gap-4`}>
-                              {subGroup.fields.map((field) => (
-                                <InputField
-                                  key={field.name}
-                                  label={field.label}
-                                  name={field.name}
-                                  value={field.name.includes('.')
-                                    ? (formData[field.name.split('.')[0] as keyof PricingFormData] as Record<string, number | ''>)[field.name.split('.')[1]]
-                                    : formData[field.name as keyof PricingFormData] as number | ''}
-                                  onChange={handleChange}
-                                  step={field.step}
-                                  error={errors[field.name]}
-                                />
-                              ))}
-                            </div>
+                            <>
+                              {subGroup.subSubGroups ? (
+                                <div className="space-y-6">
+                                  {subGroup.subSubGroups.map((subSubGroup, subSubIndex) => (
+                                    <div key={subSubIndex}>
+                                      <div
+                                        onClick={() => toggleSubSubGroup(index, subIndex, subSubIndex)}
+                                        className="cursor-pointer flex justify-between items-center mb-2"
+                                      >
+                                        <h6 className="text-sm font-medium text-gray-700">{subSubGroup.subSubTitle}</h6>
+                                        <span className="text-lg font-bold text-gray-600">
+                                          {openSubSubGroups[index]?.[subIndex]?.has(subSubIndex) ? '-' : '+'}
+                                        </span>
+                                      </div>
+                                      {openSubSubGroups[index]?.[subIndex]?.has(subSubIndex) && (
+                                        <div className={`grid grid-cols-1 md:grid-cols-1 gap-4`}>
+                                          {subSubGroup.fields.map((field) => (
+                                            <InputField
+                                              key={field.name}
+                                              label={field.label}
+                                              name={field.name}
+                                              value={field.name.includes('.')
+                                                ? (formData[field.name.split('.')[0] as keyof PricingFormData] as Record<string, number | ''>)[field.name.split('.')[1]]
+                                                : formData[field.name as keyof PricingFormData] as number | ''}
+                                              onChange={handleChange}
+                                              step={field.step}
+                                              error={errors[field.name]}
+                                            />
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className={`grid grid-cols-1 md:grid-cols-1 gap-4`}>
+                                  {subGroup.fields!.map((field) => (
+                                    <InputField
+                                      key={field.name}
+                                      label={field.label}
+                                      name={field.name}
+                                      value={field.name.includes('.')
+                                        ? (formData[field.name.split('.')[0] as keyof PricingFormData] as Record<string, number | ''>)[field.name.split('.')[1]]
+                                        : formData[field.name as keyof PricingFormData] as number | ''}
+                                      onChange={handleChange}
+                                      step={field.step}
+                                      error={errors[field.name]}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       ))}
