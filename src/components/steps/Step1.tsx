@@ -7,7 +7,7 @@ interface Step1Props {
   handleLogout: () => void;
 }
 
-const Step1: React.FC<Step1Props> = ({ setCurrentStep, setIsSettingsOpen, handleLogout }) => {
+const Step1: React.FC<Step1Props> = ({ setCurrentStep }) => {
   return (
     <div className="text-center p-8 bg-white rounded-xl shadow-md">
       <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome to the Painting Estimator</h2>
@@ -15,10 +15,6 @@ const Step1: React.FC<Step1Props> = ({ setCurrentStep, setIsSettingsOpen, handle
       <button onClick={() => setCurrentStep(2)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105">
         Start Estimate
       </button>
-      <div className="mt-6 flex justify-center space-x-4">
-        <button onClick={() => setIsSettingsOpen(true)} className="text-blue-600 hover:underline">Settings</button>
-        <button onClick={handleLogout} className="text-blue-600 hover:underline">Logout</button>
-      </div>
     </div>
   );
 };
