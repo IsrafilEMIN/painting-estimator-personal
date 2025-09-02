@@ -21,6 +21,7 @@ export interface Service {
   texture?: Texture;
   hasStairway?: boolean;
   stairwaySqFt?: number;
+  surfaceArea?: number | string;
   hasRisers?: boolean;
   hasRailings?: boolean;
   lnFt?: number;

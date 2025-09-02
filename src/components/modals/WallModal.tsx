@@ -26,6 +26,7 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
     paintType: wall?.paintType || 'sherwinWilliamsCaptivateFlat',
     useSpray: wall?.useSpray || false,
     moldResistant: wall?.moldResistant || false,
+    surfaceArea: wall?.surfaceArea ?? '', // New: surfaceArea
   };
   const [formData, setFormData] = useState<Partial<Service>>(initialState);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
@@ -37,7 +38,7 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
       setFormData(prev => ({ ...prev, [name]: checked }));
       return;
     }
-    const numberFields = ['stairwaySqFt', 'coats', 'primerCoats'];
+    const numberFields = ['stairwaySqFt', 'coats', 'primerCoats', 'surfaceArea'];
     if (numberFields.includes(name)) {
       const num = parseFloat(value) || 0;
       if (num < 0) {
@@ -55,6 +56,7 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
   const handleSave = () => {
     if ((formData.coats || 0) < 1) return alert("Coats >= 1");
     if (!formData.prepCondition) return alert("Select condition");
+    if ((Number(formData.surfaceArea) || 0) <= 0) return alert("Surface Area must be positive");
     if (formData.hasStairway && (formData.stairwaySqFt || 0) <= 0) return alert("Stairway SqFt > 0");
     onSave(formData as Service);
   };
@@ -64,6 +66,11 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
         <h3 className="text-2xl font-bold text-gray-800 mb-6">{wall ? 'Edit' : 'Add'} Wall Painting</h3>
         <div className="space-y-5">
+          <div> {/* New: surfaceArea input */}
+            <label htmlFor="surfaceArea" className="block text-sm font-semibold text-gray-700 mb-1">Surface Area (sq ft)</label>
+            <input type="number" min="1" id="surfaceArea" name="surfaceArea" value={formData.surfaceArea || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${fieldErrors.surfaceArea ? 'border-red-500' : ''}`} />
+            {fieldErrors.surfaceArea && <p className="text-red-500 text-sm mt-1">{fieldErrors.surfaceArea}</p>}
+          </div>
           <div>
             <label htmlFor="texture" className="block text-sm font-semibold text-gray-700 mb-1">Texture</label>
             <select id="texture" name="texture" value={formData.texture} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
