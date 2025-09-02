@@ -57,6 +57,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ service, intendedType, onSave, on
   const handleSave = () => {
     if ((formData.coats || 0) < 1) return alert("Coats >= 1");
     if (!formData.prepCondition) return alert("Select condition");
+    if ((formData.lnFt || 0) <= 0) return alert("Linear Feet must be positive");
     onSave(formData as Service);
   };
 

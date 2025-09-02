@@ -11,13 +11,7 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   let hasAsbestos = false;
 
   rooms.forEach(room => {
-    const length = Number(room.length) || 0;
-    const width = Number(room.width) || 0;
-    const height = Number(room.height) || 0;
-
-    const floorSqFt = length * width;
-    const perimeter = 2 * (length + width);
-    const basePrepHours = pricing.BASE_PREP_HOURS_FIXED + floorSqFt * pricing.PREP_HOURS_PER_FLOOR_SQFT + perimeter * pricing.PREP_HOURS_PER_PERIMETER_LFT;
+    const basePrepHours = pricing.BASE_PREP_HOURS_FIXED;
     let baseLabor = basePrepHours * pricing.laborRate;
     let baseMaterial = baseLabor * pricing.SUPPLIES_PERCENTAGE;
     baseLabor *= pricing.PROFIT_MARKUP;
@@ -74,18 +68,18 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
 
       switch (service.type) {
         case 'wallPainting':
-          sqFt = perimeter * height;
+          sqFt = Number(service.surfaceArea) || 0;
           if (service.hasStairway) sqFt += stairwaySqFtNum;
           laborHours = sqFt / rate;
           if (service.hasStairway && service.hasRisers) laborHours *= (1 + pricing.STAIRWELL_COMPLEXITY_ADDITIVE);
           if (service.hasStairway && service.hasRailings) materialCost += pricing.COST_RAILINGS_SPINDLES;
           break;
         case 'ceilingPainting':
-          sqFt = service.useCustomSqFt ? (Number(service.customSqFt) || floorSqFt) : floorSqFt; // New: Conditional custom sqFt
+          sqFt = Number(service.surfaceArea) || 0;
           laborHours = sqFt / rate;
           break;
         case 'popcornRemoval':
-          sqFt = service.useCustomSqFt ? (Number(service.customSqFt) || floorSqFt) : floorSqFt;
+          sqFt = Number(service.surfaceArea) || 0;
           rate = service.asbestos ? pricing.PRODUCTION_RATES.popcornRemovalAsbestos : pricing.PRODUCTION_RATES.popcornRemoval;
           laborHours = sqFt / rate;
           materialCost += sqFt * pricing.COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT;
@@ -98,13 +92,13 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
           }
           break;
         case 'crownMolding':
-          const lnFtCrown = lnFtNum > 0 ? lnFtNum : perimeter;
+          const lnFtCrown = lnFtNum;
           laborHours = lnFtCrown / rate;
           if (service.sameAsWallCeiling) laborHours *= 0.8;
           sqFt = lnFtCrown * pricing.ADDITIONAL_PAINT_USAGE.crownMolding;
           break;
         case 'trims':
-          const trimLnFt = lnFtNum > 0 ? lnFtNum : perimeter;
+          const trimLnFt = lnFtNum;
           laborHours = trimLnFt / rate;
           if (service.hasCarpet) laborHours *= 1.2;
           sqFt = trimLnFt * pricing.ADDITIONAL_PAINT_USAGE.trims;
@@ -127,16 +121,8 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
 
       let highCeilAdd = 0;
       let scaffoldingKey = '';
-      if (height > 14) {
-        highCeilAdd = pricing.HIGH_CEILING_TIERS['14+'];
-        scaffoldingKey = '14+';
-      } else if (height > 12) {
-        highCeilAdd = pricing.HIGH_CEILING_TIERS['12'];
-        scaffoldingKey = '12';
-      } else if (height > 10) {
-        highCeilAdd = pricing.HIGH_CEILING_TIERS['10'];
-        scaffoldingKey = '10';
-      }
+      // Removed height-based logic
+
       laborHours *= (1 + highCeilAdd);
       if (highCeilAdd > 0) {
         materialCost += pricing.SCAFFOLDING_COST_TIERS[scaffoldingKey] ?? 0;
