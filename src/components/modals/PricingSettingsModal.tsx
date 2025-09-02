@@ -163,6 +163,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
         { label: 'Minimum Job Fee', name: 'MIN_JOB_FEE' },
         { label: 'Supplies Percentage', name: 'SUPPLIES_PERCENTAGE', step: 0.01 },
         { label: 'Waste Factor', name: 'WASTE_FACTOR', step: 0.01 },
+        { label: 'Discount Percentage', name: 'DISCOUNT_PERCENTAGE', step: 0.01 }
       ],
     },
     {

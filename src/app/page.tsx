@@ -32,6 +32,8 @@ export default function PaintingEstimator() {
     estimate, setEstimate,
     subtotal, setSubtotal,
     tax, setTax,
+    discountAmount, setDiscountAmount,
+    adjustedTotal, setAdjustedTotal,
     paintCost, setPaintCost,
     primerCost, setPrimerCost,
     breakdown, setBreakdown,
@@ -43,17 +45,19 @@ export default function PaintingEstimator() {
   useEffect(() => {
     if (currentStep === 3) {
       setIsLoading(true);
-      const { total, breakdown, subtotal, tax, paintCost: pc, primerCost: prc, asbestosCost } = calculateEstimate(rooms, pricing);
+      const { total, breakdown, subtotal, tax, discountAmount, adjustedTotal, paintCost: pc, primerCost: prc, asbestosCost } = calculateEstimate(rooms, pricing);
       setEstimate(total);
       setBreakdown(breakdown);
       setSubtotal(subtotal);
       setTax(tax);
+      setDiscountAmount(discountAmount);
+      setAdjustedTotal(adjustedTotal);
       setPaintCost(pc);
       setPrimerCost(prc);
       setIsLoading(false);
       setAsbestosCost(asbestosCost);
     }
-  }, [currentStep, rooms, pricing, setEstimate, setBreakdown, setSubtotal, setTax, setPaintCost, setPrimerCost, setIsLoading, setAsbestosCost]);
+  }, [currentStep, rooms, pricing, setEstimate, setBreakdown, setSubtotal, setTax, setDiscountAmount, setAdjustedTotal, setPaintCost, setPrimerCost, setIsLoading, setAsbestosCost]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -105,6 +109,8 @@ export default function PaintingEstimator() {
               subtotal={subtotal}
               tax={tax}
               total={estimate}
+              discountAmount={discountAmount}
+              adjustedTotal={adjustedTotal}
               paintCost={paintCost}
               primerCost={primerCost}
               formatCurrency={formatCurrency}

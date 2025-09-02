@@ -17,6 +17,8 @@ export const useEstimatorState = () => {
   const [breakdown, setBreakdown] = useState<DetailedBreakdownItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [asbestosCost, setAsbestosCost] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [adjustedTotal, setAdjustedTotal] = useState(0);
 
   const openRoomModal = (room?: Room) => {
     setEditingRoom(room ?? undefined);
@@ -72,6 +74,8 @@ export const useEstimatorState = () => {
     setEstimate(0);
     setSubtotal(0);
     setTax(0);
+    setDiscountAmount(0);
+    setAdjustedTotal(0);
     setPaintCost(0);
     setPrimerCost(0);
     setBreakdown([]);
@@ -87,6 +91,8 @@ export const useEstimatorState = () => {
     estimate, setEstimate,
     subtotal, setSubtotal,
     tax, setTax,
+    discountAmount, setDiscountAmount,
+    adjustedTotal, setAdjustedTotal,
     paintCost, setPaintCost,
     primerCost, setPrimerCost,
     breakdown, setBreakdown,

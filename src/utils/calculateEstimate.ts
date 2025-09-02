@@ -8,7 +8,6 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   const paintUsage: Record<string, number> = {};
   let totalPrimerSqFt = 0;
   let asbestosTest = false;
-  let hasAsbestos = false;
 
   rooms.forEach(room => {
     const height = Number(room.height) || 0;
@@ -81,15 +80,11 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
           break;
         case 'popcornRemoval':
           sqFt = Number(service.surfaceArea) || 0;
-          rate = service.asbestos ? pricing.PRODUCTION_RATES.popcornRemovalAsbestos : pricing.PRODUCTION_RATES.popcornRemoval;
+          rate = service.hasAsbestos ? pricing.PRODUCTION_RATES.popcornRemovalAsbestos : pricing.PRODUCTION_RATES.popcornRemoval;
           laborHours = sqFt / rate;
           materialCost += sqFt * pricing.COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT;
           if (service.asbestosTest) {
             asbestosTest = true;
-          }
-          if (service.asbestos) {
-            hasAsbestos = true;
-            materialCost += sqFt * pricing.ASBESTOS_ADDITIONAL_PER_SQFT;
           }
           break;
         case 'crownMolding':
@@ -230,9 +225,16 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   let taxAmount = subtotal * pricing.TAX_RATE;
   let total = subtotal + taxAmount;
 
+  let discountPercentage = 0;
+  if (typeof pricing.DISCOUNT_PERCENTAGE === 'number' && !isNaN(pricing.DISCOUNT_PERCENTAGE) && pricing.DISCOUNT_PERCENTAGE > 0) {
+    discountPercentage = pricing.DISCOUNT_PERCENTAGE;
+  }
+  const discountAmount = total * (discountPercentage / 100);
+  const adjustedTotal = total - discountAmount;    
+
   if (isNaN(subtotal)) subtotal = pricing.MIN_JOB_FEE;
   if (isNaN(taxAmount)) taxAmount = pricing.MIN_JOB_FEE * pricing.TAX_RATE;
   if (isNaN(total)) total = subtotal + taxAmount;
 
-  return { total, breakdown, subtotal, tax: taxAmount, paintCost: totalPaintCost, primerCost: totalPrimerCost, asbestosCost };
+  return { total, breakdown, subtotal, tax: taxAmount, paintCost: totalPaintCost, primerCost: totalPrimerCost, asbestosCost, discountAmount, adjustedTotal };
 };

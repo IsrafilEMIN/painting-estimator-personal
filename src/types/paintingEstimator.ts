@@ -31,8 +31,9 @@ export interface Service {
   material?: string;
   asbestos?: boolean;
   asbestosTest?: boolean;
-  useCustomSqFt?: boolean; // New: Flag for custom ceiling sqFt (ceilingPainting only)
-  customSqFt?: number;     // New: Custom sqFt value if useCustomSqFt is true
+  hasAsbestos?: boolean; 
+  useCustomSqFt?: boolean;
+  customSqFt?: number;
   moldResistant?: boolean;
 }
 
@@ -92,4 +93,5 @@ export interface Pricing {
   SCAFFOLDING_COST_TIERS: Record<string, number>;
   MIN_JOB_FEE: number;
   ASBESTOS_ADDITIONAL_PER_SQFT: number;
+  DISCOUNT_PERCENTAGE: number;
 }
