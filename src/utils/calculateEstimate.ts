@@ -11,6 +11,7 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   let hasAsbestos = false;
 
   rooms.forEach(room => {
+    const height = Number(room.height) || 0;
     const basePrepHours = pricing.BASE_PREP_HOURS_FIXED;
     let baseLabor = basePrepHours * pricing.laborRate;
     let baseMaterial = baseLabor * pricing.SUPPLIES_PERCENTAGE;
@@ -121,8 +122,16 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
 
       let highCeilAdd = 0;
       let scaffoldingKey = '';
-      // Removed height-based logic
-
+      if (height > 14) {
+        highCeilAdd = pricing.HIGH_CEILING_TIERS['14+'];
+        scaffoldingKey = '14+';
+      } else if (height > 12) {
+        highCeilAdd = pricing.HIGH_CEILING_TIERS['12'];
+        scaffoldingKey = '12';
+      } else if (height > 10) {
+        highCeilAdd = pricing.HIGH_CEILING_TIERS['10'];
+        scaffoldingKey = '10';
+      }
       laborHours *= (1 + highCeilAdd);
       if (highCeilAdd > 0) {
         materialCost += pricing.SCAFFOLDING_COST_TIERS[scaffoldingKey] ?? 0;
