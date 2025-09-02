@@ -33,7 +33,6 @@ const Step3: React.FC<Step3Props> = ({
   formatCurrency,
   setCurrentStep,
   startOver,
-  setIsSettingsOpen,
 }) => {
   const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
 
@@ -133,7 +132,6 @@ const Step3: React.FC<Step3Props> = ({
       <div className="flex justify-between space-x-4">
         <button onClick={() => setCurrentStep(2)} className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition">Back</button>
         <button onClick={startOver} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition">Start Over</button>
-        <button onClick={() => setIsSettingsOpen(true)} className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition">Settings</button>
       </div>
     </div>
   );
