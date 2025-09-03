@@ -3,11 +3,14 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { chromium } from 'playwright-core';
+// Import both playwright packages
+import { chromium as playwrightChromium } from 'playwright';
+import { chromium as playwrightCoreChromium } from 'playwright-core';
 import sparticuzChromium from '@sparticuz/chromium';
 import { adminDb, admin } from '@/lib/firebaseAdmin';
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
+// ... (Keep your interfaces, constants, and getInvoiceHtml function exactly as they are)
 interface RequestBody {
   uid: string;
   clientInfo: {
@@ -183,7 +186,7 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
       </style>
     </head>
     <body>
-      <img src="https://i.imgur.com/gK0r293.png" alt="Company Logo" style="max-width: 400px; max-height: 100px; margin-bottom: 20px;">
+      <img src="https://imgur.com/NJ5FOqt.png" alt="Company Logo" style="max-width: 400px; max-height: 100px; margin-bottom: 20px;">
       <h1>Invoice #${invoiceNumber}</h1>
       <div class="header-section">
         <div class="company-info">
@@ -226,8 +229,9 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
 
 export async function POST(req: NextRequest) {
   let browser;
-  
+
   try {
+    // ... (Keep your auth, data parsing, and invoice number logic)
     console.log('Starting invoice generation...');
     
     const authHeader = req.headers.get('Authorization');
@@ -260,36 +264,46 @@ export async function POST(req: NextRequest) {
     const html = getInvoiceHtml(data, formattedInvoiceNumber);
 
     console.log('Launching browser...');
-    browser = await chromium.launch({
-      args: sparticuzChromium.args,
-      executablePath: await sparticuzChromium.executablePath(),
-      headless: true,
-    });
+    // 👇 **START: Conditional Browser Launch**
+    if (process.env.NODE_ENV === 'development') {
+      // Use standard Playwright for local development
+      console.log('Using local playwright...');
+      browser = await playwrightChromium.launch({ headless: true });
+    } else {
+      // Use sparticuz-chromium for production (Vercel)
+      console.log('Using sparticuz-chromium...');
+      browser = await playwrightCoreChromium.launch({
+        args: sparticuzChromium.args,
+        executablePath: await sparticuzChromium.executablePath(),
+        headless: true,
+      });
+    }
+    // 👆 **END: Conditional Browser Launch**
 
     console.log('Creating page...');
     const page = await browser.newPage({
       ignoreHTTPSErrors: true,
     });
-    
+
     await page.setViewportSize({ width: 1280, height: 800 });
-    
+
     console.log('Setting content...');
-    await page.setContent(html, { 
+    await page.setContent(html, {
       waitUntil: 'networkidle',
-      timeout: 30000
+      timeout: 30000,
     });
-    
+
     console.log('Generating PDF...');
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { 
-        top: '20px', 
-        right: '20px', 
-        bottom: '20px', 
-        left: '20px' 
+      margin: {
+        top: '20px',
+        right: '20px',
+        bottom: '20px',
+        left: '20px',
       },
-      preferCSSPageSize: true
+      preferCSSPageSize: true,
     });
 
     console.log('Closing browser...');
@@ -300,21 +314,23 @@ export async function POST(req: NextRequest) {
 
     const base64Pdf = pdfBuffer.toString('base64');
 
-    return NextResponse.json({
-      success: true,
-      pdf: base64Pdf,
-      filename: `invoice-${formattedInvoiceNumber}.pdf`,
-      invoiceNumber: formattedInvoiceNumber,
-      size: pdfBuffer.length
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        pdf: base64Pdf,
+        filename: `invoice-${formattedInvoiceNumber}.pdf`,
+        invoiceNumber: formattedInvoiceNumber,
+        size: pdfBuffer.length,
+      },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     console.error('Error in generate-invoice API:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     if (browser) {
       try {
         await browser.close();
@@ -322,12 +338,17 @@ export async function POST(req: NextRequest) {
         console.error('Error closing browser:', closeError);
       }
     }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
-    return NextResponse.json({ 
-      error: 'Failed to generate invoice',
-      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
-    }, { status: 500 });
+
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
+
+    return NextResponse.json(
+      {
+        error: 'Failed to generate invoice',
+        details:
+          process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+      },
+      { status: 500 }
+    );
   }
 }
