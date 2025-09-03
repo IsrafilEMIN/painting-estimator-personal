@@ -9,11 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@playwright/browser-chromium": "^1.55.0",
     "@sparticuz/chromium": "^138.0.2",
     "@types/puppeteer": "^7.0.4",
     "firebase": "^12.1.0",
     "firebase-admin": "^13.5.0",
     "next": "15.5.0",
+    "playwright-core": "^1.55.0",
     "puppeteer": "^24.18.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
