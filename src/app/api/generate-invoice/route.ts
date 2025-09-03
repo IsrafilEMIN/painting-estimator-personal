@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { chromium } from 'playwright-core';
+import sparticuzChromium from '@sparticuz/chromium';
 import { adminDb, admin } from '@/lib/firebaseAdmin';
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
@@ -35,7 +36,7 @@ const COMPANY_INFO = {
   phone: '(647) 916-0826',
 };
 
-const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(value);
 
 const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
 
@@ -182,7 +183,7 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
       </style>
     </head>
     <body>
-      <img src="https://imgur.com/a/cF48f3G" alt="Company Logo" style="max-width: 400px; max-height: 100px; margin-bottom: 20px;">
+      <img src="https://i.imgur.com/gK0r293.png" alt="Company Logo" style="max-width: 400px; max-height: 100px; margin-bottom: 20px;">
       <h1>Invoice #${invoiceNumber}</h1>
       <div class="header-section">
         <div class="company-info">
@@ -246,7 +247,6 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('Getting invoice number...');
-    // Get and increment invoice number using adminDb
     const counterRef = adminDb.doc(`users/${uid}/counters/invoice`);
     const counterDoc = await counterRef.get();
     let count = 1;
@@ -257,45 +257,27 @@ export async function POST(req: NextRequest) {
     const formattedInvoiceNumber = count.toString().padStart(5, '0');
 
     console.log('Generating HTML...');
-    // Generate HTML
     const html = getInvoiceHtml(data, formattedInvoiceNumber);
 
     console.log('Launching browser...');
-    // Launch Playwright browser with environment-specific configuration
-    const isDev = process.env.NODE_ENV === 'development';
-    
     browser = await chromium.launch({
+      args: sparticuzChromium.args,
+      executablePath: await sparticuzChromium.executablePath(),
       headless: true,
-      args: isDev ? [
-        '--no-sandbox',
-        '--disable-setuid-sandbox'
-      ] : [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--disable-web-security',
-        '--disable-features=TranslateUI',
-        '--disable-extensions',
-        '--disable-default-apps',
-        '--disable-sync'
-      ]
     });
 
     console.log('Creating page...');
-    const page = await browser.newPage();
+    const page = await browser.newPage({
+      ignoreHTTPSErrors: true,
+    });
     
-    // Set viewport for consistent rendering
     await page.setViewportSize({ width: 1280, height: 800 });
     
     console.log('Setting content...');
     await page.setContent(html, { 
-      waitUntil: 'domcontentloaded',
+      waitUntil: 'networkidle',
       timeout: 30000
     });
-    
-    // Wait a moment for fonts and styles to load
-    await page.waitForTimeout(1000);
     
     console.log('Generating PDF...');
     const pdfBuffer = await page.pdf({
@@ -316,7 +298,6 @@ export async function POST(req: NextRequest) {
 
     console.log('PDF generated successfully, size:', pdfBuffer.length);
 
-    // Convert to base64 string for reliable Vercel transmission
     const base64Pdf = pdfBuffer.toString('base64');
 
     return NextResponse.json({
@@ -334,7 +315,6 @@ export async function POST(req: NextRequest) {
       timestamp: new Date().toISOString()
     });
     
-    // Ensure browser is closed on error
     if (browser) {
       try {
         await browser.close();
