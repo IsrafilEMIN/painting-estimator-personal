@@ -3,8 +3,7 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteerCore, { LaunchOptions } from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import { chromium } from 'playwright-core';
 import { adminDb, admin } from '@/lib/firebaseAdmin';
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
@@ -138,37 +137,73 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
       <meta charset="utf-8">
       <title>Invoice</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background-color: #007bff; color: white; }
+        body { 
+          font-family: Arial, sans-serif; 
+          margin: 20px; 
+          line-height: 1.4;
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin-top: 20px;
+        }
+        th, td { 
+          border: 1px solid #ddd; 
+          padding: 12px 8px;
+          vertical-align: top;
+        }
+        th { 
+          background-color: #007bff; 
+          color: white; 
+          font-weight: bold;
+        }
+        .header-section {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 30px;
+        }
+        .company-info, .client-info {
+          flex: 1;
+        }
+        .company-info {
+          margin-right: 40px;
+        }
+        h1 {
+          color: #007bff;
+          margin-bottom: 30px;
+        }
+        h2 {
+          color: #333;
+          font-size: 16px;
+          margin-bottom: 10px;
+        }
       </style>
     </head>
     <body>
       <h1>Invoice #${invoiceNumber}</h1>
-      <div style="display: flex; justify-content: space-between;">
-        <div>
+      <div class="header-section">
+        <div class="company-info">
           <h2>Billed From:</h2>
-          <p>${COMPANY_INFO.name}</p>
-          <p>${COMPANY_INFO.address}</p>
-          <p>${COMPANY_INFO.email}</p>
-          <p>${COMPANY_INFO.phone}</p>
+          <p>${COMPANY_INFO.name}<br>
+          ${COMPANY_INFO.address}<br>
+          ${COMPANY_INFO.email}<br>
+          ${COMPANY_INFO.phone}</p>
         </div>
-        <div>
+        <div class="client-info">
           <h2>Billed To:</h2>
-          <p>${clientInfo.name}</p>
-          <p>${clientInfo.address}</p>
-          <p>${clientInfo.email}</p>
-          <p>${clientInfo.phone}</p>
+          <p>${clientInfo.name}<br>
+          ${clientInfo.address}<br>
+          ${clientInfo.email}<br>
+          ${clientInfo.phone}</p>
         </div>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Item</th>
-            <th style="text-align: right;">Labor</th>
-            <th style="text-align: right;">Material</th>
-            <th style="text-align: right;">Total</th>
+            <th style="width: 50%;">Item</th>
+            <th style="text-align: right; width: 16%;">Labor</th>
+            <th style="text-align: right; width: 17%;">Material</th>
+            <th style="text-align: right; width: 17%;">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -187,12 +222,15 @@ export async function POST(req: NextRequest) {
   let browser;
   
   try {
+    console.log('Starting invoice generation...');
+    
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const idToken = authHeader.split('Bearer ')[1];
 
+    console.log('Verifying auth token...');
     const decodedToken = await admin.auth().verifyIdToken(idToken);
 
     const data: RequestBody = await req.json();
@@ -202,6 +240,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('Getting invoice number...');
     // Get and increment invoice number using adminDb
     const counterRef = adminDb.doc(`users/${uid}/counters/invoice`);
     const counterDoc = await counterRef.get();
@@ -212,46 +251,82 @@ export async function POST(req: NextRequest) {
     await counterRef.set({ count }, { merge: true });
     const formattedInvoiceNumber = count.toString().padStart(5, '0');
 
+    console.log('Generating HTML...');
     // Generate HTML
     const html = getInvoiceHtml(data, formattedInvoiceNumber);
 
-    // Launch Puppeteer with enhanced Chromium args for serverless
-    const executablePath = await chromium.executablePath();
-    browser = await puppeteerCore.launch({
-      args: [
-        ...chromium.args,
+    console.log('Launching browser...');
+    // Launch Playwright browser with environment-specific configuration
+    const isDev = process.env.NODE_ENV === 'development';
+    
+    browser = await chromium.launch({
+      headless: true,
+      args: isDev ? [
+        '--no-sandbox',
+        '--disable-setuid-sandbox'
+      ] : [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu',
-        '--single-process',
-        '--no-zygote'
-      ],
-      executablePath,
-      headless: 'shell',
-      acceptInsecureCerts: true,
-    } as LaunchOptions);
+        '--disable-web-security',
+        '--disable-features=TranslateUI',
+        '--disable-extensions',
+        '--disable-default-apps',
+        '--disable-sync'
+      ]
+    });
 
+    console.log('Creating page...');
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'domcontentloaded' });
+    
+    // Set viewport for consistent rendering
+    await page.setViewportSize({ width: 1280, height: 800 });
+    
+    console.log('Setting content...');
+    await page.setContent(html, { 
+      waitUntil: 'domcontentloaded',
+      timeout: 30000
+    });
+    
+    // Wait a moment for fonts and styles to load
+    await page.waitForTimeout(1000);
+    
+    console.log('Generating PDF...');
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
+      margin: { 
+        top: '20px', 
+        right: '20px', 
+        bottom: '20px', 
+        left: '20px' 
+      },
+      preferCSSPageSize: true
     });
 
+    console.log('Closing browser...');
     await browser.close();
     browser = null;
 
-    return new Response(new Uint8Array(pdfBuffer), {
+    console.log('PDF generated successfully, size:', pdfBuffer.length);
+
+    // Return PDF as response
+    return new Response(pdfBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="invoice.pdf"'
+        'Content-Length': pdfBuffer.length.toString(),
+        'Content-Disposition': `attachment; filename="invoice-${formattedInvoiceNumber}.pdf"`
       }
     });
+
   } catch (error: unknown) {
-    console.error('Error in generate-invoice API:', error);
+    console.error('Error in generate-invoice API:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
     
     // Ensure browser is closed on error
     if (browser) {
