@@ -26,7 +26,7 @@ export interface Service {
   hasRailings?: boolean;
   lnFt?: number;
   hasCarpet?: boolean;
-  sameAsWallCeiling?: boolean;
+  sameAsAsWallCeiling?: boolean;
   quantity?: number;
   material?: string;
   asbestos?: boolean;
@@ -35,6 +35,7 @@ export interface Service {
   useCustomSqFt?: boolean;
   customSqFt?: number;
   moldResistant?: boolean;
+  sameAsWallCeiling?: boolean;
 }
 
 export interface Room {
@@ -60,6 +61,7 @@ export interface DetailedBreakdownItem {
     laborCost: number;
     materialCost: number;
     total: number;
+    adjustedSubtotal?: number;
   }>;
 }
 

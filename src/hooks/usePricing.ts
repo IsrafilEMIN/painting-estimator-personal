@@ -48,13 +48,13 @@ const sanitizePricing = <T extends object>(data: unknown, defaults: T): T => {
   return sanitized as T;
 };
 
-export const usePricing = (userId: string | undefined) => {
+export const usePricing = (uid: string | undefined) => {
   const [pricing, setPricing] = useState<Pricing>(DEFAULT_PRICING);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
-    if (userId) loadPricing(userId);
-  }, [userId]);
+    if (uid) loadPricing(uid);
+  }, [uid]);
 
   const loadPricing = async (uid: string) => {
     try {
@@ -69,10 +69,10 @@ export const usePricing = (userId: string | undefined) => {
   };
 
   const savePricing = async (newPricing: Pricing) => {
-    if (!userId) return;
+    if (!uid) return;
     try {
       const sanitized = sanitizePricing(newPricing, DEFAULT_PRICING);
-      await setDoc(doc(db, `users/${userId}/configs/pricing`), sanitized);
+      await setDoc(doc(db, `users/${uid}/configs/pricing`), sanitized);
       setPricing(sanitized);
     } catch (error) {
       console.error('Error saving pricing:', error);
