@@ -184,6 +184,8 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
 };
 
 export async function POST(req: NextRequest) {
+  let browser;
+  
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -213,14 +215,23 @@ export async function POST(req: NextRequest) {
     // Generate HTML
     const html = getInvoiceHtml(data, formattedInvoiceNumber);
 
-    // Launch Puppeteer with Chromium for Vercel
+    // Launch Puppeteer with enhanced Chromium args for serverless
     const executablePath = await chromium.executablePath();
-    const browser = await puppeteerCore.launch({
-      args: chromium.args,
+    browser = await puppeteerCore.launch({
+      args: [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process',
+        '--no-zygote'
+      ],
       executablePath,
       headless: 'shell',
       acceptInsecureCerts: true,
     } as LaunchOptions);
+
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
     const pdfBuffer = await page.pdf({
@@ -230,6 +241,7 @@ export async function POST(req: NextRequest) {
     });
 
     await browser.close();
+    browser = null;
 
     const response = NextResponse.json({}, { status: 200 });
     response.headers.set('Content-Type', 'application/pdf');
@@ -240,8 +252,23 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: response.headers
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in generate-invoice API:', error);
-    return NextResponse.json({ error: 'Failed to generate invoice' }, { status: 500 });
+    
+    // Ensure browser is closed on error
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error('Error closing browser:', closeError);
+      }
+    }
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    return NextResponse.json({ 
+      error: 'Failed to generate invoice',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 });
   }
 }
