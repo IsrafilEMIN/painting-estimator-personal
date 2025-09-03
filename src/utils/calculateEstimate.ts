@@ -222,19 +222,19 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   subtotal += totalPaintCost + totalPrimerCost + asbestosCost;
   subtotal = Math.max(subtotal, pricing.MIN_JOB_FEE);
 
-  let taxAmount = subtotal * pricing.TAX_RATE;
-  let total = subtotal + taxAmount;
-
   let discountPercentage = 0;
   if (typeof pricing.DISCOUNT_PERCENTAGE === 'number' && !isNaN(pricing.DISCOUNT_PERCENTAGE) && pricing.DISCOUNT_PERCENTAGE > 0) {
     discountPercentage = pricing.DISCOUNT_PERCENTAGE;
   }
-  const discountAmount = total * (discountPercentage / 100);
-  const adjustedTotal = total - discountAmount;    
+  const discountAmount = subtotal * (discountPercentage / 100);
+  const adjustedSubtotal = subtotal - discountAmount;  
+
+  let taxAmount = discountAmount > 0 ? adjustedSubtotal * pricing.TAX_RATE : subtotal * pricing.TAX_RATE;
+  let total = discountAmount > 0 ? adjustedSubtotal + taxAmount : subtotal + taxAmount;
 
   if (isNaN(subtotal)) subtotal = pricing.MIN_JOB_FEE;
   if (isNaN(taxAmount)) taxAmount = pricing.MIN_JOB_FEE * pricing.TAX_RATE;
   if (isNaN(total)) total = subtotal + taxAmount;
 
-  return { total, breakdown, subtotal, tax: taxAmount, paintCost: totalPaintCost, primerCost: totalPrimerCost, asbestosCost, discountAmount, adjustedTotal };
+  return { total, breakdown, subtotal, tax: taxAmount, paintCost: totalPaintCost, primerCost: totalPrimerCost, asbestosCost, discountAmount, adjustedSubtotal };
 };
