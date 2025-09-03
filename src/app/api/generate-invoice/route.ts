@@ -12,6 +12,7 @@ interface RequestBody {
   clientInfo: {
     name: string;
     address: string;
+    address2: string;
     email: string;
     phone: string;
   };
@@ -27,10 +28,11 @@ interface RequestBody {
 }
 
 const COMPANY_INFO = {
-  name: 'Your Company Name',
-  address: '123 Company St, City, State, ZIP',
-  email: 'info@company.com',
-  phone: '(123) 456-7890',
+  name: 'Atlas HomeServices Inc.',
+  address: '54 Walter Sinclair Crt',
+  address2: 'Richmond Hill, ON L4E 0X1',
+  email: 'info@atlas-paint.com',
+  phone: '(647) 916-0826',
 };
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
@@ -186,6 +188,7 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
           <h2>Billed From:</h2>
           <p>${COMPANY_INFO.name}<br>
           ${COMPANY_INFO.address}<br>
+          ${COMPANY_INFO.address2}<br>
           ${COMPANY_INFO.email}<br>
           ${COMPANY_INFO.phone}</p>
         </div>
@@ -193,6 +196,7 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
           <h2>Billed To:</h2>
           <p>${clientInfo.name}<br>
           ${clientInfo.address}<br>
+          ${clientInfo.address2}<br>
           ${clientInfo.email}<br>
           ${clientInfo.phone}</p>
         </div>
@@ -311,15 +315,16 @@ export async function POST(req: NextRequest) {
 
     console.log('PDF generated successfully, size:', pdfBuffer.length);
 
-    // Return PDF as response
-    return new Response(pdfBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Length': pdfBuffer.length.toString(),
-        'Content-Disposition': `attachment; filename="invoice-${formattedInvoiceNumber}.pdf"`
-      }
-    });
+    // Convert to base64 string for reliable Vercel transmission
+    const base64Pdf = pdfBuffer.toString('base64');
+
+    return NextResponse.json({
+      success: true,
+      pdf: base64Pdf,
+      filename: `invoice-${formattedInvoiceNumber}.pdf`,
+      invoiceNumber: formattedInvoiceNumber,
+      size: pdfBuffer.length
+    }, { status: 200 });
 
   } catch (error: unknown) {
     console.error('Error in generate-invoice API:', {
