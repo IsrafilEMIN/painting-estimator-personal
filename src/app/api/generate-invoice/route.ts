@@ -243,14 +243,12 @@ export async function POST(req: NextRequest) {
     await browser.close();
     browser = null;
 
-    const response = NextResponse.json({}, { status: 200 });
-    response.headers.set('Content-Type', 'application/pdf');
-    response.headers.set('Content-Length', pdfBuffer.length.toString());
-    response.headers.set('Content-Disposition', 'attachment; filename="invoice.pdf"');
-
-    return new Response(Buffer.from(pdfBuffer), {
+    return new Response(new Uint8Array(pdfBuffer), {
       status: 200,
-      headers: response.headers
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="invoice.pdf"'
+      }
     });
   } catch (error: unknown) {
     console.error('Error in generate-invoice API:', error);
