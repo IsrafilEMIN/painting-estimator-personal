@@ -1,4 +1,7 @@
 // app/api/generate-invoice/route.ts
+
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteerCore, { LaunchOptions } from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
