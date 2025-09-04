@@ -29,7 +29,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
   paintCost,
   primerCost,
   asbestosCost,
-  formatCurrency,
 }) => {
   const { user } = useAuth();
   const [clientInfo, setClientInfo] = useState({
