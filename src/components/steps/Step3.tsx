@@ -46,7 +46,7 @@ const Step3: React.FC<Step3Props> = ({
       <h2 className="text-2xl font-bold text-gray-800">Estimate Breakdown</h2>
       <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-md">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-[#899499] text-black">
             <tr>
               <th className="py-3 px-4 text-left text-sm font-semibold">Item</th>
               <th className="py-3 px-4 text-right text-sm font-semibold">Labor</th>
