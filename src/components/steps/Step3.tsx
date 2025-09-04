@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 import InvoiceModal from '@/components/modals/InvoiceModal';
+import ContractModal from '@/components/modals/ContractModal';
 
 interface Step3Props {
   isLoading: boolean;
@@ -38,6 +39,7 @@ const Step3: React.FC<Step3Props> = ({
   asbestosCost,
 }) => {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
   return (
     <div className="space-y-8">
@@ -130,14 +132,59 @@ const Step3: React.FC<Step3Props> = ({
           </tfoot>
         </table>
       </div>
-      <div className="flex justify-between space-x-4">
-        <button onClick={() => setCurrentStep(2)} className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition">Back</button>
-        <button onClick={startOver} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition">Start Over</button>
-        <button onClick={() => setIsInvoiceModalOpen(true)} className="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg transition">Generate Invoice</button>
+      
+      {/* Action Buttons */}
+      <div className="flex flex-wrap justify-between gap-4">
+        <div className="flex flex-wrap gap-4">
+          <button 
+            onClick={() => setCurrentStep(2)} 
+            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition"
+          >
+            Back
+          </button>
+          <button 
+            onClick={startOver} 
+            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg transition"
+          >
+            Start Over
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <button 
+            onClick={() => setIsContractModalOpen(true)} 
+            className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg transition"
+          >
+            Generate Contract
+          </button>
+          <button 
+            onClick={() => setIsInvoiceModalOpen(true)} 
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition"
+          >
+            Generate Invoice
+          </button>
+        </div>
       </div>
+
+      {/* Modals */}
       {isInvoiceModalOpen && (
         <InvoiceModal
           onClose={() => setIsInvoiceModalOpen(false)}
+          breakdown={breakdown}
+          subtotal={subtotal}
+          tax={tax}
+          total={total}
+          discountAmount={discountAmount}
+          adjustedSubtotal={adjustedSubtotal}
+          paintCost={paintCost}
+          primerCost={primerCost}
+          asbestosCost={asbestosCost}
+          formatCurrency={formatCurrency}
+        />
+      )}
+      
+      {isContractModalOpen && (
+        <ContractModal
+          onClose={() => setIsContractModalOpen(false)}
           breakdown={breakdown}
           subtotal={subtotal}
           tax={tax}

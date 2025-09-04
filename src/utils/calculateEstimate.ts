@@ -226,11 +226,11 @@ export const calculateEstimate = (rooms: Room[], pricing: Pricing) => {
   if (typeof pricing.DISCOUNT_PERCENTAGE === 'number' && !isNaN(pricing.DISCOUNT_PERCENTAGE) && pricing.DISCOUNT_PERCENTAGE > 0) {
     discountPercentage = pricing.DISCOUNT_PERCENTAGE;
   }
-  const discountAmount = subtotal * (discountPercentage / 100);
-  const adjustedSubtotal = subtotal - discountAmount;  
+  const discountAmount = Math.round((subtotal * (discountPercentage / 100)) * 100) / 100;
+  const adjustedSubtotal = Math.round((subtotal - discountAmount) * 100) / 100;  
 
-  let taxAmount = discountAmount > 0 ? adjustedSubtotal * pricing.TAX_RATE : subtotal * pricing.TAX_RATE;
-  let total = discountAmount > 0 ? adjustedSubtotal + taxAmount : subtotal + taxAmount;
+  let taxAmount = discountAmount > 0 ? Math.round((adjustedSubtotal * pricing.TAX_RATE) * 100) / 100 : Math.round((subtotal * pricing.TAX_RATE) * 100) / 100;
+  let total = discountAmount > 0 ? Math.round((adjustedSubtotal + taxAmount) * 100) / 100 : Math.round((subtotal + taxAmount) * 100) / 100;
 
   if (isNaN(subtotal)) subtotal = pricing.MIN_JOB_FEE;
   if (isNaN(taxAmount)) taxAmount = pricing.MIN_JOB_FEE * pricing.TAX_RATE;
