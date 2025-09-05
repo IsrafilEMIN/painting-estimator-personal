@@ -1,5 +1,4 @@
 // src/lib/invoiceUtils.ts
-
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
 interface InvoiceData {
@@ -7,7 +6,7 @@ interface InvoiceData {
   clientInfo: {
     name: string;
     address: string;
-    address2: string; // Added missing property from the modal
+    address2: string;
     email: string;
     phone: string;
   };
@@ -25,7 +24,7 @@ interface InvoiceData {
 export const generateAndDownloadInvoice = async (invoiceData: InvoiceData, idToken: string) => {
   try {
     console.log('Generating invoice...');
-    
+   
     const response = await fetch('/api/generate-invoice', {
       method: 'POST',
       headers: {
@@ -34,7 +33,6 @@ export const generateAndDownloadInvoice = async (invoiceData: InvoiceData, idTok
       },
       body: JSON.stringify(invoiceData)
     });
-
     if (!response.ok) {
       let msg = `HTTP error! status: ${response.status}`;
       try {
@@ -54,38 +52,44 @@ export const generateAndDownloadInvoice = async (invoiceData: InvoiceData, idTok
       }
       throw new Error(msg);
     }
-
     // Correctly process the binary PDF response as a Blob
     const blob = await response.blob();
     console.log('Received blob:', { size: blob.size, type: blob.type });
-
     // Get the filename from the Content-Disposition header
     const contentDisposition = response.headers.get('Content-Disposition');
     let filename = `invoice-${new Date().toISOString().slice(0, 10)}.pdf`;
     if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
       filename = contentDisposition.split('filename=')[1].replace(/['"]/g, '');
     }
-
     // Create a URL for the blob
     const url = window.URL.createObjectURL(blob);
-    
-    // Create a temporary link element to trigger the download
+   
+    // Detect if mobile device
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+   
+    // Create a temporary link element
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename;
     link.style.display = 'none';
-    
+   
+    if (isMobile) {
+      // On mobile, open in new tab (no download attribute to allow viewing)
+      link.target = '_blank';
+    } else {
+      // On desktop, force download
+      link.download = filename;
+    }
+   
     // Add to DOM, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+   
     // Clean up the object URL
     window.URL.revokeObjectURL(url);
-    
-    console.log('Invoice downloaded successfully');
+   
+    console.log('Invoice handled successfully');
     return { success: true, filename: filename };
-
   } catch (error) {
     console.error('Invoice generation failed:', error);
     if (error instanceof Error) {
