@@ -62,9 +62,23 @@ export const generateAndDownloadContract = async (data: ContractData, idToken: s
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      const errorMessage = errorData.details || errorData.error || 'Unknown server error';
-      throw new Error(errorMessage);
+      let msg = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        msg = errorData.error || msg;
+        if (errorData.details) {
+          msg += `: ${errorData.details}`;
+        }
+      } catch (jsonError) {
+        let text = '';
+        try {
+          text = await response.text();
+        } catch {}
+        if (text) {
+          msg = text;
+        }
+      }
+      throw new Error(msg);
     }
 
     // Correctly process the binary PDF response as a Blob
