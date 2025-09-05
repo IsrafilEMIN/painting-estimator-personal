@@ -63,33 +63,47 @@ export const generateAndDownloadContract = async (data: ContractData, idToken: s
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      const errorMessage = errorData.details || errorData.error || 'Unknown server error';
+      throw new Error(errorMessage);
     }
 
-    const result = await response.json();
-    console.log('Contract API Response:', result);
+    // Correctly process the binary PDF response as a Blob
+    const blob = await response.blob();
+    console.log('Received blob:', { size: blob.size, type: blob.type });
 
-    if (!result.success || !result.pdf) {
-      throw new Error('Invalid response format from contract generation API');
+    // Get the filename from the Content-Disposition header
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let filename = `contract-${new Date().toISOString().slice(0, 10)}.pdf`;
+    if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+      filename = contentDisposition.split('filename=')[1].replace(/['"]/g, '');
     }
 
-    // Convert base64 to blob and download
-    const pdfBlob = new Blob([
-      Uint8Array.from(atob(result.pdf), c => c.charCodeAt(0))
-    ], { type: 'application/pdf' });
-
-    const url = URL.createObjectURL(pdfBlob);
+    // Create a URL for the blob
+    const url = window.URL.createObjectURL(blob);
+    
+    // Create a temporary link element to trigger the download
     const link = document.createElement('a');
     link.href = url;
-    link.download = result.filename || 'contract.pdf';
+    link.download = filename;
+    link.style.display = 'none';
+    
+    // Add to DOM, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    
+    // Clean up the object URL
+    window.URL.revokeObjectURL(url);
+    
+    console.log('Contract downloaded successfully');
+    return { success: true, filename: filename };
 
-    return result;
   } catch (error) {
-    console.error('Error in generateAndDownloadContract:', error);
-    throw error;
+    console.error('Contract generation failed:', error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate and download contract: ${error.message}`);
+    } else {
+      throw new Error('An unknown error occurred during contract generation.');
+    }
   }
 };

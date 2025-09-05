@@ -1,3 +1,4 @@
+// src/app/api/generate-contract/route.ts
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -395,6 +396,7 @@ export async function POST(req: NextRequest) {
         left: '20px',
       },
       preferCSSPageSize: true,
+      displayHeaderFooter: false,
     });
 
     console.log('Closing browser...');
@@ -403,21 +405,23 @@ export async function POST(req: NextRequest) {
 
     console.log('PDF generated successfully, size:', pdfBuffer.length);
 
-    const base64Pdf = pdfBuffer.toString('base64');
-
     // Use fallbacks and ensure strings before replace
     const safeClientName = (clientName || 'unknown').replace(/[^a-zA-Z0-9]/g, '-');
     const safeClientAddress = (projectAddress || 'unknown').replace(/[^a-zA-Z0-9]/g, '-');
+    const filename = `contract-${safeClientName}-${safeClientAddress}.pdf`;
 
-    return NextResponse.json(
-      {
-        success: true,
-        pdf: base64Pdf,
-        filename: `contract-${safeClientName}-${safeClientAddress}.pdf`,
-        size: pdfBuffer.length,
+    // Return direct downloadable PDF
+    return new NextResponse(pdfBuffer as unknown as BodyInit, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': pdfBuffer.length.toString(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
-      { status: 200 }
-    );
+    });
   } catch (error: unknown) {
     console.error('Error in generate-contract API:', {
       message: error instanceof Error ? error.message : 'Unknown error',

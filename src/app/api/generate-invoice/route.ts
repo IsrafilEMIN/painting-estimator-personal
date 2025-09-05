@@ -1,16 +1,13 @@
 // app/api/generate-invoice/route.ts
-
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-// Import both playwright packages
 import { chromium as playwrightChromium } from 'playwright';
 import { chromium as playwrightCoreChromium } from 'playwright-core';
 import sparticuzChromium from '@sparticuz/chromium';
 import { adminDb, admin } from '@/lib/firebaseAdmin';
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
-// ... (Keep your interfaces, constants, and getInvoiceHtml function exactly as they are)
 interface RequestBody {
   uid: string;
   clientInfo: {
@@ -163,6 +160,34 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
           color: white; 
           font-weight: bold;
         }
+        /* Prevent table headers from repeating on page breaks */
+        thead {
+          display: table-header-group;
+        }
+        tbody {
+          display: table-row-group;
+        }
+        /* Ensure footer stays together */
+        .footer-section {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        /* Page break handling */
+        @media print {
+          .no-page-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          /* Only show header on first page */
+          thead {
+            display: table-header-group;
+          }
+          /* Prevent orphaned rows */
+          tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+        }
         .header-section {
           display: flex;
           justify-content: space-between;
@@ -218,9 +243,9 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
         <tbody>
           ${tableRows}
         </tbody>
-        <tfoot>
+        <tbody class="footer-section">
           ${footerRows}
-        </tfoot>
+        </tbody>
       </table>
     </body>
     </html>
@@ -231,7 +256,6 @@ export async function POST(req: NextRequest) {
   let browser;
 
   try {
-    // ... (Keep your auth, data parsing, and invoice number logic)
     console.log('Starting invoice generation...');
     
     const authHeader = req.headers.get('Authorization');
@@ -264,13 +288,10 @@ export async function POST(req: NextRequest) {
     const html = getInvoiceHtml(data, formattedInvoiceNumber);
 
     console.log('Launching browser...');
-    // 👇 **START: Conditional Browser Launch**
     if (process.env.NODE_ENV === 'development') {
-      // Use standard Playwright for local development
       console.log('Using local playwright...');
       browser = await playwrightChromium.launch({ headless: true });
     } else {
-      // Use sparticuz-chromium for production (Vercel)
       console.log('Using sparticuz-chromium...');
       browser = await playwrightCoreChromium.launch({
         args: sparticuzChromium.args,
@@ -278,7 +299,6 @@ export async function POST(req: NextRequest) {
         headless: true,
       });
     }
-    // 👆 **END: Conditional Browser Launch**
 
     console.log('Creating page...');
     const page = await browser.newPage({
@@ -304,6 +324,7 @@ export async function POST(req: NextRequest) {
         left: '20px',
       },
       preferCSSPageSize: true,
+      displayHeaderFooter: false, // Prevents automatic headers/footers
     });
 
     console.log('Closing browser...');
@@ -312,18 +333,18 @@ export async function POST(req: NextRequest) {
 
     console.log('PDF generated successfully, size:', pdfBuffer.length);
 
-    const base64Pdf = pdfBuffer.toString('base64');
-
-    return NextResponse.json(
-      {
-        success: true,
-        pdf: base64Pdf,
-        filename: `invoice-${formattedInvoiceNumber}.pdf`,
-        invoiceNumber: formattedInvoiceNumber,
-        size: pdfBuffer.length,
+    // Return direct downloadable PDF
+    return new NextResponse(pdfBuffer as unknown as BodyInit, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="invoice-${formattedInvoiceNumber}.pdf"`,
+        'Content-Length': pdfBuffer.length.toString(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
-      { status: 200 }
-    );
+    });
   } catch (error: unknown) {
     console.error('Error in generate-invoice API:', {
       message: error instanceof Error ? error.message : 'Unknown error',

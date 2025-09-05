@@ -75,8 +75,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
         asbestosCost,
       };
 
-      const result = await generateAndDownloadInvoice(invoiceData, idToken);
-      console.log('Invoice generated successfully:', result);
+      await generateAndDownloadInvoice(invoiceData, idToken);
+      console.log('Invoice generated successfully.');
       
       // Close modal on success
       onClose();
