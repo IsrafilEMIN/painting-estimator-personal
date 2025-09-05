@@ -1,4 +1,5 @@
-// lib/invoiceUtils.ts
+// src/lib/invoiceUtils.ts
+
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
 interface InvoiceData {
@@ -6,6 +7,7 @@ interface InvoiceData {
   clientInfo: {
     name: string;
     address: string;
+    address2: string; // Added missing property from the modal
     email: string;
     phone: string;
   };
@@ -34,32 +36,30 @@ export const generateAndDownloadInvoice = async (invoiceData: InvoiceData, idTok
     });
 
     if (!response.ok) {
+      // If the response is not OK, it likely contains a JSON error message.
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate invoice');
+      const errorMessage = errorData.details || errorData.error || 'Unknown server error';
+      throw new Error(errorMessage);
     }
 
-    const data = await response.json();
-    console.log('Received response:', { 
-      success: data.success, 
-      filename: data.filename, 
-      size: data.size 
-    });
+    // Correctly process the binary PDF response as a Blob
+    const blob = await response.blob();
+    console.log('Received blob:', { size: blob.size, type: blob.type });
+
+    // Get the filename from the Content-Disposition header
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let filename = `invoice-${new Date().toISOString().slice(0, 10)}.pdf`;
+    if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+      filename = contentDisposition.split('filename=')[1].replace(/['"]/g, '');
+    }
+
+    // Create a URL for the blob
+    const url = window.URL.createObjectURL(blob);
     
-    // Convert base64 to blob
-    const binaryString = atob(data.pdf);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    console.log('Created blob:', { size: blob.size, type: blob.type });
-
-    // Create download link and trigger download
-    const url = URL.createObjectURL(blob);
+    // Create a temporary link element to trigger the download
     const link = document.createElement('a');
     link.href = url;
-    link.download = data.filename;
+    link.download = filename;
     link.style.display = 'none';
     
     // Add to DOM, click, and remove
@@ -68,13 +68,17 @@ export const generateAndDownloadInvoice = async (invoiceData: InvoiceData, idTok
     document.body.removeChild(link);
     
     // Clean up the object URL
-    URL.revokeObjectURL(url);
+    window.URL.revokeObjectURL(url);
     
     console.log('Invoice downloaded successfully');
-    return { success: true, invoiceNumber: data.invoiceNumber };
+    return { success: true, filename: filename };
 
   } catch (error) {
     console.error('Invoice generation failed:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate and download invoice: ${error.message}`);
+    } else {
+      throw new Error('An unknown error occurred during invoice generation.');
+    }
   }
 };
