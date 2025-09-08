@@ -33,7 +33,6 @@ const Step2: React.FC<Step2Props> = ({
       {rooms.map((room) => (
         <div key={room.id} className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md transition-shadow hover:shadow-lg">
           <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200">{room.name}</h3>
-          <p className="text-gray-600 dark:text-gray-400">{room.length}x{room.width}x{room.height}</p>
           <div className="mt-2 space-x-3 text-sm">
             <button onClick={() => openRoomModal(room)} className="text-blue-600 dark:text-blue-400 hover:underline">Edit</button>
             <button onClick={() => duplicateRoom(room)} className="text-green-600 dark:text-green-400 hover:underline">Duplicate</button>
