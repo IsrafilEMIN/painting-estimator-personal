@@ -41,8 +41,6 @@ export interface Service {
 export interface Room {
   id: number;
   name: string;
-  length: number;
-  width: number;
   height: number;
   services: Service[];
 }
