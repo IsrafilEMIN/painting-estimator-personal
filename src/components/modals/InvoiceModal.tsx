@@ -92,12 +92,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
-      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">Client Information</h3>
-        {error && <p className="text-red-600 mb-4 bg-red-50 p-3 rounded-lg border border-red-200">{error}</p>}
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Client Information</h3>
+        {error && <p className="text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800">{error}</p>}
         <div className="space-y-5">
           <div>
-            <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -106,12 +106,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
               name="name"
               value={clientInfo.name}
               onChange={handleChange}
-              className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               required
             />
           </div>
           <div>
-            <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label htmlFor="address" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Address <span className="text-red-500">*</span>
             </label>
             <input
@@ -120,12 +120,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
               name="address"
               value={clientInfo.address}
               onChange={handleChange}
-              className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               required
             />
           </div>
           <div>
-            <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1">
+            <label htmlFor="address" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
               City, Postal Code <span className="text-red-500">*</span>
             </label>
             <input
@@ -134,43 +134,43 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
               name="address2"
               value={clientInfo.address2}
               onChange={handleChange}
-              className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               required
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Email</label>
             <input
               type="email"
               id="email"
               name="email"
               value={clientInfo.email}
               onChange={handleChange}
-              className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             />
           </div>
           <div>
-            <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
+            <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Phone</label>
             <input
               type="tel"
               id="phone"
               name="phone"
               value={clientInfo.phone}
               onChange={handleChange}
-              className="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             />
           </div>
           <div className="flex justify-end gap-4 mt-6">
             <button
               onClick={onClose}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition disabled:opacity-50"
+              className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg transition disabled:opacity-50"
               disabled={isGenerating}
             >
               Cancel
             </button>
             <button
               onClick={handleGenerate}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition disabled:opacity-50"
+              className="bg-blue-600 dark:bg-blue-800 hover:bg-blue-700 dark:hover:bg-blue-900 text-white py-2 px-4 rounded-lg transition disabled:opacity-50"
               disabled={isGenerating}
             >
               {isGenerating ? 'Generating...' : 'Generate Invoice'}

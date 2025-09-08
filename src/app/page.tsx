@@ -71,18 +71,18 @@ export default function PaintingEstimator() {
   const canProceedToCalculate = rooms.length > 0 && rooms.every(room => room.services.length > 0);
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen font-sans flex items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <header className="mb-8 flex justify-between items-center px-8 py-6 bg-blue-600 text-white">
+    <div className="bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 min-h-screen font-sans flex items-center justify-center p-4 md:p-8">
+      <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
+        <header className="mb-8 flex justify-between items-center px-8 py-6 bg-blue-600 dark:bg-blue-800 text-white">
           <h1 className="text-3xl font-bold">Painting Estimator</h1>
           <div className="flex items-center gap-4">
             {user ? (
               <>
                 <button onClick={() => setIsSettingsOpen(true)} className="hover:underline">Settings</button>
-                <button onClick={handleSignOut} className="bg-red-500 hover:bg-red-600 py-1 px-3 rounded-md transition">Sign Out</button>
+                <button onClick={handleSignOut} className="bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700 py-1 px-3 rounded-md transition">Sign Out</button>
               </>
             ) : (
-              <button onClick={handleSignIn} className="bg-white text-blue-600 py-1 px-3 rounded-md transition hover:bg-gray-100">Sign In</button>
+              <button onClick={handleSignIn} className="bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 py-1 px-3 rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-600">Sign In</button>
             )}
           </div>
         </header>
@@ -103,7 +103,7 @@ export default function PaintingEstimator() {
             />
           )}
           {currentStep === 3 && (
-            isLoading ? <p className="text-center text-lg">Calculating...</p> : <Step3
+            isLoading ? <p className="text-center text-lg text-gray-800 dark:text-gray-200">Calculating...</p> : <Step3
               isLoading={isLoading}
               breakdown={breakdown}
               subtotal={subtotal}
