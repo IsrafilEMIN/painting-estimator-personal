@@ -367,17 +367,17 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
-      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">Pricing Settings</h3>
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-4xl w-full transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Pricing Settings</h3>
         <div className="space-y-8">
           {generalGroups.map((group, index) => (
-            <div key={index} className="p-6 bg-gray-50 rounded-lg shadow-inner">
+            <div key={index} className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-inner">
               <div
                 onClick={() => toggleGroup(index)}
                 className="cursor-pointer flex justify-between items-center mb-4"
               >
-                <h4 className="text-lg font-semibold text-gray-800">{group.title}</h4>
-                <span className="text-xl font-bold text-gray-600">
+                <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{group.title}</h4>
+                <span className="text-xl font-bold text-gray-600 dark:text-gray-400">
                   {openGroups.has(index) ? '-' : '+'}
                 </span>
               </div>
@@ -407,8 +407,8 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
                             onClick={() => toggleSubGroup(index, subIndex)}
                             className="cursor-pointer flex justify-between items-center mb-2"
                           >
-                            <h5 className="text-md font-medium text-gray-700">{subGroup.subTitle}</h5>
-                            <span className="text-lg font-bold text-gray-600">
+                            <h5 className="text-md font-medium text-gray-700 dark:text-gray-300">{subGroup.subTitle}</h5>
+                            <span className="text-lg font-bold text-gray-600 dark:text-gray-400">
                               {openSubGroups[index]?.has(subIndex) ? '-' : '+'}
                             </span>
                           </div>
@@ -422,8 +422,8 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
                                         onClick={() => toggleSubSubGroup(index, subIndex, subSubIndex)}
                                         className="cursor-pointer flex justify-between items-center mb-2"
                                       >
-                                        <h6 className="text-sm font-medium text-gray-700">{subSubGroup.subSubTitle}</h6>
-                                        <span className="text-lg font-bold text-gray-600">
+                                        <h6 className="text-sm font-medium text-gray-700 dark:text-gray-300">{subSubGroup.subSubTitle}</h6>
+                                        <span className="text-lg font-bold text-gray-600 dark:text-gray-400">
                                           {openSubSubGroups[index]?.[subIndex]?.has(subSubIndex) ? '-' : '+'}
                                         </span>
                                       </div>
@@ -475,9 +475,9 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
             </div>
           ))}
         </div>
-        <div className="sticky bottom-0 left-0 right-0 bg-white pt-4 flex justify-end gap-4 -mx-8 px-8">
-          <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition">Cancel</button>
-          <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">Save</button>
+        <div className="sticky bottom-0 left-0 right-0 bg-white dark:bg-gray-900 pt-4 flex justify-end gap-4 -mx-8 px-8 border-t border-gray-200 dark:border-gray-600">
+          <button onClick={onClose} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg transition">Cancel</button>
+          <button onClick={handleSave} className="bg-blue-600 dark:bg-blue-800 hover:bg-blue-700 dark:hover:bg-blue-900 text-white py-2 px-4 rounded-lg transition">Save</button>
         </div>
       </div>
     </div>
@@ -486,7 +486,7 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
 
 const InputField = ({ label, name, value, onChange, step = 'any', error }: { label: string; name: string; value: number | ''; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; step?: number | 'any'; error?: string }) => (
   <div>
-    <label htmlFor={name} className="block text-sm font-semibold text-gray-700 mb-1">{label}</label>
+    <label htmlFor={name} className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{label}</label>
     <input
       type="number"
       id={name}
@@ -494,9 +494,9 @@ const InputField = ({ label, name, value, onChange, step = 'any', error }: { lab
       value={value}
       onChange={onChange}
       step={step}
-      className={`block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${error ? 'border-red-500' : ''}`}
+      className={`block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${error ? 'border-red-500' : ''}`}
     />
-    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+    {error && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{error}</p>}
   </div>
 );
 
