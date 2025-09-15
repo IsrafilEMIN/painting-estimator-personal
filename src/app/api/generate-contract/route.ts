@@ -8,11 +8,9 @@ import sparticuzChromium from '@sparticuz/chromium';
 import { adminDb, admin } from '@/lib/firebaseAdmin';
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
-interface ServiceDescription {
+interface RoomDescription {
   roomId: string;
-  serviceId: string;
   roomName: string;
-  serviceType: string;
   description: string;
 }
 
@@ -50,7 +48,7 @@ interface RequestBody {
   paintCost: number;
   primerCost: number;
   asbestosCost: number;
-  serviceDescriptions: ServiceDescription[];
+  roomDescriptions: RoomDescription[];
   paymentSchedule: PaymentSchedule;
 }
 
@@ -84,7 +82,7 @@ const getCurrentDateFormatted = () => {
 };
 
 const getContractHtml = (data: RequestBody) => {
-  const { contractInfo, breakdown, subtotal, serviceDescriptions, paymentSchedule } = data;
+  const { contractInfo, breakdown, subtotal, roomDescriptions, paymentSchedule } = data;
   
   // Get current date
   const currentDate = getCurrentDateFormatted();
@@ -93,19 +91,13 @@ const getContractHtml = (data: RequestBody) => {
   let scopeOfWorkTable = '';
   breakdown.forEach(item => {
     const roomServices = item.services.map(svc => formatTypeLabel(svc.serviceType)).join(', ');
-    const roomDescriptions = item.services.map(svc => {
-      // Fix: Convert both roomId and serviceId to string for comparison
-      const desc = serviceDescriptions.find(d => 
-        d.roomId === String(item.roomId) && d.serviceId === String(svc.serviceId)
-      );
-      return desc?.description || 'Standard service';
-    }).join(' | ');
+    const roomDescription = roomDescriptions.find(d => d.roomId === String(item.roomId))?.description || 'Standard service';
 
     scopeOfWorkTable += `
       <tr>
         <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">${item.roomName}</td>
         <td style="padding: 12px; border: 1px solid #ddd;">${roomServices}</td>
-        <td style="padding: 12px; border: 1px solid #ddd;">${roomDescriptions}</td>
+        <td style="padding: 12px; border: 1px solid #ddd;">${roomDescription}</td>
       </tr>
     `;
   });
@@ -208,7 +200,7 @@ const getContractHtml = (data: RequestBody) => {
             }
             .special-instructions {
                 background-color: #fffbe6;
-                border: 1px solid #ffe58f;
+                border: 1px solid #b3d7ff;
                 border-radius: 5px;
                 padding: 15px;
                 margin: 20px 0;

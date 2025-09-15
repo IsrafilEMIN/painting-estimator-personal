@@ -48,37 +48,23 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
     tableRows += `
       <tr style="background-color: #f0f0f0; font-weight: bold;">
         <td>${item.roomName}</td>
-        <td style="text-align: right;">${formatCurrency(item.baseLabor)}</td>
-        <td style="text-align: right;">${formatCurrency(item.baseMaterial)}</td>
-        <td style="text-align: right;">${formatCurrency(item.baseTotal)}</td>
+        <td style="text-align: right;">${formatCurrency(item.roomTotal)}</td>
       </tr>
     `;
     item.services.forEach(svc => {
       tableRows += `
         <tr>
           <td style="padding-left: 20px;">› ${formatTypeLabel(svc.serviceType)}</td>
-          <td style="text-align: right;">${formatCurrency(svc.laborCost)}</td>
-          <td style="text-align: right;">${formatCurrency(svc.materialCost)}</td>
           <td style="text-align: right;">${formatCurrency(svc.total)}</td>
         </tr>
       `;
     });
-    tableRows += `
-      <tr style="background-color: #e0e0e0; font-weight: bold;">
-        <td>${item.roomName} Subtotal</td>
-        <td></td>
-        <td></td>
-        <td style="text-align: right;">${formatCurrency(item.roomTotal)}</td>
-      </tr>
-    `;
   });
 
   if (paintCost > 0) {
     tableRows += `
       <tr>
         <td>Paint (Global)</td>
-        <td></td>
-        <td style="text-align: right;">${formatCurrency(paintCost)}</td>
         <td style="text-align: right;">${formatCurrency(paintCost)}</td>
       </tr>
     `;
@@ -87,8 +73,6 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
     tableRows += `
       <tr>
         <td>Primer (Global)</td>
-        <td></td>
-        <td style="text-align: right;">${formatCurrency(primerCost)}</td>
         <td style="text-align: right;">${formatCurrency(primerCost)}</td>
       </tr>
     `;
@@ -97,8 +81,6 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
     tableRows += `
       <tr>
         <td>Asbestos Check Fee</td>
-        <td></td>
-        <td style="text-align: right;">${formatCurrency(asbestosCost)}</td>
         <td style="text-align: right;">${formatCurrency(asbestosCost)}</td>
       </tr>
     `;
@@ -107,29 +89,29 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
   let footerRows = `
     <tr style="background-color: #f0f0f0; font-weight: bold;">
       <td>Subtotal</td>
-      <td colspan="3" style="text-align: right;">${formatCurrency(subtotal)}</td>
+      <td style="text-align: right;">${formatCurrency(subtotal)}</td>
     </tr>
   `;
   if (discountAmount > 0) {
     footerRows += `
       <tr>
         <td>Discount Applied</td>
-        <td colspan="3" style="text-align: right;">-${formatCurrency(discountAmount)}</td>
+        <td style="text-align: right;">-${formatCurrency(discountAmount)}</td>
       </tr>
       <tr style="background-color: #f0f0f0; font-weight: bold;">
         <td>Adjusted Subtotal</td>
-        <td colspan="3" style="text-align: right;">${formatCurrency(adjustedSubtotal)}</td>
+        <td style="text-align: right;">${formatCurrency(adjustedSubtotal)}</td>
       </tr>
     `;
   }
   footerRows += `
     <tr>
       <td>Tax</td>
-      <td colspan="3" style="text-align: right;">${formatCurrency(tax)}</td>
+      <td style="text-align: right;">${formatCurrency(tax)}</td>
     </tr>
     <tr style="background-color: #f0f0f0; font-weight: bold; font-size: 1.2em;">
       <td>Total</td>
-      <td colspan="3" style="text-align: right;">${formatCurrency(total)}</td>
+      <td style="text-align: right;">${formatCurrency(total)}</td>
     </tr>
   `;
 
@@ -234,10 +216,8 @@ const getInvoiceHtml = (data: RequestBody, invoiceNumber: string) => {
       <table>
         <thead>
           <tr>
-            <th style="width: 50%;">Item</th>
-            <th style="text-align: right; width: 16%;">Labor</th>
-            <th style="text-align: right; width: 17%;">Material</th>
-            <th style="text-align: right; width: 17%;">Total</th>
+            <th style="width: 70%;">Item</th>
+            <th style="text-align: right; width: 30%;">Total</th>
           </tr>
         </thead>
         <tbody>

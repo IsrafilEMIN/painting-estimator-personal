@@ -5,9 +5,14 @@ import { useAuth } from '../../hooks/useAuth';
 import {
   generateAndDownloadContract,
   type ContractData,
-  type ServiceDescription,
   type PaymentSchedule,
 } from '../../lib/contractUtils';
+
+interface RoomDescription {
+  roomId: string;
+  roomName: string;
+  description: string;
+}
 
 interface ContractModalProps {
   onClose: () => void;
@@ -47,7 +52,7 @@ const ContractModal: React.FC<ContractModalProps> = ({
     warrantyPeriod: '1 year',
   });
 
-  const [serviceDescriptions, setServiceDescriptions] = useState<ServiceDescription[]>([]);
+  const [roomDescriptions, setRoomDescriptions] = useState<RoomDescription[]>([]);
   const [paymentSchedule, setPaymentSchedule] = useState<PaymentSchedule>({
     depositAmount: Math.round(total * 10) / 100,
     depositDate: '',
@@ -66,22 +71,17 @@ const ContractModal: React.FC<ContractModalProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize service descriptions from breakdown
+  // Initialize room descriptions from breakdown
   useEffect(() => {
-    const descriptions: ServiceDescription[] = [];
+    const descriptions: RoomDescription[] = [];
     breakdown.forEach(item => {
-      item.services.forEach(service => {
-        descriptions.push({
-          roomId: String(item.roomId),
-          serviceId: String(service.serviceId),
-          roomName: item.roomName,
-          // FIX: Added a fallback to prevent sending 'undefined' to the server.
-          serviceType: service.serviceType || 'General Service',
-          description: '',
-        });
+      descriptions.push({
+        roomId: String(item.roomId),
+        roomName: item.roomName,
+        description: '',
       });
     });
-    setServiceDescriptions(descriptions);
+    setRoomDescriptions(descriptions);
   }, [breakdown]);
 
   const formatTypeLabel = (type: string) =>
@@ -92,10 +92,10 @@ const ContractModal: React.FC<ContractModalProps> = ({
     setContractInfo(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleServiceDescriptionChange = (roomId: string, serviceId: string, description: string) => {
-    setServiceDescriptions(prev =>
+  const handleRoomDescriptionChange = (roomId: string, description: string) => {
+    setRoomDescriptions(prev =>
       prev.map(item =>
-        item.roomId === roomId && item.serviceId === serviceId
+        item.roomId === roomId
           ? { ...item, description }
           : item
       )
@@ -142,7 +142,7 @@ const ContractModal: React.FC<ContractModalProps> = ({
         paintCost,
         primerCost,
         asbestosCost,
-        serviceDescriptions,
+        roomDescriptions,
         paymentSchedule,
       };
 
@@ -254,30 +254,28 @@ const ContractModal: React.FC<ContractModalProps> = ({
           </div>
         </div>
 
-        {/* Service Descriptions */}
+        {/* Room Descriptions */}
         <div className="mt-8">
-          <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b pb-2 mb-4 border-gray-200 dark:border-gray-600">Service Descriptions</h4>
+          <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b pb-2 mb-4 border-gray-200 dark:border-gray-600">Room Descriptions</h4>
           <div className="space-y-6">
             {breakdown.map(room => (
               <div key={String(room.roomId)} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <h5 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">{room.roomName}</h5>
                 <div className="space-y-3">
-                  {room.services.map(service => (
-                    <div key={String(service.serviceId)}>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {formatTypeLabel(service.serviceType || 'General Service')} Description
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={serviceDescriptions.find(
-                          desc => desc.roomId === String(room.roomId) && desc.serviceId === String(service.serviceId)
-                        )?.description || ''}
-                        onChange={(e) => handleServiceDescriptionChange(String(room.roomId), String(service.serviceId), e.target.value)}
-                        className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                        placeholder={`Describe the ${formatTypeLabel(service.serviceType || '').toLowerCase()} work for ${room.roomName}`}
-                      />
-                    </div>
-                  ))}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={roomDescriptions.find(
+                        desc => desc.roomId === String(room.roomId)
+                      )?.description || ''}
+                      onChange={(e) => handleRoomDescriptionChange(String(room.roomId), e.target.value)}
+                      className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      placeholder={`Describe the work for ${room.roomName}`}
+                    />
+                  </div>
                 </div>
               </div>
             ))}

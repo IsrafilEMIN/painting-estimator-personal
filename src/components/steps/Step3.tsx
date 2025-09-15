@@ -15,6 +15,7 @@ interface Step3Props {
   paintCost: number;
   primerCost: number;
   asbestosCost: number;
+  drywallCost: number;
   formatCurrency: (value: number) => string;
   setCurrentStep: (step: number) => void;
   startOver: () => void;
@@ -24,7 +25,6 @@ interface Step3Props {
 const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
 
 const Step3: React.FC<Step3Props> = ({
-  isLoading,
   breakdown,
   subtotal,
   tax,
@@ -37,6 +37,7 @@ const Step3: React.FC<Step3Props> = ({
   setCurrentStep,
   startOver,
   asbestosCost,
+  drywallCost,
 }) => {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
@@ -49,8 +50,6 @@ const Step3: React.FC<Step3Props> = ({
           <thead className="bg-[#899499] dark:bg-gray-700 text-black dark:text-white">
             <tr>
               <th className="py-3 px-4 text-left text-sm font-semibold">Item</th>
-              <th className="py-3 px-4 text-right text-sm font-semibold">Labor</th>
-              <th className="py-3 px-4 text-right text-sm font-semibold">Material</th>
               <th className="py-3 px-4 text-right text-sm font-semibold">Total</th>
             </tr>
           </thead>
@@ -59,47 +58,37 @@ const Step3: React.FC<Step3Props> = ({
               <React.Fragment key={item.roomId}>
                 <tr className="bg-gray-100 dark:bg-gray-700 font-semibold">
                   <td className="py-3 px-4 text-gray-800 dark:text-gray-200">{item.roomName}</td>
-                  <td className="py-3 px-4 text-right text-gray-800 dark:text-gray-200">{formatCurrency(item.baseLabor)}</td>
-                  <td className="py-3 px-4 text-right text-gray-800 dark:text-gray-200">{formatCurrency(item.baseMaterial)}</td>
-                  <td className="py-3 px-4 text-right font-semibold text-gray-800 dark:text-gray-200">{formatCurrency(item.baseTotal)}</td>
+                  <td className="py-3 px-4 text-right font-semibold text-gray-800 dark:text-gray-200">{formatCurrency(item.roomTotal)}</td>
                 </tr>
                 {item.services.map(svc => (
                   <tr key={svc.serviceId} className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                    <td className="py-2 px-8 text-gray-600 dark:text-gray-400">› {formatTypeLabel(svc.serviceType)}</td>
-                    <td className="py-2 px-4 text-right text-gray-600 dark:text-gray-400">{formatCurrency(svc.laborCost)}</td>
-                    <td className="py-2 px-4 text-right text-gray-600 dark:text-gray-400">{formatCurrency(svc.materialCost)}</td>
+                    <td className="py-2 px-8 text-gray-600 dark:text-gray-400">› {svc.name || formatTypeLabel(svc.serviceType)}</td>
                     <td className="py-2 px-4 text-right text-gray-800 dark:text-gray-200">{formatCurrency(svc.total)}</td>
                   </tr>
                 ))}
-                <tr className="border-b-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700">
-                  <td className="py-3 px-4 font-bold text-gray-800 dark:text-gray-200">{item.roomName} Subtotal</td>
-                  <td className="py-3 px-4 text-right"></td>
-                  <td className="py-3 px-4 text-right"></td>
-                  <td className="py-3 px-4 text-right font-bold text-gray-800 dark:text-gray-200">{formatCurrency(item.roomTotal)}</td>
-                </tr>
               </React.Fragment>
             ))}
             {paintCost > 0 && (
-              <tr className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <td className="py-2 px-4 text-gray-800 dark:text-gray-200">Paint (Global)</td>
-                <td className="py-2 px-4 text-right"></td>
-                <td className="py-2 px-4 text-right">{formatCurrency(paintCost)}</td>
+              <tr className="bg-gray-100 dark:bg-gray-700 font-semibold">
+                <td className="py-2 px-4 text-gray-800 dark:text-gray-200">Paint</td>
                 <td className="py-2 px-4 text-right">{formatCurrency(paintCost)}</td>
               </tr>
             )}
             {primerCost > 0 && (
-              <tr className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <td className="py-2 px-4 text-gray-800 dark:text-gray-200">Primer (Global)</td>
-                <td className="py-2 px-4 text-right"></td>
-                <td className="py-2 px-4 text-right">{formatCurrency(primerCost)}</td>
+              <tr className="bg-gray-100 dark:bg-gray-700 font-semibold">
+                <td className="py-2 px-4 text-gray-800 dark:text-gray-200">Primer</td>
                 <td className="py-2 px-4 text-right">{formatCurrency(primerCost)}</td>
               </tr>
             )}
+            {drywallCost > 0 && (
+              <tr className="bg-gray-100 dark:bg-gray-700 font-semibold">
+                <td className="py-2 px-4 text-gray-800 dark:text-gray-200">Drywall Compound</td>
+                <td className="py-2 px-4 text-right">{formatCurrency(drywallCost)}</td>
+              </tr>
+            )}
             {asbestosCost > 0 && (
-              <tr className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+              <tr className="bg-gray-100 dark:bg-gray-700 font-semibold">
                 <td className="py-2 px-4 text-gray-800 dark:text-gray-200">Asbestos Check Fee</td>
-                <td className="py-2 px-4 text-right"></td>
-                <td className="py-2 px-4 text-right">{formatCurrency(asbestosCost)}</td>
                 <td className="py-2 px-4 text-right">{formatCurrency(asbestosCost)}</td>
               </tr>
             )}
@@ -107,27 +96,27 @@ const Step3: React.FC<Step3Props> = ({
           <tfoot>
             <tr className="border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700">
               <td className="py-3 px-4 text-md font-bold text-gray-800 dark:text-gray-200">Subtotal</td>
-              <td colSpan={3} className="py-3 px-4 text-md font-bold text-right text-gray-800 dark:text-gray-200">{formatCurrency(subtotal)}</td>
+              <td className="py-3 px-4 text-md font-bold text-right text-gray-800 dark:text-gray-200">{formatCurrency(subtotal)}</td>
             </tr>
             {discountAmount > 0 && (
               <tr className="border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700">
                 <td className="py-2 px-4 text-gray-800 dark:text-gray-200">Discount Applied</td>
-                <td colSpan={3} className="py-2 px-4 text-right">-{formatCurrency(discountAmount)}</td>
+                <td className="py-2 px-4 text-right">-{formatCurrency(discountAmount)}</td>
               </tr>
             )}
             {discountAmount > 0 && (
               <tr className="border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700">
                 <td className="py-3 px-4 text-md font-bold text-gray-800 dark:text-gray-200">Adjusted Subtotal</td>
-                <td colSpan={3} className="py-3 px-4 text-md font-bold text-right text-gray-800 dark:text-gray-200">{formatCurrency(adjustedSubtotal)}</td>
+                <td className="py-3 px-4 text-md font-bold text-right text-gray-800 dark:text-gray-200">{formatCurrency(adjustedSubtotal)}</td>
               </tr>
             )}
             <tr className="bg-gray-50 dark:bg-gray-700">
               <td className="py-2 px-4 text-gray-800 dark:text-gray-200">Tax</td>
-              <td colSpan={3} className="py-2 px-4 text-right">{formatCurrency(tax)}</td>
+              <td className="py-2 px-4 text-right">{formatCurrency(tax)}</td>
             </tr>
             <tr className="border-t-2 border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700">
               <td className="pt-4 pb-2 px-4 text-xl font-bold text-gray-800 dark:text-gray-200">Total</td>
-              <td colSpan={3} className="pt-4 pb-2 px-4 text-xl font-bold text-right text-gray-800 dark:text-gray-200">{formatCurrency(total)}</td>
+              <td className="pt-4 pb-2 px-4 text-xl font-bold text-right text-gray-800 dark:text-gray-200">{formatCurrency(total)}</td>
             </tr>
           </tfoot>
         </table>

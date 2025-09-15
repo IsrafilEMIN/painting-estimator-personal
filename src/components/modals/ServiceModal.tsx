@@ -23,7 +23,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ service, onSave, onClose })
   };
 
   const serviceTypes: ServiceType[] = [
-    'wallPainting', 'ceilingPainting', 'popcornRemoval', 'crownMolding', 'trims', 'doorPainting', 'vanityDoors', 'vanityDrawers', 'cabinetDoors', 'cabinetDrawers', 'fireplaceMantel'
+    'wallPainting', 'ceilingPainting', 'popcornRemoval', 'trims', 'additional'
   ];
 
   if (!selectedType) {
@@ -54,11 +54,11 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ service, onSave, onClose })
     case 'popcornRemoval':
       return <PopcornModal service={service} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
     case 'trims':
-      return <TrimModal intendedType={selectedType} service={service} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
-    case 'crownMolding':
-      return <TrimModal intendedType={selectedType} service={service} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
-    default:
+      return <TrimModal service={service} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
+    case 'additional':
       return <AdditionalModal service={service} serviceType={selectedType} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
+    default:
+      return null;
   }
 };
 
