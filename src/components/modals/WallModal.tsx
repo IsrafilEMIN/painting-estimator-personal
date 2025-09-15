@@ -11,24 +11,25 @@ interface WallModalProps {
 }
 
 const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) => {
-  const initialState: Partial<Service> = {
+  // Define form data type to allow strings for input fields
+  type FormData = Omit<Partial<Service>, 'texture' | 'coats' | 'primerCoats' | 'surfaceArea'> & {
+    texture?: string | number;
+    coats?: string | number;
+    primerCoats?: string | number;
+    surfaceArea?: string | number;
+  };
+
+  const initialState: FormData = {
     id: wall?.id || Date.now(),
     type: 'wallPainting',
-    hasStairway: wall?.hasStairway || false,
-    stairwaySqFt: wall?.stairwaySqFt || 0,
-    hasRisers: wall?.hasRisers || false,
-    hasRailings: wall?.hasRailings || false,
-    texture: wall?.texture || 'smooth',
-    prepCondition: wall?.prepCondition || 'good',
-    coats: wall?.coats || 2,
-    primerType: wall?.primerType || 'none',
-    primerCoats: wall?.primerCoats || 1,
+    texture: wall?.texture ?? '',
+    coats: wall?.coats ?? '',
+    primerCoats: wall?.primerCoats ?? '',
     paintType: wall?.paintType || 'sherwinWilliamsCaptivateFlat',
     useSpray: wall?.useSpray || false,
-    moldResistant: wall?.moldResistant || false,
-    surfaceArea: wall?.surfaceArea ?? '', // New: surfaceArea
+    surfaceArea: wall?.surfaceArea ?? '',
   };
-  const [formData, setFormData] = useState<Partial<Service>>(initialState);
+  const [formData, setFormData] = useState<FormData>(initialState);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string | undefined }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -38,15 +39,27 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
       setFormData(prev => ({ ...prev, [name]: checked }));
       return;
     }
-    const numberFields = ['stairwaySqFt', 'coats', 'primerCoats', 'surfaceArea'];
+    const numberFields = ['coats', 'primerCoats', 'surfaceArea', 'texture'];
     if (numberFields.includes(name)) {
-      const num = parseFloat(value) || 0;
+      if (value === '') {
+        setFormData(prev => ({ ...prev, [name]: '' }));
+        setFieldErrors(prev => ({ ...prev, [name]: undefined }));
+        return;
+      }
+      const num = parseFloat(value);
+      if (isNaN(num)) {
+        setFieldErrors(prev => ({ ...prev, [name]: 'Must be a valid number' }));
+        return;
+      }
       if (num < 0) {
         setFieldErrors(prev => ({ ...prev, [name]: 'Cannot be negative' }));
         return;
-      } else {
-        setFieldErrors(prev => { const p = { ...prev }; delete p[name]; return p; });
       }
+      if (name === 'surfaceArea' && num === 0) {
+        setFieldErrors(prev => ({ ...prev, [name]: 'Surface Area must be positive' }));
+        return;
+      }
+      setFieldErrors(prev => ({ ...prev, [name]: undefined }));
       setFormData(prev => ({ ...prev, [name]: num }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -54,11 +67,25 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
   };
 
   const handleSave = () => {
-    if ((formData.coats || 0) < 1) return alert("Coats >= 1");
-    if (!formData.prepCondition) return alert("Select condition");
-    if ((Number(formData.surfaceArea) || 0) <= 0) return alert("Surface Area must be positive");
-    if (formData.hasStairway && (formData.stairwaySqFt || 0) <= 0) return alert("Stairway SqFt > 0");
-    onSave(formData as Service);
+    const surfaceArea = Number(formData.surfaceArea);
+    if (isNaN(surfaceArea) || surfaceArea <= 0) {
+      alert('Surface Area must be positive');
+      return;
+    }
+    const coats = formData.coats === '' ? undefined : Number(formData.coats);
+    const primerCoats = formData.primerCoats === '' ? undefined : Number(formData.primerCoats);
+    const texture = formData.texture === '' ? undefined : Number(formData.texture);
+    if ((coats !== undefined && coats < 0) || (primerCoats !== undefined && primerCoats < 0) || (texture !== undefined && texture < 0)) {
+      alert('Coats, Primer Coats, and Texture cannot be negative');
+      return;
+    }
+    onSave({
+      ...formData,
+      surfaceArea,
+      coats,
+      primerCoats,
+      texture,
+    } as Service);
   };
 
   return (
@@ -66,50 +93,72 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full transform transition-all duration-300 scale-100 hover:scale-105 max-h-[90vh] overflow-y-auto">
         <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">{wall ? 'Edit' : 'Add'} Wall Painting</h3>
         <div className="space-y-5">
-          <div> {/* New: surfaceArea input */}
+          <div>
             <label htmlFor="surfaceArea" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Surface Area (sq ft)</label>
-            <input type="number" min="1" id="surfaceArea" name="surfaceArea" value={formData.surfaceArea || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${fieldErrors.surfaceArea ? 'border-red-500' : ''}`} />
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              id="surfaceArea"
+              name="surfaceArea"
+              value={formData.surfaceArea ?? ''}
+              onChange={handleChange}
+              className={`block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${fieldErrors.surfaceArea ? 'border-red-500' : ''}`}
+            />
             {fieldErrors.surfaceArea && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{fieldErrors.surfaceArea}</p>}
           </div>
           <div>
-            <label htmlFor="texture" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Texture</label>
-            <select id="texture" name="texture" value={formData.texture} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              <option value="smooth">Smooth</option>
-              <option value="light">Light</option>
-              <option value="heavy">Heavy</option>
-            </select>
+            <label htmlFor="texture" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Texture Multiplier</label>
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              id="texture"
+              name="texture"
+              value={formData.texture ?? ''}
+              onChange={handleChange}
+              className={`block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${fieldErrors.texture ? 'border-red-500' : ''}`}
+            />
+            {fieldErrors.texture && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{fieldErrors.texture}</p>}
           </div>
           <div>
-            <label htmlFor="prepCondition" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Condition</label>
-            <select id="prepCondition" name="prepCondition" value={formData.prepCondition} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              <option value="good">Good</option>
-              <option value="fair">Fair</option>
-              <option value="poor">Poor</option>
-            </select>
+            <label htmlFor="primerCoats" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Primer Coats</label>
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              id="primerCoats"
+              name="primerCoats"
+              value={formData.primerCoats ?? ''}
+              onChange={handleChange}
+              className={`block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${fieldErrors.primerCoats ? 'border-red-500' : ''}`}
+            />
+            {fieldErrors.primerCoats && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{fieldErrors.primerCoats}</p>}
           </div>
           <div>
-            <label htmlFor="coats" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Coats</label>
-            <input type="number" min="1" id="coats" name="coats" value={formData.coats || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${fieldErrors.coats ? 'border-red-500' : ''}`} />
+            <label htmlFor="coats" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Paint Coats</label>
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              id="coats"
+              name="coats"
+              value={formData.coats ?? ''}
+              onChange={handleChange}
+              className={`block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${fieldErrors.coats ? 'border-red-500' : ''}`}
+            />
             {fieldErrors.coats && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{fieldErrors.coats}</p>}
           </div>
           <div>
-            <label htmlFor="primerType" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Primer</label>
-            <select id="primerType" name="primerType" value={formData.primerType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              <option value="none">None</option>
-              <option value="spot">Spot</option>
-              <option value="full">Full</option>
-            </select>
-          </div>
-          {formData.primerType === 'full' && (
-            <div>
-              <label htmlFor="primerCoats" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Primer Coats</label>
-              <input type="number" min="1" id="primerCoats" name="primerCoats" value={formData.primerCoats || ''} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
-            </div>
-          )}
-          <div>
             <label htmlFor="paintType" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Paint Type</label>
-            <select id="paintType" name="paintType" value={formData.paintType} onChange={handleChange} className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-              {paintStructure.map((brand) => (
+            <select
+              id="paintType"
+              name="paintType"
+              value={formData.paintType}
+              onChange={handleChange}
+              className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              {paintStructure.map((brand) =>
                 brand.lines.map((line) => (
                   <optgroup key={line.name} label={`${brand.brand} - ${line.name}`}>
                     {line.sheens.map((sheen) => (
@@ -119,40 +168,38 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
                     ))}
                   </optgroup>
                 ))
-              ))}
+              )}
             </select>
           </div>
           <label className="flex items-center space-x-2">
-            <input type="checkbox" name="moldResistant" checked={formData.moldResistant} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" />
-            <span className="text-gray-700 dark:text-gray-300">Mold Resistance</span>
-          </label>
-          <label className="flex items-center space-x-2">
-            <input type="checkbox" name="hasStairway" checked={formData.hasStairway} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" />
-            <span className="text-gray-700 dark:text-gray-300">Has Stairway</span>
-          </label>
-          {formData.hasStairway && (
-            <div className="space-y-3 pl-4 border-l-4 border-blue-200 dark:border-blue-800">
-              <label htmlFor="stairwaySqFt" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Stairway SqFt</label>
-              <input type="number" min="0" step="0.1" id="stairwaySqFt" name="stairwaySqFt" value={formData.stairwaySqFt || ''} onChange={handleChange} className={`block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${fieldErrors.stairwaySqFt ? 'border-red-500' : ''}`} />
-              {fieldErrors.stairwaySqFt && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{fieldErrors.stairwaySqFt}</p>}
-              <label className="flex items-center space-x-2">
-                <input type="checkbox" name="hasRisers" checked={formData.hasRisers} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" />
-                <span className="text-gray-700 dark:text-gray-300">Has Risers</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input type="checkbox" name="hasRailings" checked={formData.hasRailings} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" />
-                <span className="text-gray-700 dark:text-gray-300">Has Railings/Spindles</span>
-              </label>
-            </div>
-          )}
-          <label className="flex items-center space-x-2">
-            <input type="checkbox" name="useSpray" checked={formData.useSpray} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" />
+            <input
+              type="checkbox"
+              name="useSpray"
+              checked={formData.useSpray}
+              onChange={handleChange}
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+            />
             <span className="text-gray-700 dark:text-gray-300">Use Spray (upcharge)</span>
           </label>
           <div className="flex justify-end gap-4 mt-6">
-            <button onClick={onBack} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg transition">Back</button>
-            <button onClick={onClose} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg transition">Cancel</button>
-            <button onClick={handleSave} className="bg-blue-600 dark:bg-blue-800 hover:bg-blue-700 dark:hover:bg-blue-900 text-white py-2 px-4 rounded-lg transition">Save</button>
+            <button
+              onClick={onBack}
+              className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg transition"
+            >
+              Back
+            </button>
+            <button
+              onClick={onClose}
+              className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="bg-blue-600 dark:bg-blue-800 hover:bg-blue-700 dark:hover:bg-blue-900 text-white py-2 px-4 rounded-lg transition"
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>

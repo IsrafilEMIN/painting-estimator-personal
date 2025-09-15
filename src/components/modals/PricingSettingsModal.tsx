@@ -161,7 +161,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
         { label: 'Profit Markup', name: 'PROFIT_MARKUP', step: 0.01 },
         { label: 'Tax Rate', name: 'TAX_RATE', step: 0.001 },
         { label: 'Minimum Job Fee', name: 'MIN_JOB_FEE' },
-        { label: 'Supplies Percentage', name: 'SUPPLIES_PERCENTAGE', step: 0.01 },
         { label: 'Waste Factor', name: 'WASTE_FACTOR', step: 0.01 },
         { label: 'Discount Percentage', name: 'DISCOUNT_PERCENTAGE', step: 0.01 }
       ],
@@ -172,7 +171,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
         { label: 'Paint Coverage (sqft/gal)', name: 'paintCoverage' },
         { label: 'Primer Cost ($/gal)', name: 'primerCost', step: 0.01 },
         { label: 'Spray Upcharge Percentage', name: 'sprayUpcharge', step: 0.01 },
-        { label: 'Mold Resistant Upcharge ($/gal)', name: 'moldResistantUpcharge', step: 0.01 },
       ],
     },
     {
@@ -192,18 +190,8 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
     {
       title: 'Supplies and Material Costs',
       fields: [
-        { label: 'Popcorn Removal Materials ($/sqft)', name: 'COST_POPCORN_REMOVAL_MATERIALS_PER_SQFT', step: 0.01 },
         { label: 'Asbestos Test Cost', name: 'COST_ASBESTOS_TEST' },
-        { label: 'Asbestos Additional ($/sqft)', name: 'ASBESTOS_ADDITIONAL_PER_SQFT', step: 0.01 },
-        { label: 'Railings Spindles Cost', name: 'COST_RAILINGS_SPINDLES' },
-      ],
-    },
-    {
-      title: 'Prep Settings',
-      fields: [
-        { label: 'Base Prep Hours Fixed', name: 'BASE_PREP_HOURS_FIXED', step: 0.01 },
-        { label: 'Prep Hours Per Floor Sqft', name: 'PREP_HOURS_PER_FLOOR_SQFT', step: 0.001 },
-        { label: 'Prep Hours Per Perimeter Lft', name: 'PREP_HOURS_PER_PERIMETER_LFT', step: 0.001 },
+        { label: 'Drywall Compound Cost ($/bucket)', name: 'drywallCompoundCost', step: 0.01 },
       ],
     },
     {
@@ -220,27 +208,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
           subTitle: 'Trims and Moldings',
           fields: [
             { label: formatLabel('trims'), name: 'PRODUCTION_RATES.trims', step: 0.01 },
-            { label: formatLabel('crownMolding'), name: 'PRODUCTION_RATES.crownMolding', step: 0.01 },
-          ],
-        },
-        {
-          subTitle: 'Doors',
-          fields: [
-            { label: formatLabel('doorPainting'), name: 'PRODUCTION_RATES.doorPainting', step: 0.01 },
-          ],
-        },
-        {
-          subTitle: 'Cabinets',
-          fields: [
-            { label: formatLabel('cabinetDoors'), name: 'PRODUCTION_RATES.cabinetDoors', step: 0.01 },
-            { label: formatLabel('cabinetDrawers'), name: 'PRODUCTION_RATES.cabinetDrawers', step: 0.01 },
-          ],
-        },
-        {
-          subTitle: 'Vanities',
-          fields: [
-            { label: formatLabel('vanityDoors'), name: 'PRODUCTION_RATES.vanityDoors', step: 0.01 },
-            { label: formatLabel('vanityDrawers'), name: 'PRODUCTION_RATES.vanityDrawers', step: 0.01 },
           ],
         },
         {
@@ -248,7 +215,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
           fields: [
             { label: formatLabel('popcornRemoval'), name: 'PRODUCTION_RATES.popcornRemoval', step: 0.01 },
             { label: formatLabel('popcornRemovalAsbestos'), name: 'PRODUCTION_RATES.popcornRemovalAsbestos', step: 0.01 },
-            { label: formatLabel('fireplaceMantel'), name: 'PRODUCTION_RATES.fireplaceMantel', step: 0.01 },
           ],
         },
       ],
@@ -267,52 +233,14 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
           subTitle: 'Trims and Moldings',
           fields: [
             { label: formatLabel('trims'), name: 'ADDITIONAL_PAINT_USAGE.trims' },
-            { label: formatLabel('crownMolding'), name: 'ADDITIONAL_PAINT_USAGE.crownMolding' },
-          ],
-        },
-        {
-          subTitle: 'Doors',
-          fields: [
-            { label: formatLabel('doorPainting'), name: 'ADDITIONAL_PAINT_USAGE.doorPainting' },
-          ],
-        },
-        {
-          subTitle: 'Cabinets',
-          fields: [
-            { label: formatLabel('cabinetDoors'), name: 'ADDITIONAL_PAINT_USAGE.cabinetDoors' },
-            { label: formatLabel('cabinetDrawers'), name: 'ADDITIONAL_PAINT_USAGE.cabinetDrawers' },
-          ],
-        },
-        {
-          subTitle: 'Vanities',
-          fields: [
-            { label: formatLabel('vanityDoors'), name: 'ADDITIONAL_PAINT_USAGE.vanityDoors' },
-            { label: formatLabel('vanityDrawers'), name: 'ADDITIONAL_PAINT_USAGE.vanityDrawers' },
           ],
         },
         {
           subTitle: 'Other',
           fields: [
             { label: formatLabel('popcornRemoval'), name: 'ADDITIONAL_PAINT_USAGE.popcornRemoval' },
-            { label: formatLabel('fireplaceMantel'), name: 'ADDITIONAL_PAINT_USAGE.fireplaceMantel' },
           ],
         },
-      ],
-    },
-    {
-      title: 'Prep Condition Additives',
-      fields: [
-        { label: formatLabel('good'), name: 'PREP_CONDITION_ADDITIVES.good', step: 0.01 },
-        { label: formatLabel('fair'), name: 'PREP_CONDITION_ADDITIVES.fair', step: 0.01 },
-        { label: formatLabel('poor'), name: 'PREP_CONDITION_ADDITIVES.poor', step: 0.01 },
-      ],
-    },
-    {
-      title: 'Texture Additives',
-      fields: [
-        { label: formatLabel('smooth'), name: 'TEXTURE_ADDITIVES.smooth', step: 0.01 },
-        { label: formatLabel('light'), name: 'TEXTURE_ADDITIVES.light', step: 0.01 },
-        { label: formatLabel('heavy'), name: 'TEXTURE_ADDITIVES.heavy', step: 0.01 },
       ],
     },
     {
@@ -321,46 +249,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
         { label: '10 ft', name: 'HIGH_CEILING_TIERS.10', step: 0.01 },
         { label: '12 ft', name: 'HIGH_CEILING_TIERS.12', step: 0.01 },
         { label: '14+ ft', name: 'HIGH_CEILING_TIERS.14+', step: 0.01 },
-      ],
-    },
-    {
-      title: 'Interior Door Material Additives',
-      fields: [
-        { label: formatLabel('Wood'), name: 'INTERIOR_DOOR_MATERIAL_ADDITIVES.Wood', step: 0.01 },
-        { label: formatLabel('MDF'), name: 'INTERIOR_DOOR_MATERIAL_ADDITIVES.MDF', step: 0.01 },
-        { label: formatLabel('Metal'), name: 'INTERIOR_DOOR_MATERIAL_ADDITIVES.Metal', step: 0.01 },
-      ],
-    },
-    {
-      title: 'Cabinet Material Additives',
-      fields: [
-        { label: formatLabel('Wood'), name: 'CABINET_MATERIAL_ADDITIVES.Wood', step: 0.01 },
-        { label: formatLabel('MDF'), name: 'CABINET_MATERIAL_ADDITIVES.MDF', step: 0.01 },
-        { label: formatLabel('Laminate'), name: 'CABINET_MATERIAL_ADDITIVES.Laminate', step: 0.01 },
-        { label: formatLabel('Metal'), name: 'CABINET_MATERIAL_ADDITIVES.Metal', step: 0.01 },
-      ],
-    },
-    {
-      title: 'Mantel Material Additives',
-      fields: [
-        { label: formatLabel('Wood'), name: 'MANTEL_MATERIAL_ADDITIVES.Wood', step: 0.01 },
-        { label: formatLabel('Stone'), name: 'MANTEL_MATERIAL_ADDITIVES.Stone', step: 0.01 },
-        { label: formatLabel('Metal'), name: 'MANTEL_MATERIAL_ADDITIVES.Metal', step: 0.01 },
-      ],
-    },
-    {
-      title: 'Scaffolding Cost Tiers',
-      fields: [
-        { label: '10 ft', name: 'SCAFFOLDING_COST_TIERS.10' },
-        { label: '12 ft', name: 'SCAFFOLDING_COST_TIERS.12' },
-        { label: '14+ ft', name: 'SCAFFOLDING_COST_TIERS.14+' },
-      ],
-    },
-    {
-      title: 'Additives and Deductions',
-      fields: [
-        { label: 'Extra Coat Additive', name: 'EXTRA_COAT_ADDITIVE', step: 0.01 },
-        { label: 'Stairwell Complexity Additive', name: 'STAIRWELL_COMPLEXITY_ADDITIVE', step: 0.01 },
       ],
     },
   ];

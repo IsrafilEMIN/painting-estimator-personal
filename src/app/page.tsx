@@ -1,7 +1,7 @@
 // src/app/page.tsx
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase'; // Assuming this exists
 import { useAuth } from '@/hooks/useAuth';
@@ -41,11 +41,13 @@ export default function PaintingEstimator() {
     asbestosCost, setAsbestosCost,
     startOver,
   } = useEstimatorState();
+  const [drywallCompoundNum, setDrywallCompoundNum] = useState(0);
+  const [drywallCost, setDrywallCost] = useState(0);
 
   useEffect(() => {
     if (currentStep === 3) {
       setIsLoading(true);
-      const { total, breakdown, subtotal, tax, discountAmount, adjustedSubtotal, paintCost: pc, primerCost: prc, asbestosCost } = calculateEstimate(rooms, pricing);
+      const { total, breakdown, subtotal, tax, discountAmount, adjustedSubtotal, paintCost: pc, primerCost: prc, asbestosCost, drywallCost: dwc } = calculateEstimate(rooms, pricing, drywallCompoundNum);
       setEstimate(total);
       setBreakdown(breakdown);
       setSubtotal(subtotal);
@@ -54,10 +56,11 @@ export default function PaintingEstimator() {
       setAdjustedSubtotal(adjustedSubtotal);
       setPaintCost(pc);
       setPrimerCost(prc);
-      setIsLoading(false);
       setAsbestosCost(asbestosCost);
+      setDrywallCost(dwc);
+      setIsLoading(false);
     }
-  }, [currentStep, rooms, pricing, setEstimate, setBreakdown, setSubtotal, setTax, setDiscountAmount, setAdjustedSubtotal, setPaintCost, setPrimerCost, setIsLoading, setAsbestosCost]);
+  }, [currentStep, rooms, pricing, drywallCompoundNum, setEstimate, setBreakdown, setSubtotal, setTax, setDiscountAmount, setAdjustedSubtotal, setPaintCost, setPrimerCost, setAsbestosCost, setDrywallCost, setIsLoading]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -100,6 +103,8 @@ export default function PaintingEstimator() {
               setCurrentStep={setCurrentStep}
               canProceed={canProceedToCalculate}
               setIsLoading={setIsLoading}
+              drywallCompoundNum={drywallCompoundNum}
+              setDrywallCompoundNum={setDrywallCompoundNum}
             />
           )}
           {currentStep === 3 && (
@@ -118,6 +123,7 @@ export default function PaintingEstimator() {
               startOver={startOver}
               setIsSettingsOpen={setIsSettingsOpen}
               asbestosCost={asbestosCost}
+              drywallCost={drywallCost}
             />
           )}
         </main>

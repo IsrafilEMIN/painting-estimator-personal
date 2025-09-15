@@ -1,11 +1,9 @@
 // src/lib/contractUtils.ts
 import type { DetailedBreakdownItem } from '@/types/paintingEstimator';
 
-export interface ServiceDescription {
+export interface RoomDescription {
   roomId: string;
-  serviceId: string;
   roomName: string;
-  serviceType: string;
   description: string;
 }
 
@@ -44,7 +42,7 @@ export interface ContractData {
   paintCost: number;
   primerCost: number;
   asbestosCost: number;
-  serviceDescriptions: ServiceDescription[];
+  roomDescriptions: RoomDescription[];
   paymentSchedule: PaymentSchedule;
 }
 
@@ -80,8 +78,8 @@ export const generateAndDownloadContract = async (contractData: ContractData, id
       throw new Error(msg);
     }
     // Correctly process the binary PDF response as a Blob
-    const blob = await response.blob();
-    console.log('Received blob:', { size: blob.size, type: blob.type });
+    const pdfBuffer = await response.blob();
+    console.log('Received blob:', { size: pdfBuffer.size, type: pdfBuffer.type });
     // Get the filename from the Content-Disposition header
     const contentDisposition = response.headers.get('Content-Disposition');
     let filename = `contract-${new Date().toISOString().slice(0, 10)}.pdf`;
@@ -89,7 +87,7 @@ export const generateAndDownloadContract = async (contractData: ContractData, id
       filename = contentDisposition.split('filename=')[1].replace(/['"]/g, '');
     }
     // Create a URL for the blob
-    const url = window.URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(pdfBuffer);
    
     // Detect if mobile device
     const isMobile = /Mobi|Android/i.test(navigator.userAgent);
