@@ -25,7 +25,7 @@ const TrimModal: React.FC<TrimModalProps> = ({ service, onSave, onClose, onBack 
     lnFt: service?.lnFt ?? '',
     coats: service?.coats ?? '',
     primerCoats: service?.primerCoats ?? '',
-    paintType: service?.paintType || 'sherwinWilliamsCaptivateFlat',
+    paintType: service?.paintType || 'standard',
     useSpray: service?.useSpray || false,
     hasCarpet: service?.hasCarpet || false,
   };

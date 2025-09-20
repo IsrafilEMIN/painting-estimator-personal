@@ -25,7 +25,7 @@ const CeilingModal: React.FC<CeilingModalProps> = ({ service, onSave, onClose, o
     texture: service?.texture ?? '',
     coats: service?.coats ?? '',
     primerCoats: service?.primerCoats ?? '',
-    paintType: service?.paintType || 'sherwinWilliamsCaptivateFlat',
+    paintType: service?.paintType || 'standard',
     useSpray: service?.useSpray || false,
     surfaceArea: service?.surfaceArea ?? '',
   };

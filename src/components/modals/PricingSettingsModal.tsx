@@ -1,7 +1,7 @@
 // src/components/modals/PricingSettingsModal.tsx
 import React, { useState } from 'react';
 import type { Pricing } from '@/types/paintingEstimator';
-import { paintGroups, paintStructure } from '@/constants/paintTypes';
+import { paintGroups } from '@/constants/paintTypes'; // paintStructure removed from import as it's not used
 
 // Define a type for the form data that allows empty strings for number fields
 type PricingFormData = {
@@ -175,17 +175,11 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
     },
     {
       title: 'Paint Costs',
-      subGroups: paintStructure.map((brand) => ({
-        subTitle: brand.brand,
-        subSubGroups: brand.lines.map((line) => ({
-          subSubTitle: line.name,
-          fields: line.sheens.map((sheen) => ({
-            label: `${brand.brand} ${line.name} ${sheen.label}`,
-            name: `paintCosts.${sheen.key}`,
-            step: 0.01,
-          })),
-        })),
-      })),
+      fields: [
+        { label: 'Standard ($/gal)', name: 'paintCosts.standard', step: 0.01 },
+        { label: 'Better ($/gal)', name: 'paintCosts.better', step: 0.01 },
+        { label: 'Premium ($/gal)', name: 'paintCosts.premium', step: 0.01 },
+      ],
     },
     {
       title: 'Supplies and Material Costs',
