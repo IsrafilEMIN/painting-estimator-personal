@@ -25,7 +25,7 @@ const WallModal: React.FC<WallModalProps> = ({ wall, onSave, onClose, onBack }) 
     texture: wall?.texture ?? '',
     coats: wall?.coats ?? '',
     primerCoats: wall?.primerCoats ?? '',
-    paintType: wall?.paintType || 'sherwinWilliamsCaptivateFlat',
+    paintType: wall?.paintType || 'standard',
     useSpray: wall?.useSpray || false,
     surfaceArea: wall?.surfaceArea ?? '',
   };
