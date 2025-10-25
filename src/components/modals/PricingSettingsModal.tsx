@@ -185,7 +185,6 @@ const PricingSettingsModal: React.FC<PricingSettingsModalProps> = ({ pricing, on
       title: 'Supplies and Material Costs',
       fields: [
         { label: 'Asbestos Test Cost', name: 'COST_ASBESTOS_TEST' },
-        { label: 'Drywall Compound Cost ($/bucket)', name: 'drywallCompoundCost', step: 0.01 },
       ],
     },
     {

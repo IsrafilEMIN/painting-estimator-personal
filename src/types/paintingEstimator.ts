@@ -62,5 +62,4 @@ export interface Pricing {
   COST_ASBESTOS_TEST: number;
   MIN_JOB_FEE: number;
   DISCOUNT_PERCENTAGE: number;
-  drywallCompoundCost: number;
 }

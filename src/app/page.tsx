@@ -41,13 +41,12 @@ export default function PaintingEstimator() {
     asbestosCost, setAsbestosCost,
     startOver,
   } = useEstimatorState();
-  const [drywallCompoundNum, setDrywallCompoundNum] = useState(0);
   const [drywallCost, setDrywallCost] = useState(0);
 
   useEffect(() => {
     if (currentStep === 3) {
       setIsLoading(true);
-      const { total, breakdown, subtotal, tax, discountAmount, adjustedSubtotal, paintCost: pc, primerCost: prc, asbestosCost, drywallCost: dwc } = calculateEstimate(rooms, pricing, drywallCompoundNum);
+      const { total, breakdown, subtotal, tax, discountAmount, adjustedSubtotal, paintCost: pc, primerCost: prc, asbestosCost } = calculateEstimate(rooms, pricing);
       setEstimate(total);
       setBreakdown(breakdown);
       setSubtotal(subtotal);
@@ -57,10 +56,9 @@ export default function PaintingEstimator() {
       setPaintCost(pc);
       setPrimerCost(prc);
       setAsbestosCost(asbestosCost);
-      setDrywallCost(dwc);
       setIsLoading(false);
     }
-  }, [currentStep, rooms, pricing, drywallCompoundNum, setEstimate, setBreakdown, setSubtotal, setTax, setDiscountAmount, setAdjustedSubtotal, setPaintCost, setPrimerCost, setAsbestosCost, setDrywallCost, setIsLoading]);
+  }, [currentStep, rooms, pricing, setEstimate, setBreakdown, setSubtotal, setTax, setDiscountAmount, setAdjustedSubtotal, setPaintCost, setPrimerCost, setAsbestosCost, setDrywallCost, setIsLoading]);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -77,7 +75,6 @@ export default function PaintingEstimator() {
     <div className="bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 min-h-screen font-sans flex items-center justify-center p-4 md:p-8">
       <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
         <header className="mb-8 flex justify-between items-center px-8 py-6 bg-blue-600 dark:bg-blue-800 text-white">
-          <h1 className="text-3xl font-bold">Painting Estimator</h1>
           <div className="flex items-center gap-4">
             {user ? (
               <>
@@ -103,8 +100,6 @@ export default function PaintingEstimator() {
               setCurrentStep={setCurrentStep}
               canProceed={canProceedToCalculate}
               setIsLoading={setIsLoading}
-              drywallCompoundNum={drywallCompoundNum}
-              setDrywallCompoundNum={setDrywallCompoundNum}
             />
           )}
           {currentStep === 3 && (

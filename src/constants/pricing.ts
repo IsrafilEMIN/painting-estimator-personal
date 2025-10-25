@@ -33,5 +33,4 @@ export const DEFAULT_PRICING: Pricing = {
   COST_ASBESTOS_TEST: 500.00,
   MIN_JOB_FEE: 550.00,
   DISCOUNT_PERCENTAGE: 10,
-  drywallCompoundCost: 20,
 };
