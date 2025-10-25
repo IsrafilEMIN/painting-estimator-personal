@@ -3,17 +3,38 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 9, 23);
+    // Match any document in the 'users' collection
+    match /users/{userId}/{document=**} {
+      // Allow read/write access only if the requesting user's ID
+      // matches the {userId} segment in the path.
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Explicitly deny access to the root 'users' collection list itself
+    match /users {
+      allow list: if false;
+    }
+
+    // --- Specific rules for subcollections (optional but good practice) ---
+
+    // Rules for customer documents
+    match /users/{userId}/customers/{customerId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Rules for estimate documents
+    match /users/{userId}/estimates/{estimateId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Rules for config documents (like pricing)
+    match /users/{userId}/configs/{configId} {
+       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+     // Rules for counter documents
+    match /users/{userId}/counters/{counterId} {
+       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

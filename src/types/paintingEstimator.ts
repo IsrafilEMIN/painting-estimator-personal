@@ -63,3 +63,42 @@ export interface Pricing {
   MIN_JOB_FEE: number;
   DISCOUNT_PERCENTAGE: number;
 }
+
+export interface Customer {
+  id: string; // Firestore document ID
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string; // Project Address might be stored per estimate, or default here
+  // Add hubspotId later if implementing HubSpot integration
+  // hubspotId?: string;
+  createdAt: Date; // Keep track of when customer was added
+}
+
+export type EstimateStatus = 'Draft' | 'Sent' | 'Approved' | 'Archived';
+
+export interface Estimate {
+  id: string; // Firestore document ID
+  customerId: string; // Link to the Customer document ID
+  customerName: string; // Denormalized for easy display
+  projectAddress: string;
+  estimateNumber: string; // e.g., "00001", "00002"
+  status: EstimateStatus;
+  createdAt: Date;
+  lastModified: Date;
+  subtotal: number;
+  tax: number;
+  total: number;
+  discountAmount: number;
+  adjustedSubtotal: number;
+  paintCost: number;
+  primerCost: number;
+  asbestosCost: number;
+  rooms: Room[]; // Embed the rooms directly in the estimate document
+  // Optional: Add fields from contractInfo if needed for display
+  startDate?: string;
+  completionDate?: string;
+  // Optional: Store invoice/contract generation status or links
+  // invoiceGenerated?: boolean;
+  // contractGenerated?: boolean;
+}
