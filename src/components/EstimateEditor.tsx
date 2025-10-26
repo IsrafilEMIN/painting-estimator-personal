@@ -49,16 +49,12 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
-    // Drywall compound state specific to this estimate
-    const [drywallCompoundNum, setDrywallCompoundNum] = useState(0); // Or load initial value if stored in estimate
-
-
     // --- Recalculate Estimate ---
     // Use useCallback to prevent unnecessary recalculations if props don't change
      const runCalculation = useCallback(() => {
         if (!estimate) return;
         try {
-            const result = calculateEstimateFn(estimate.rooms, pricing, drywallCompoundNum);
+            const result = calculateEstimateFn(estimate.rooms, pricing);
             setCalculationResult(result);
             // Optionally update estimate state immediately with calculated totals
             // setEstimate(prev => ({
@@ -72,7 +68,7 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
             console.error("Error calculating estimate:", error);
             // Handle error display if needed
         }
-    }, [estimate?.rooms, pricing, drywallCompoundNum, calculateEstimateFn]); // Add estimate as dependency
+    }, [estimate?.rooms, pricing, calculateEstimateFn]); // Add estimate as dependency
 
     // Recalculate when rooms or pricing change, but only if in review tab or explicitly triggered
     // Trigger calculation when switching to review tab or when rooms/drywall change significantly
@@ -90,7 +86,7 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
         // If rooms or drywall changes, clear the previous calculation result
         // to indicate it's potentially stale until recalculated.
         setCalculationResult(null);
-    }, [estimate?.rooms, drywallCompoundNum]);
+    }, [estimate?.rooms]);
 
 
     // --- Room/Service Handlers (adapted from useEstimatorState) ---
@@ -182,7 +178,7 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
     const handleTriggerSave = async () => {
         setIsSaving(true);
         // Ensure calculation is up-to-date before saving
-        const result = calculateEstimateFn(estimate.rooms, pricing, drywallCompoundNum);
+        const result = calculateEstimateFn(estimate.rooms, pricing);
         const estimateToSave: Estimate = {
             ...estimate,
             subtotal: result.subtotal,
@@ -249,18 +245,6 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
             <button onClick={() => openRoomModal()} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg w-full transition">
                 + Add Room
             </button>
-             {/* Drywall Compound Input */}
-            <div className="mt-6 border-t pt-4">
-                <label htmlFor="drywallCompoundNum" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Drywall Compound Buckets (Estimate Wide)</label>
-                <input
-                type="number"
-                min="0"
-                id="drywallCompoundNum"
-                value={drywallCompoundNum}
-                onChange={(e) => setDrywallCompoundNum(Number(e.target.value) >= 0 ? Number(e.target.value) : 0)}
-                 className="block w-full max-w-xs py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                />
-            </div>
          </div>
     );
 
