@@ -6,150 +6,198 @@ import type { Customer } from '@/types/paintingEstimator';
 
 export const useCustomers = (userId?: string) => {
     const [customers, setCustomers] = useState<Customer[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); // Start true
     const [error, setError] = useState<string | null>(null);
+    // Add state to track if the initial fetch attempt completed
+    const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false); // <-- NEW STATE
 
     const customersColRef = userId ? collection(db, `users/${userId}/customers`) : null;
 
     // Fetch ALL customers (e.g., for initial display or full list)
     const fetchCustomers = useCallback(async () => {
+        setHasAttemptedFetch(false); // Reset attempt flag on new fetch
+        setIsLoading(true); // Ensure loading is true when fetch starts
+        setError(null);
+
         if (!customersColRef) {
             setCustomers([]);
+            setIsLoading(false);
+            setHasAttemptedFetch(true); // Mark attempt as complete even if no user/ref
             return;
         }
-        setIsLoading(true);
-        setError(null);
+
         try {
             const q = query(customersColRef, orderBy('name', 'asc'));
             const querySnapshot = await getDocs(q);
             const fetchedCustomers: Customer[] = [];
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
+                // Ensure createdAt is converted, provide default if missing/invalid
+                let createdAtDate = new Date(); // Default to now
+                if (data.createdAt instanceof Timestamp) {
+                    createdAtDate = data.createdAt.toDate();
+                } else if (data.createdAt instanceof Date) {
+                     createdAtDate = data.createdAt; // Already a Date
+                } else if (typeof data.createdAt === 'string' || typeof data.createdAt === 'number') {
+                    try {
+                         // Attempt to parse if it's a string/number representation
+                        createdAtDate = new Date(data.createdAt);
+                        // Check if the parsed date is valid
+                        if (isNaN(createdAtDate.getTime())) {
+                            createdAtDate = new Date(); // Fallback if parsing fails
+                        }
+                    } catch {
+                         createdAtDate = new Date(); // Fallback on parsing error
+                    }
+                }
+
                 fetchedCustomers.push({
                     id: doc.id,
                     ...data,
-                    createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
+                    createdAt: createdAtDate, // Use the validated/converted date
                 } as Customer);
             });
             setCustomers(fetchedCustomers);
         } catch (err) {
             console.error("Error fetching customers:", err);
             setError(err instanceof Error ? err.message : "Failed to fetch customers.");
+             setCustomers([]); // Clear customers on error
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Stop loading
+            setHasAttemptedFetch(true); // Mark attempt as complete
         }
-    }, [customersColRef]);
+    }, [customersColRef]); // Dependency on ref
 
     // Search customers based on a term
     const searchCustomers = useCallback(async (searchTerm: string): Promise<Customer[]> => {
-        if (!customersColRef || !searchTerm.trim()) {
-            // Optionally return recent/all customers or empty array if search is empty
-             // Let's return the currently loaded list (or fetch all if needed)
-             if (!searchTerm.trim()) return customers; // Return cached list if search is empty
-             return [];
+        if (!customersColRef) {
+            return []; // No ref, return empty
         }
-        setIsLoading(true); // Indicate loading specific to search
+        if (!searchTerm.trim()) {
+            return customers; // Return cached list if search is empty
+        }
+
+        // Don't set global isLoading, let modal handle its search loading
         setError(null);
         const lowerSearchTerm = searchTerm.toLowerCase();
         try {
-            // Basic search: Checks if name or email starts with the term (case-insensitive requires backend usually)
-            // Firestore doesn't support case-insensitive search directly or partial text search easily.
-            // A common workaround is to store lowercase versions of fields to search.
-            // For simplicity here, we'll fetch based on name >= term and filter locally (less efficient for large datasets).
-            // A more robust solution might involve Algolia or dedicated search service.
+            // Firestore doesn't do case-insensitive substring search well.
+            // Fetching based on prefix and filtering locally is a common approach.
+            // For a more robust solution, consider a dedicated search service (Algolia, etc.)
+            // or storing lowercase fields in Firestore.
 
-            // Example: Simple prefix search on name (adjust field name if needed)
+            // Prefix search on name (adjust if needed)
              const nameQuery = query(
                 customersColRef,
                 where('name', '>=', searchTerm),
-                where('name', '<=', searchTerm + '\uf8ff'), // \uf8ff is a high Unicode point for prefix matching
+                where('name', '<=', searchTerm + '\uf8ff'), // \uf8ff for prefix matching
                 orderBy('name', 'asc')
             );
-             // Add other fields if needed, but Firestore query complexity increases
-            // const emailQuery = query(customersColRef, where('email', '==', searchTerm)); // Example exact email match
-            // Combine queries if necessary (more complex)
 
             const querySnapshot = await getDocs(nameQuery);
             const results: Customer[] = [];
             querySnapshot.forEach((doc) => {
                  const data = doc.data();
-                 // Additional local filtering if needed (e.g., address)
+                 // Additional local filtering (case-insensitive)
                  if (data.name?.toLowerCase().includes(lowerSearchTerm) ||
                     data.email?.toLowerCase().includes(lowerSearchTerm) ||
                     data.address?.toLowerCase().includes(lowerSearchTerm) ) {
+
+                     // Ensure createdAt is converted correctly for results
+                    let createdAtDate = new Date();
+                    if (data.createdAt instanceof Timestamp) {
+                        createdAtDate = data.createdAt.toDate();
+                    } else if (data.createdAt instanceof Date) {
+                         createdAtDate = data.createdAt;
+                    } // Add more checks if needed based on stored format
+
                     results.push({
                         id: doc.id,
                         ...data,
-                        createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
+                        createdAt: createdAtDate,
                     } as Customer);
                  }
             });
-            // If few results from name, consider searching other fields (add complexity)
+            // If few name results, could potentially add more queries (e.g., email),
+            // but be mindful of Firestore query limits/complexity.
             return results;
         } catch (err) {
             console.error("Error searching customers:", err);
             setError(err instanceof Error ? err.message : "Failed to search customers.");
             return [];
-        } finally {
-             setIsLoading(false); // Search loading finished
         }
-    }, [customersColRef, customers]); // Include `customers` if returning it on empty search
+    }, [customersColRef, customers]); // Include `customers` for returning on empty search
 
     // Fetch initial list when userId changes
     useEffect(() => {
         fetchCustomers();
-    }, [fetchCustomers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId]); // Rerun fetch only when userId changes
 
-    // ... (keep getCustomer and addCustomer)
+    // --- Get Single Customer ---
      const getCustomer = useCallback(async (customerId: string): Promise<Customer | null> => {
         if (!userId) return null;
-        // Removed setIsLoading/setError here as it conflicts with dashboard loading
         try {
             const docRef = doc(db, `users/${userId}/customers`, customerId);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
+                 // Ensure createdAt is converted
+                let createdAtDate = new Date();
+                if (data.createdAt instanceof Timestamp) {
+                    createdAtDate = data.createdAt.toDate();
+                } else if (data.createdAt instanceof Date) {
+                    createdAtDate = data.createdAt;
+                } // Add more checks if needed
+
                 return {
                     id: docSnap.id,
                     ...data,
-                    createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
+                    createdAt: createdAtDate,
                 } as Customer;
             } else {
                 return null;
             }
         } catch (err) {
             console.error("Error fetching single customer:", err);
-            // setError(err instanceof Error ? err.message : "Failed to fetch customer."); // Avoid setting global error
             return null;
         }
     }, [userId]);
 
-
+    // --- Add Customer ---
     const addCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt'>): Promise<string | null> => {
         if (!customersColRef) {
         setError("User not authenticated.");
         return null;
         }
-        setIsLoading(true);
+        // Don't set global isLoading for add, let caller handle if needed
         setError(null);
         try {
         const docRef = await addDoc(customersColRef, {
             ...customerData,
             createdAt: Timestamp.now(), // Store as Firestore Timestamp
         });
-        // Add locally immediately for better UX
+        // Add locally immediately
         const newCustomer = { ...customerData, id: docRef.id, createdAt: new Date() };
+        // Add and re-sort
         setCustomers(prev => [...prev, newCustomer].sort((a,b) => a.name.localeCompare(b.name)));
         return docRef.id;
         } catch (err) {
         console.error("Error adding customer:", err);
         setError(err instanceof Error ? err.message : "Failed to add customer.");
         return null;
-        } finally {
-        setIsLoading(false);
         }
     };
 
 
-    return { customers, isLoading, error, fetchCustomers, addCustomer, getCustomer, searchCustomers }; // Add searchCustomers
+    return {
+        customers,
+        isLoading,
+        error,
+        hasAttemptedFetch, // <-- EXPORT NEW STATE
+        fetchCustomers, // Keep if manual refresh is needed
+        addCustomer,
+        getCustomer,
+        searchCustomers
+    };
 };

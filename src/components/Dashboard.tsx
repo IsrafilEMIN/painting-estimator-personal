@@ -1,14 +1,13 @@
 // src/components/Dashboard.tsx
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Use navigation hook
+import { useRouter } from 'next/navigation';
 import type { Estimate, EstimateStatus, Customer } from '@/types/paintingEstimator';
-import CustomerModal from './modals/CustomalModal'; // Assuming correct filename
-import { useEstimates } from '@/hooks/useEstimates'; // Import useEstimates
-import { useCustomers } from '@/hooks/useCustomers'; // Import useCustomers
-import { useAuth } from '@/hooks/useAuth'; // Import useAuth
+import CustomerModal from './modals/CustomerModal';
+import { useEstimates } from '@/hooks/useEstimates';
+import { useCustomers } from '@/hooks/useCustomers';
+import { useAuth } from '@/hooks/useAuth';
 
-
-// ... (Keep formatCurrency, formatDate, StatusBadge components)
+// ... (Keep formatCurrency, formatDate, StatusBadge components) ...
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(value);
 const formatDate = (date: Date | undefined) => date ? date.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
 const StatusBadge: React.FC<{ status: EstimateStatus }> = ({ status }) => {
@@ -30,16 +29,17 @@ const StatusBadge: React.FC<{ status: EstimateStatus }> = ({ status }) => {
 // Main Dashboard Component
 const Dashboard: React.FC = () => {
     const { user } = useAuth();
-    const router = useRouter(); // Initialize router
+    const router = useRouter();
     const {
         estimates,
         isLoading: isLoadingEstimates,
         error: errorEstimates,
+        hasAttemptedFetch, // <-- GET NEW STATE
         createEstimate,
         deleteEstimate,
-        duplicateEstimate // Get functions from hook
+        duplicateEstimate
     } = useEstimates(user?.uid);
-    const { addCustomer } = useCustomers(user?.uid); // Get addCustomer from hook
+    const { addCustomer } = useCustomers(user?.uid);
 
     // Local state for UI
     const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +48,8 @@ const Dashboard: React.FC = () => {
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
     // --- Action Handlers ---
-    const handleNewEstimateClick = () => {
+    // ... (Action handlers remain the same) ...
+     const handleNewEstimateClick = () => {
         setIsCustomerModalOpen(true);
     };
 
@@ -113,18 +114,17 @@ const Dashboard: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
+        // Confirmation is handled within the hook now
         await deleteEstimate(id); // Hook handles confirmation and state update
     };
+
 
     // Placeholder for Archive/Email
     const handleArchive = (id: string) => alert(`Archive estimate ${id} - TBD`);
     const handleEmail = (id: string) => alert(`Email estimate ${id} - TBD`);
-    // --- End Action Handlers ---
 
-
-    // --- Filtering logic (applies to estimates from hook) ---
+    // --- Filtering logic ---
     const filteredEstimates = estimates.filter(est => {
-        // ... (filtering logic remains the same)
         const matchesSearch = searchTerm === '' ||
             (est.customerName && est.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
             (est.projectAddress && est.projectAddress.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -132,19 +132,16 @@ const Dashboard: React.FC = () => {
         const matchesStatus = filterStatus === '' || est.status === filterStatus;
         return matchesSearch && matchesStatus;
     });
-    // --- End Filtering logic ---
 
-    // --- Stats Calculation (use filteredEstimates) ---
-    const totalEstimatesThisMonth = filteredEstimates.length; // Refine later with date filtering
+    // --- Stats Calculation ---
+    const totalEstimatesThisMonth = filteredEstimates.length;
     const totalRevenuePotential = filteredEstimates.reduce((sum, est) => sum + (est.total || 0), 0);
     const pendingApprovals = filteredEstimates.filter(est => est.status === 'Sent').length;
-     // --- End Stats ---
-
 
     return (
         <div className="relative min-h-[calc(100vh-150px)]">
-            {/* --- Top Bar (Remains mostly the same) --- */}
-            <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm flex flex-wrap items-center justify-between gap-4">
+            {/* --- Top Bar --- */}
+             <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm flex flex-wrap items-center justify-between gap-4">
                  {/* Search Input */}
                 <input
                     type="text"
@@ -179,9 +176,8 @@ const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* --- Stats Cards (Remains the same, uses calculated stats) --- */}
+            {/* --- Stats Cards --- */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {/* ... stat cards ... */}
                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                     <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Estimates (Filtered)</h3>
                     <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{filteredEstimates.length}</p>
@@ -196,15 +192,19 @@ const Dashboard: React.FC = () => {
                  </div>
             </div>
 
-            {/* --- Loading / Error States --- */}
-            {isLoadingEstimates && <p className="text-center text-gray-600 dark:text-gray-400 py-4">Loading estimates...</p>}
-            {errorEstimates && <p className="text-center text-red-600 dark:text-red-400 py-4">Error loading estimates: {errorEstimates}</p>}
-
-            {/* --- Estimates Grid/Table (Uses filteredEstimates, implement real actions) --- */}
-            {!isLoadingEstimates && !errorEstimates && (
+            {/* --- Loading / Error / Content Area --- */}
+            {/* Show Loading state FIRST */}
+            {isLoadingEstimates ? (
+                 <p className="text-center text-gray-600 dark:text-gray-400 py-4">Loading estimates...</p>
+            ) : errorEstimates ? ( // If not loading, check for errors
+                <p className="text-center text-red-600 dark:text-red-400 py-4">Error loading estimates: {errorEstimates}</p>
+            ) : ( // If not loading and no errors, render the estimates list or the empty state
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Estimates</h2>
-                    {viewMode === 'grid' ? (
+                    {/* --- UPDATED EMPTY STATE CHECK --- */}
+                    {!isLoadingEstimates && hasAttemptedFetch && filteredEstimates.length === 0 ? (
+                        <p className="text-center text-gray-500 dark:text-gray-400 py-8">No estimates found.</p>
+                    ) : viewMode === 'grid' ? ( // If not empty (or haven't fetched yet), render grid or table
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredEstimates.map(est => (
                                 <div key={est.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-2 relative group hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleView(est.id)}>
@@ -230,7 +230,6 @@ const Dashboard: React.FC = () => {
                     ) : ( // Table View
                          <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                {/* ... thead remains the same ... */}
                                 <thead className="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
@@ -264,14 +263,11 @@ const Dashboard: React.FC = () => {
                             </table>
                          </div>
                     )}
-                    {filteredEstimates.length === 0 && (
-                        <p className="text-center text-gray-500 dark:text-gray-400 py-8">No estimates found.</p>
-                    )}
                 </div>
             )}
 
 
-            {/* --- Floating Action Button (Remains the same) --- */}
+            {/* --- Floating Action Button --- */}
             <button
                 onClick={handleNewEstimateClick}
                 className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 z-10"
@@ -282,13 +278,11 @@ const Dashboard: React.FC = () => {
                 </svg>
             </button>
 
-            {/* --- Render Customer Modal (Remains the same) --- */}
+            {/* --- Customer Modal --- */}
             <CustomerModal
                 isOpen={isCustomerModalOpen}
                 onClose={() => setIsCustomerModalOpen(false)}
                 onCustomerSelect={handleCustomerSelected}
-                // Pass userId if needed by the modal's hook for search/add
-                // userId={user?.uid}
             />
         </div>
     );

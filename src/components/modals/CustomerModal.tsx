@@ -8,24 +8,23 @@ interface CustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCustomerSelect: (customer: Customer | Omit<Customer, 'id' | 'createdAt'>) => void;
-  // userId prop removed, get it from useAuth
 }
 
-// Remove mock data
 
 const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustomerSelect }) => {
     const { user } = useAuth();
     const {
-        customers: recentCustomers, // Use fetched customers as initial/recent list
-        isLoading: isLoadingCustomersHook, // Use loading state from hook
+        customers: recentCustomers,
+        isLoading: isLoadingCustomersHook, // Renamed for clarity
         error: errorCustomersHook,
+        hasAttemptedFetch, // <-- GET NEW STATE
         searchCustomers,
         addCustomer
-    } = useCustomers(user?.uid); // Initialize hook with userId
+    } = useCustomers(user?.uid);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<Customer[]>([]);
-    const [isLoadingSearch, setIsLoadingSearch] = useState(false);
+    const [isLoadingSearch, setIsLoadingSearch] = useState(false); // Specific loading for search action
     const [newCustomerData, setNewCustomerData] = useState({
         name: '',
         email: '',
@@ -35,59 +34,70 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
     const [formErrors, setFormErrors] = useState<Partial<typeof newCustomerData>>({});
 
     // --- Search Logic ---
-    const performSearch = useCallback(async () => {
-        if (!isOpen) return;
+    const performSearch = useCallback(async (term: string) => {
+        if (!isOpen || !term) return; // Don't search if modal closed or term empty
         setIsLoadingSearch(true);
-        const results = await searchCustomers(searchTerm);
-        setSearchResults(results);
-        setIsLoadingSearch(false);
-    }, [isOpen, searchTerm, searchCustomers]);
+        try {
+            const results = await searchCustomers(term);
+            setSearchResults(results);
+        } catch (searchError) {
+             console.error("Search error:", searchError);
+             setSearchResults([]); // Clear results on error
+        } finally {
+             setIsLoadingSearch(false);
+        }
+    }, [isOpen, searchCustomers]);
 
     // Debounced search effect
     useEffect(() => {
         if (!isOpen) return;
 
-        // Show recent customers immediately if search is empty
-        if (searchTerm.trim() === '') {
-            setSearchResults(recentCustomers); // Use the list from the hook
-            setIsLoadingSearch(false);
-            return; // Don't trigger debounced search
+        const trimmedSearch = searchTerm.trim();
+
+        // If search term is cleared, show recent customers immediately
+        if (trimmedSearch === '') {
+             // Use recentCustomers directly if available and initial fetch is done
+            if(hasAttemptedFetch) {
+                setSearchResults(recentCustomers);
+            }
+            setIsLoadingSearch(false); // Ensure search loading stops
+            return; // Don't trigger debounce timer
         }
 
-        // Debounce actual search calls
+        // Set loading true immediately for feedback while typing
+        setIsLoadingSearch(true);
         const timer = setTimeout(() => {
-             performSearch();
-        }, 300);
+             performSearch(trimmedSearch);
+        }, 300); // 300ms debounce
 
         return () => clearTimeout(timer);
-    }, [searchTerm, isOpen, recentCustomers, performSearch]);
+    }, [searchTerm, isOpen, recentCustomers, hasAttemptedFetch, performSearch]);
 
-    // Update searchResults when recentCustomers list loads/changes and search is empty
+
+    // Effect to update results when recentCustomers load and search is empty
      useEffect(() => {
-        if (isOpen && searchTerm.trim() === '') {
+        if (isOpen && searchTerm.trim() === '' && hasAttemptedFetch) {
             setSearchResults(recentCustomers);
         }
-    }, [recentCustomers, isOpen, searchTerm]);
-    // --- End Search Logic ---
+    }, [recentCustomers, isOpen, searchTerm, hasAttemptedFetch]);
 
     // --- New Customer Handlers ---
     const handleNewCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // ... (validation logic remains the same)
         const { name, value } = e.target;
         setNewCustomerData((prev) => ({ ...prev, [name]: value }));
+        // Clear validation error when user types
         if (formErrors[name as keyof typeof formErrors]) {
             setFormErrors((prev) => ({ ...prev, [name]: undefined }));
         }
     };
 
     const validateNewCustomer = (): boolean => {
-       // ... (validation logic remains the same)
         const errors: Partial<typeof newCustomerData> = {};
-        if (!newCustomerData.name.trim()) {
-            errors.name = 'Full Name is required';
-        }
-        if (!newCustomerData.address.trim()) {
-            errors.address = 'Project Address is required';
+        if (!newCustomerData.name.trim()) errors.name = 'Full Name is required';
+        if (!newCustomerData.address.trim()) errors.address = 'Project Address is required';
+        // Basic email format check (optional but recommended)
+        if (newCustomerData.email.trim() && !/\S+@\S+\.\S+/.test(newCustomerData.email.trim())) {
+             errors.email = 'Please enter a valid email address';
         }
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -95,48 +105,49 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
 
     const handleCreateAndContinue = () => {
         if (validateNewCustomer()) {
-            // No need to call addCustomer here, pass the data back to Dashboard
             onCustomerSelect({
                 name: newCustomerData.name.trim(),
                 email: newCustomerData.email.trim() || undefined,
                 phone: newCustomerData.phone.trim() || undefined,
                 address: newCustomerData.address.trim(),
             });
-            resetForm(); // Close handled by onCustomerSelect -> setIsCustomerModalOpen(false) in Dashboard
+            // resetForm(); // Let useEffect handle reset on close
         }
     };
-    // --- End New Customer Handlers ---
 
     const handleSelectExisting = (customer: Customer) => {
         onCustomerSelect(customer);
-         resetForm(); // Close handled by onCustomerSelect -> setIsCustomerModalOpen(false) in Dashboard
+        // resetForm(); // Let useEffect handle reset on close
     };
 
-    const resetForm = () => {
+    const resetForm = useCallback(() => {
         setSearchTerm('');
         setNewCustomerData({ name: '', email: '', phone: '', address: '' });
         setFormErrors({});
-        setSearchResults(recentCustomers); // Reset to recents
-    }
-
-    // Reset form state when modal closes
-    useEffect(() => {
-        if (!isOpen) {
-            const timer = setTimeout(resetForm, 300);
-            return () => clearTimeout(timer);
+        // Only reset search results if the initial fetch has happened
+        if(hasAttemptedFetch) {
+          setSearchResults(recentCustomers);
         } else {
-             // When opening and search is empty, ensure recents are shown
-             if (searchTerm.trim() === '') {
-                setSearchResults(recentCustomers);
-             }
+          setSearchResults([]); // Clear if initial fetch hasn't happened yet
         }
-    }, [isOpen, recentCustomers]); // Add recentCustomers dependency
+        setIsLoadingSearch(false);
+    }, [recentCustomers, hasAttemptedFetch]);
+
+
+    // Reset form state when modal closes OR opens
+    useEffect(() => {
+        if (isOpen) {
+             // Reset when opening, ensure recents are shown if fetch is complete
+             resetForm();
+        }
+        // No cleanup needed here as reset is handled on open/close trigger
+    }, [isOpen, resetForm]);
+
 
     if (!isOpen) return null;
 
-    // Determine loading state, prioritizing hook loading
-    const isLoading = isLoadingCustomersHook || isLoadingSearch;
-
+    // Determine OVERALL loading state for the list section (initial load OR active search)
+    const isListLoading = isLoadingCustomersHook || isLoadingSearch;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
@@ -149,7 +160,6 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
                 </div>
 
                 {/* --- Search Existing Customer --- */}
-                {/* ... (Search input remains the same) ... */}
                  <div className="mb-4">
                     <label htmlFor="customerSearch" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                         Search Existing Customer
@@ -159,17 +169,25 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
                         className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     />
                 </div>
-                {/* Search Results / Recent */}
+
+                {/* Search Results / Recent List */}
                 <div className="mb-4 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md p-2 bg-gray-50 dark:bg-gray-800">
                     <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 px-1">
                         {searchTerm.trim() === '' ? '📋 Recent Customers' : 'Search Results'}
                     </h4>
-                     {/* Use combined loading state */}
-                    {isLoading ? (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 px-1">{searchTerm.trim() ? 'Searching...' : 'Loading recent...'}</p>
-                    ) : errorCustomersHook ? ( // Show error from hook if present
-                        <p className="text-sm text-red-500 dark:text-red-400 px-1">{errorCustomersHook}</p>
-                    ) : searchResults.length > 0 ? (
+                     {/* --- UPDATED LOADING/EMPTY/RESULTS LOGIC --- */}
+                    {isListLoading ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 px-1">
+                            {isLoadingSearch ? 'Searching...' : 'Loading recent...'}
+                         </p>
+                    ) : errorCustomersHook ? (
+                         <p className="text-sm text-red-500 dark:text-red-400 px-1">{errorCustomersHook}</p>
+                    // Only show empty state if loading is done, fetch has happened, AND results are empty
+                    ) : (hasAttemptedFetch && searchResults.length === 0) ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 px-1">
+                            {searchTerm.trim() ? 'No customers found matching search.' : 'No recent customers found.'}
+                        </p>
+                    ) : ( // Otherwise, display results
                         <ul className="space-y-1">
                             {searchResults.map((customer) => (
                                 <li key={customer.id}>
@@ -183,22 +201,19 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
                                 </li>
                             ))}
                         </ul>
-                    ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 px-1">
-                            {searchTerm.trim() ? 'No customers found matching search.' : 'No recent customers found.'}
-                        </p>
                     )}
+                     {/* --- END UPDATED LOGIC --- */}
                 </div>
 
+
                 {/* --- Separator --- */}
-                {/* ... (Separator remains the same) ... */}
                 <div className="relative flex items-center my-6">
                     <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
                     <span className="flex-shrink mx-4 text-gray-500 dark:text-gray-400 text-sm">OR</span>
                     <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
 
-                {/* --- Create New Customer (Form remains the same) --- */}
+                {/* --- Create New Customer Form --- */}
                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Create New Customer</h4>
                  <div className="space-y-4">
                     {/* Name */}
@@ -212,7 +227,8 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
                     <div>
                         <label htmlFor="newEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
                         <input type="email" id="newEmail" name="email" value={newCustomerData.email} onChange={handleNewCustomerChange}
-                                className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                                className={`block w-full py-2 px-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${formErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
+                        {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
                     </div>
                     {/* Phone */}
                     <div>
@@ -230,7 +246,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
                  </div>
 
 
-                {/* --- Action Buttons (Remains the same) --- */}
+                {/* --- Action Buttons --- */}
                 <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <button onClick={onClose} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-2 px-5 rounded-lg transition">Cancel</button>
                     <button onClick={handleCreateAndContinue} className="bg-blue-600 dark:bg-blue-800 hover:bg-blue-700 dark:hover:bg-blue-900 text-white py-2 px-5 rounded-lg transition">Continue &rarr;</button>
