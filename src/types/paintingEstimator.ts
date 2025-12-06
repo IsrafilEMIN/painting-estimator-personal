@@ -21,7 +21,7 @@ export interface Service {
   name?: string;
   asbestos?: boolean;
   asbestosTest?: boolean;
-  hasAsbestos?: boolean; 
+  hasAsbestos?: boolean;
   useCustomSqFt?: boolean;
   customSqFt?: number;
   prepCondition?: PrepCondition;
@@ -67,13 +67,14 @@ export interface Pricing {
 export interface Customer {
   id: string; // Firestore document ID
   name: string;
-  email?: string;
-  phone?: string;
-  address?: string; // Project Address might be stored per estimate, or default here
-  // Add hubspotId later if implementing HubSpot integration
-  // hubspotId?: string;
+  email: string; // Now mandatory
+  phone: string; // Now mandatory
+  address?: string; // Optional: Could be billing address later
   createdAt: Date; // Keep track of when customer was added
 }
+
+// Type for data passed back from modal when creating a NEW customer
+export type NewCustomerInput = Omit<Customer, 'id' | 'createdAt' | 'address'>;
 
 export type EstimateStatus = 'Draft' | 'Sent' | 'Approved' | 'Archived';
 
@@ -81,7 +82,7 @@ export interface Estimate {
   id: string; // Firestore document ID
   customerId: string; // Link to the Customer document ID
   customerName: string; // Denormalized for easy display
-  projectAddress: string;
+  projectAddress: string; // Mandatory project address
   estimateNumber: string; // e.g., "00001", "00002"
   status: EstimateStatus;
   createdAt: Date;
@@ -98,7 +99,4 @@ export interface Estimate {
   // Optional: Add fields from contractInfo if needed for display
   startDate?: string;
   completionDate?: string;
-  // Optional: Store invoice/contract generation status or links
-  // invoiceGenerated?: boolean;
-  // contractGenerated?: boolean;
 }

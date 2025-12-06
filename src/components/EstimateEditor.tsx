@@ -1,12 +1,12 @@
 // src/components/EstimateEditor.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import type { Estimate, Customer, Room, Service, DetailedBreakdownItem, Pricing } from '@/types/paintingEstimator';
+// Import NewCustomerInput type for clarity, though not directly used here
+import type { Estimate, Customer, Room, Service, DetailedBreakdownItem, Pricing, NewCustomerInput } from '@/types/paintingEstimator';
 import RoomModal from './modals/RoomModal';
 import ServiceModal from './modals/ServiceModal';
-import InvoiceModal from './modals/InvoiceModal'; // For generating from editor
-import ContractModal from './modals/ContractModal'; // For generating from editor
+import InvoiceModal from './modals/InvoiceModal';
+import ContractModal from './modals/ContractModal';
 
-// Re-use formatCurrency and formatTypeLabel from Step 3 or define them here/globally
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(value);
 const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
 
@@ -14,8 +14,8 @@ interface EstimateEditorProps {
     initialEstimate: Estimate;
     customer: Customer | null;
     onSave: (estimate: Estimate) => Promise<void>;
-    pricing: Pricing; // Pass pricing config for calculations
-    calculateEstimateFn: (rooms: Room[], pricing: Pricing, drywall?: number) => {
+    pricing: Pricing;
+    calculateEstimateFn: (rooms: Room[], pricing: Pricing) => {
         total: number;
         breakdown: DetailedBreakdownItem[];
         subtotal: number;
@@ -23,7 +23,8 @@ interface EstimateEditorProps {
         paintCost: number;
         primerCost: number;
         asbestosCost: number;
-        drywallCost: number;
+        // Assume drywallCost is handled if needed by calculateEstimateFn
+        drywallCost: number; // Keep if calculateEstimate returns it
         discountAmount: number;
         adjustedSubtotal: number;
     };
@@ -40,8 +41,10 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
     const [activeTab, setActiveTab] = useState<'build' | 'review'>('build');
     const [isSaving, setIsSaving] = useState(false);
     const [calculationResult, setCalculationResult] = useState<ReturnType<typeof calculateEstimateFn> | null>(null);
+    // Add state for project address validation
+    const [addressError, setAddressError] = useState<string | undefined>(undefined);
 
-    // State for Modals (similar to useEstimatorState but scoped here)
+
     const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
     const [editingRoom, setEditingRoom] = useState<Room | undefined>(undefined);
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
@@ -49,47 +52,52 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
+    // --- Handle Project Address Change ---
+    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newAddress = e.target.value;
+        setEstimate(prev => ({
+            ...prev,
+            projectAddress: newAddress,
+            lastModified: new Date() // Update last modified on change
+        }));
+        // Basic validation: Clear error if address is not empty
+        if (newAddress.trim()) {
+            setAddressError(undefined);
+        } else {
+             setAddressError('Project Address is required');
+        }
+    };
+
     // --- Recalculate Estimate ---
-    // Use useCallback to prevent unnecessary recalculations if props don't change
      const runCalculation = useCallback(() => {
         if (!estimate) return;
+        // Validate address before calculating
+        if (!estimate.projectAddress.trim()) {
+            setAddressError('Project Address is required before calculating.');
+             setActiveTab('build'); // Switch back to build tab if address missing
+             alert('Please enter the Project Address before reviewing.');
+            return;
+        }
         try {
             const result = calculateEstimateFn(estimate.rooms, pricing);
             setCalculationResult(result);
-            // Optionally update estimate state immediately with calculated totals
-            // setEstimate(prev => ({
-            //     ...prev,
-            //     subtotal: result.subtotal,
-            //     tax: result.tax,
-            //     total: result.total,
-            //     // ... other calculated fields
-            // }));
         } catch (error) {
             console.error("Error calculating estimate:", error);
-            // Handle error display if needed
         }
-    }, [estimate?.rooms, pricing, calculateEstimateFn]); // Add estimate as dependency
+    }, [estimate, pricing, calculateEstimateFn]);
 
-    // Recalculate when rooms or pricing change, but only if in review tab or explicitly triggered
-    // Trigger calculation when switching to review tab or when rooms/drywall change significantly
     useEffect(() => {
-        // Automatically calculate when switching to review tab
         if (activeTab === 'review') {
             runCalculation();
         }
-        // Could add logic here to recalculate on room changes if desired,
-        // but might be better to do it explicitly via a button in 'build' tab
-        // or just rely on the 'review' tab switch.
     }, [activeTab, runCalculation]);
 
      useEffect(() => {
-        // If rooms or drywall changes, clear the previous calculation result
-        // to indicate it's potentially stale until recalculated.
         setCalculationResult(null);
-    }, [estimate?.rooms]);
+    }, [estimate?.rooms, estimate?.projectAddress]); // Invalidate calc if address changes too
 
 
-    // --- Room/Service Handlers (adapted from useEstimatorState) ---
+    // --- Room/Service Handlers (remain the same) ---
     const openRoomModal = (room?: Room) => {
         setEditingRoom(room);
         setIsRoomModalOpen(true);
@@ -100,7 +108,7 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
             const existing = prev.rooms.find(r => r.id === room.id);
             const newRooms = existing
                 ? prev.rooms.map(r => r.id === room.id ? room : r)
-                : [...prev.rooms, { ...room, id: Date.now() }]; // Ensure new rooms get a unique ID
+                : [...prev.rooms, { ...room, id: Date.now() }];
             return { ...prev, rooms: newRooms, lastModified: new Date() };
         });
         setIsRoomModalOpen(false);
@@ -114,7 +122,7 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                 ...prev.rooms,
                 {
                     ...roomToDuplicate,
-                    id: Date.now(), // New unique ID
+                    id: Date.now(),
                     name: `${roomToDuplicate.name} (Copy)`
                 }
             ],
@@ -124,14 +132,17 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
 
 
     const deleteRoom = (roomId: number) => {
-        if (window.confirm('Are you sure you want to delete this room and its services?')) {
-            setEstimate(prev => ({
+        // Use a simple confirm dialog for now
+        const confirmation = window.confirm('Are you sure you want to delete this room and its services?');
+        if (confirmation) {
+             setEstimate(prev => ({
                 ...prev,
                 rooms: prev.rooms.filter(r => r.id !== roomId),
                 lastModified: new Date()
             }));
         }
     };
+
 
     const openServiceModal = (roomId: number, service?: Service) => {
         setEditingService({ roomId, service });
@@ -148,7 +159,7 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                     const existingService = room.services.find(s => s.id === service.id);
                     const newServices = existingService
                         ? room.services.map(s => s.id === service.id ? service : s)
-                        : [...room.services, { ...service, id: Date.now() }]; // Ensure new services get a unique ID
+                        : [...room.services, { ...service, id: Date.now() }];
                     return { ...room, services: newServices };
                 }
                 return room;
@@ -160,8 +171,10 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
     };
 
     const deleteService = (roomId: number, serviceId: number) => {
-         if (window.confirm('Are you sure you want to delete this service?')) {
-            setEstimate(prev => ({
+         // Use a simple confirm dialog for now
+         const confirmation = window.confirm('Are you sure you want to delete this service?');
+         if (confirmation) {
+             setEstimate(prev => ({
                 ...prev,
                 rooms: prev.rooms.map(r =>
                     r.id === roomId
@@ -176,11 +189,19 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
 
     // --- Save Handler ---
     const handleTriggerSave = async () => {
+        // Validate Project Address before saving
+        if (!estimate.projectAddress.trim()) {
+            setAddressError('Project Address is required before saving.');
+            setActiveTab('build'); // Ensure user sees the address field
+            alert('Please enter the Project Address before saving.');
+            return;
+        }
+
         setIsSaving(true);
         // Ensure calculation is up-to-date before saving
         const result = calculateEstimateFn(estimate.rooms, pricing);
         const estimateToSave: Estimate = {
-            ...estimate,
+            ...estimate, // Includes the latest projectAddress from state
             subtotal: result.subtotal,
             tax: result.tax,
             total: result.total,
@@ -189,20 +210,20 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
             paintCost: result.paintCost,
             primerCost: result.primerCost,
             asbestosCost: result.asbestosCost,
-            lastModified: new Date(),
-            // Ensure createdAt is only set once (might need logic on Firestore save)
-            createdAt: estimate.createdAt || new Date(),
+            // drywallCost: result.drywallCost, // Include if applicable
+            lastModified: new Date(), // This will be replaced by serverTimestamp in the hook
+            createdAt: estimate.createdAt || new Date(), // Keep original createdAt
         };
 
         try {
-            await onSave(estimateToSave);
-            // Update local state with potentially updated estimate from save (e.g., if ID changed)
-            setEstimate(estimateToSave);
-            setCalculationResult(result); // Update calculation result as well
+            await onSave(estimateToSave); // The hook handles setting serverTimestamp
+            // Update local state if needed (e.g., if onSave returns the updated estimate with server time)
+            // setEstimate(estimateToSave); // Already updated optimistically + hook updates list
+            setCalculationResult(result);
+            alert('Estimate saved successfully!'); // Provide feedback
         } catch (err) {
             console.error("Failed to save estimate:", err);
             alert("Error saving estimate. Please try again.");
-            // Handle error state
         } finally {
             setIsSaving(false);
         }
@@ -210,36 +231,51 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
 
      // --- Render Functions for Tabs ---
     const renderBuildTab = () => (
-         // This is essentially the content of your old Step2.tsx
          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Rooms & Services</h2>
+            {/* Project Address Input */}
+            <div className="mb-6">
+                <label htmlFor="projectAddress" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Project Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    id="projectAddress"
+                    name="projectAddress"
+                    value={estimate.projectAddress}
+                    onChange={handleAddressChange}
+                    required
+                    className={`block w-full py-2 px-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${addressError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                />
+                {addressError && <p className="text-red-500 text-xs mt-1">{addressError}</p>}
+            </div>
+
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4 border-t pt-4 border-gray-200 dark:border-gray-700">Rooms & Services</h2>
             {estimate.rooms.map((room) => (
                 <div key={room.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">{room.name}</h3>
-                     <div className="space-x-2 text-sm">
-                        <button onClick={() => openRoomModal(room)} className="text-blue-600 dark:text-blue-400 hover:underline">Edit Room</button>
-                        <button onClick={() => duplicateRoom(room)} className="text-green-600 dark:text-green-400 hover:underline">Duplicate</button>
-                        <button onClick={() => deleteRoom(room.id)} className="text-red-600 dark:text-red-400 hover:underline">Delete Room</button>
-                    </div>
-                </div>
-                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Height: {room.height}ft | Prep: {room.prepHours}hrs</p>
-
-
-                <div>
-                    <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Services</h4>
-                    {room.services.length === 0 && <p className="text-sm text-gray-500 dark:text-gray-400 italic">No services added yet.</p>}
-                    {room.services.map(service => (
-                    <div key={service.id} className="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                        <span className="text-sm text-gray-700 dark:text-gray-300">{service.name || formatTypeLabel(service.type)}</span>
-                        <div className="space-x-2 text-sm">
-                        <button onClick={() => openServiceModal(room.id, service)} className="text-blue-600 dark:text-blue-400 hover:underline">Edit</button>
-                        <button onClick={() => deleteService(room.id, service.id)} className="text-red-600 dark:text-red-400 hover:underline">Delete</button>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">{room.name}</h3>
+                         <div className="space-x-2 text-sm">
+                            <button onClick={() => openRoomModal(room)} className="text-blue-600 dark:text-blue-400 hover:underline">Edit Room</button>
+                            <button onClick={() => duplicateRoom(room)} className="text-green-600 dark:text-green-400 hover:underline">Duplicate</button>
+                            <button onClick={() => deleteRoom(room.id)} className="text-red-600 dark:text-red-400 hover:underline">Delete Room</button>
                         </div>
                     </div>
-                    ))}
-                    <button onClick={() => openServiceModal(room.id)} className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm mt-2">+ Add Service</button>
-                </div>
+                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Height: {room.height}ft | Prep: {room.prepHours}hrs</p>
+
+                    <div>
+                        <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Services</h4>
+                        {room.services.length === 0 && <p className="text-sm text-gray-500 dark:text-gray-400 italic">No services added yet.</p>}
+                        {room.services.map(service => (
+                        <div key={service.id} className="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{service.name || formatTypeLabel(service.type)}</span>
+                            <div className="space-x-2 text-sm">
+                            <button onClick={() => openServiceModal(room.id, service)} className="text-blue-600 dark:text-blue-400 hover:underline">Edit</button>
+                            <button onClick={() => deleteService(room.id, service.id)} className="text-red-600 dark:text-red-400 hover:underline">Delete</button>
+                            </div>
+                        </div>
+                        ))}
+                        <button onClick={() => openServiceModal(room.id)} className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm mt-2">+ Add Service</button>
+                    </div>
                 </div>
             ))}
             <button onClick={() => openRoomModal()} className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg w-full transition">
@@ -249,17 +285,20 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
     );
 
     const renderReviewTab = () => {
-        // This is essentially the content of your old Step3.tsx
         if (!calculationResult) {
             return (
                  <div className="text-center p-8">
-                     <p className="text-gray-600 dark:text-gray-400 mb-4">Calculation needed.</p>
+                     <p className="text-gray-600 dark:text-gray-400 mb-4">Calculation results will appear here once calculated.</p>
+                     {/* Optionally keep a manual calculate button if needed */}
                      <button
                         onClick={runCalculation}
-                        className="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg transition"
+                        disabled={!estimate.projectAddress.trim() || estimate.rooms.length === 0}
+                        className="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={!estimate.projectAddress.trim() ? "Project Address is required" : estimate.rooms.length === 0 ? "Add rooms before calculating" : "Recalculate Estimate"}
                     >
-                        Calculate Estimate
+                        {calculationResult ? 'Recalculate Estimate' : 'Calculate Estimate'}
                     </button>
+
                  </div>
             );
         }
@@ -269,7 +308,12 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
          return (
              <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Estimate Review</h2>
-                {/* --- Display Calculation Results (Similar to Step 3) --- */}
+                {/* --- Display Project Address in Review --- */}
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Project Address:</p>
+                    <p className="text-gray-900 dark:text-gray-100">{estimate.projectAddress}</p>
+                </div>
+
                  <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
                     <thead className="bg-gray-100 dark:bg-gray-700">
@@ -279,7 +323,6 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
-                        {/* Breakdown Rows */}
                          {breakdown.map(item => (
                             <React.Fragment key={item.roomId}>
                                 <tr className="bg-gray-50 dark:bg-gray-700/50 font-medium">
@@ -294,7 +337,6 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                                 ))}
                             </React.Fragment>
                         ))}
-                         {/* Global Costs */}
                         {paintCost > 0 && (
                             <tr className="bg-gray-50 dark:bg-gray-700/50 font-medium">
                                 <td className="py-2 px-4 text-sm text-gray-800 dark:text-gray-200">Paint Costs</td>
@@ -320,7 +362,6 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                             </tr>
                         )}
                     </tbody>
-                     {/* Footer Totals */}
                     <tfoot className="border-t-2 border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-gray-700">
                         <tr>
                             <td className="py-2 px-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Subtotal</td>
@@ -352,6 +393,14 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                  {/* Action Buttons for Review Tab */}
                  <div className="flex flex-wrap justify-end gap-4 mt-6">
                     <button
+                        onClick={runCalculation} // Add explicit recalculate button
+                        disabled={!estimate.projectAddress.trim() || estimate.rooms.length === 0}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-5 rounded-lg transition disabled:opacity-50"
+                        title={!estimate.projectAddress.trim() ? "Project Address is required" : estimate.rooms.length === 0 ? "Add rooms before calculating" : "Recalculate Estimate"}
+                    >
+                         Recalculate
+                    </button>
+                    <button
                         onClick={() => setIsContractModalOpen(true)}
                         className="bg-purple-600 dark:bg-purple-800 hover:bg-purple-700 dark:hover:bg-purple-900 text-white py-2 px-5 rounded-lg transition"
                     >
@@ -363,7 +412,6 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                     >
                         Generate Invoice
                     </button>
-                    {/* Add Email/Send button later */}
                  </div>
             </div>
          );
@@ -376,9 +424,9 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
             {customer && (
                  <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">{customer.name}</h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">{customer.address}</p>
-                     {customer.email && <p className="text-sm text-blue-700 dark:text-blue-300">{customer.email}</p>}
-                     {customer.phone && <p className="text-sm text-blue-700 dark:text-blue-300">{customer.phone}</p>}
+                     <p className="text-sm text-blue-700 dark:text-blue-300">{customer.email}</p>
+                     <p className="text-sm text-blue-700 dark:text-blue-300">{customer.phone}</p>
+                     {customer.address && <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Billing Address: {customer.address}</p>}
                  </div>
             )}
 
@@ -402,8 +450,8 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                                 ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-300'
                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600'
                         }`}
-                         disabled={estimate.rooms.length === 0} // Disable review if no rooms
-                         title={estimate.rooms.length === 0 ? "Add rooms before reviewing" : ""}
+                         disabled={estimate.rooms.length === 0 || !estimate.projectAddress.trim()}
+                         title={!estimate.projectAddress.trim() ? "Enter Project Address first" : estimate.rooms.length === 0 ? "Add rooms before reviewing" : ""}
                     >
                         Review & Calculate
                     </button>
@@ -416,12 +464,13 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                 {activeTab === 'review' && renderReviewTab()}
             </div>
 
-             {/* Save Button (always visible or context-dependent) */}
+             {/* Save Button */}
              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
                 <button
                     onClick={handleTriggerSave}
-                    disabled={isSaving}
+                    disabled={isSaving || !estimate.projectAddress.trim()}
                     className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={!estimate.projectAddress.trim() ? "Project Address is required before saving" : ""}
                 >
                     {isSaving ? 'Saving...' : 'Save Estimate'}
                 </button>
@@ -438,17 +487,22 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
             )}
              {isServiceModalOpen && editingService && (
                 <ServiceModal
-                    // Find the room object to pass if needed by the ServiceModal, though not strictly required by its current props
                      room={estimate.rooms.find(r => r.id === editingService.roomId)}
                     service={editingService.service}
                     onSave={handleSaveService}
                     onClose={() => { setIsServiceModalOpen(false); setEditingService(null); }}
                 />
             )}
-             {/* Invoice and Contract Modals (ensure they receive calculated data) */}
-             {isInvoiceModalOpen && calculationResult && (
+             {isInvoiceModalOpen && calculationResult && customer && (
                 <InvoiceModal
                     onClose={() => setIsInvoiceModalOpen(false)}
+                    initialClientInfo={{ // Pass initial info
+                        name: customer.name,
+                        address: customer.address || '',
+                        address2: '',
+                        email: customer.email,
+                        phone: customer.phone,
+                    }}
                     breakdown={calculationResult.breakdown}
                     subtotal={calculationResult.subtotal}
                     tax={calculationResult.tax}
@@ -461,9 +515,18 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                     formatCurrency={formatCurrency}
                 />
              )}
-             {isContractModalOpen && calculationResult && (
+             {isContractModalOpen && calculationResult && customer && (
                  <ContractModal
                     onClose={() => setIsContractModalOpen(false)}
+                    initialContractInfo={{ // Pass initial info
+                        clientName: customer.name || '',
+                        clientEmail: customer.email || '',
+                        clientPhone: customer.phone || '',
+                        projectAddress: estimate.projectAddress || '',
+                        startDate: estimate.startDate || '',
+                        completionDate: estimate.completionDate || '',
+                        warrantyPeriod: '1 year', // Default or make configurable
+                    }}
                     breakdown={calculationResult.breakdown}
                     subtotal={calculationResult.subtotal}
                     tax={calculationResult.tax}
@@ -474,8 +537,6 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                     primerCost={calculationResult.primerCost}
                     asbestosCost={calculationResult.asbestosCost}
                     formatCurrency={formatCurrency}
-                    // Pass initial contract info if needed, e.g., from customer
-                    // initialContractInfo={{ clientName: customer?.name || '', projectAddress: estimate.projectAddress, ... }}
                 />
              )}
 

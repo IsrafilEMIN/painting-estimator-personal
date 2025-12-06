@@ -1,13 +1,15 @@
-// src/components/modals/CustomalModal.tsx
+// src/components/modals/CustomerModal.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import type { Customer } from '@/types/paintingEstimator';
+// Import NewCustomerInput type
+import type { Customer, NewCustomerInput } from '@/types/paintingEstimator';
 import { useCustomers } from '@/hooks/useCustomers'; // Import the hook
 import { useAuth } from '@/hooks/useAuth'; // To get user ID
 
 interface CustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCustomerSelect: (customer: Customer | Omit<Customer, 'id' | 'createdAt'>) => void;
+  // Update the type here to accept NewCustomerInput for new customers
+  onCustomerSelect: (customer: Customer | NewCustomerInput) => void;
 }
 
 
@@ -15,77 +17,67 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
     const { user } = useAuth();
     const {
         customers: recentCustomers,
-        isLoading: isLoadingCustomersHook, // Renamed for clarity
+        isLoading: isLoadingCustomersHook,
         error: errorCustomersHook,
-        hasAttemptedFetch, // <-- GET NEW STATE
+        hasAttemptedFetch,
         searchCustomers,
-        addCustomer
+        // addCustomer function is no longer needed directly here
     } = useCustomers(user?.uid);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<Customer[]>([]);
-    const [isLoadingSearch, setIsLoadingSearch] = useState(false); // Specific loading for search action
+    const [isLoadingSearch, setIsLoadingSearch] = useState(false);
+    // Remove 'address' from initial state
     const [newCustomerData, setNewCustomerData] = useState({
         name: '',
         email: '',
         phone: '',
-        address: '',
     });
     const [formErrors, setFormErrors] = useState<Partial<typeof newCustomerData>>({});
 
-    // --- Search Logic ---
+    // --- Search Logic (remains the same) ---
     const performSearch = useCallback(async (term: string) => {
-        if (!isOpen || !term) return; // Don't search if modal closed or term empty
+        if (!isOpen || !term) return;
         setIsLoadingSearch(true);
         try {
             const results = await searchCustomers(term);
             setSearchResults(results);
         } catch (searchError) {
              console.error("Search error:", searchError);
-             setSearchResults([]); // Clear results on error
+             setSearchResults([]);
         } finally {
              setIsLoadingSearch(false);
         }
     }, [isOpen, searchCustomers]);
 
-    // Debounced search effect
     useEffect(() => {
         if (!isOpen) return;
-
         const trimmedSearch = searchTerm.trim();
-
-        // If search term is cleared, show recent customers immediately
         if (trimmedSearch === '') {
-             // Use recentCustomers directly if available and initial fetch is done
-            if(hasAttemptedFetch) {
+             if(hasAttemptedFetch) {
                 setSearchResults(recentCustomers);
             }
-            setIsLoadingSearch(false); // Ensure search loading stops
-            return; // Don't trigger debounce timer
+            setIsLoadingSearch(false);
+            return;
         }
-
-        // Set loading true immediately for feedback while typing
         setIsLoadingSearch(true);
         const timer = setTimeout(() => {
              performSearch(trimmedSearch);
-        }, 300); // 300ms debounce
-
+        }, 300);
         return () => clearTimeout(timer);
     }, [searchTerm, isOpen, recentCustomers, hasAttemptedFetch, performSearch]);
 
-
-    // Effect to update results when recentCustomers load and search is empty
      useEffect(() => {
         if (isOpen && searchTerm.trim() === '' && hasAttemptedFetch) {
             setSearchResults(recentCustomers);
         }
     }, [recentCustomers, isOpen, searchTerm, hasAttemptedFetch]);
+    // --- End Search Logic ---
 
     // --- New Customer Handlers ---
     const handleNewCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setNewCustomerData((prev) => ({ ...prev, [name]: value }));
-        // Clear validation error when user types
         if (formErrors[name as keyof typeof formErrors]) {
             setFormErrors((prev) => ({ ...prev, [name]: undefined }));
         }
@@ -93,60 +85,66 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
 
     const validateNewCustomer = (): boolean => {
         const errors: Partial<typeof newCustomerData> = {};
-        if (!newCustomerData.name.trim()) errors.name = 'Full Name is required';
-        if (!newCustomerData.address.trim()) errors.address = 'Project Address is required';
-        // Basic email format check (optional but recommended)
-        if (newCustomerData.email.trim() && !/\S+@\S+\.\S+/.test(newCustomerData.email.trim())) {
+        if (!newCustomerData.name.trim()) {
+            errors.name = 'Full Name is required';
+        }
+        // Add email validation
+        if (!newCustomerData.email.trim()) {
+            errors.email = 'Email Address is required';
+        } else if (!/\S+@\S+\.\S+/.test(newCustomerData.email.trim())) {
              errors.email = 'Please enter a valid email address';
         }
+        // Add phone validation
+        if (!newCustomerData.phone.trim()) {
+            errors.phone = 'Phone Number is required';
+        }
+        // Removed address validation
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
     const handleCreateAndContinue = () => {
         if (validateNewCustomer()) {
-            onCustomerSelect({
+            // Pass back only name, email, phone using NewCustomerInput type
+            const customerInput: NewCustomerInput = {
                 name: newCustomerData.name.trim(),
-                email: newCustomerData.email.trim() || undefined,
-                phone: newCustomerData.phone.trim() || undefined,
-                address: newCustomerData.address.trim(),
-            });
+                email: newCustomerData.email.trim(), // Already validated as non-empty
+                phone: newCustomerData.phone.trim(), // Already validated as non-empty
+            };
+            onCustomerSelect(customerInput);
             // resetForm(); // Let useEffect handle reset on close
         }
     };
+    // --- End New Customer Handlers ---
 
     const handleSelectExisting = (customer: Customer) => {
         onCustomerSelect(customer);
-        // resetForm(); // Let useEffect handle reset on close
+         // resetForm(); // Let useEffect handle reset on close
     };
 
     const resetForm = useCallback(() => {
         setSearchTerm('');
-        setNewCustomerData({ name: '', email: '', phone: '', address: '' });
+        // Reset form data (without address)
+        setNewCustomerData({ name: '', email: '', phone: '' });
         setFormErrors({});
-        // Only reset search results if the initial fetch has happened
         if(hasAttemptedFetch) {
           setSearchResults(recentCustomers);
         } else {
-          setSearchResults([]); // Clear if initial fetch hasn't happened yet
+          setSearchResults([]);
         }
         setIsLoadingSearch(false);
     }, [recentCustomers, hasAttemptedFetch]);
 
 
-    // Reset form state when modal closes OR opens
     useEffect(() => {
         if (isOpen) {
-             // Reset when opening, ensure recents are shown if fetch is complete
              resetForm();
         }
-        // No cleanup needed here as reset is handled on open/close trigger
     }, [isOpen, resetForm]);
 
 
     if (!isOpen) return null;
 
-    // Determine OVERALL loading state for the list section (initial load OR active search)
     const isListLoading = isLoadingCustomersHook || isLoadingSearch;
 
     return (
@@ -165,29 +163,26 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
                         Search Existing Customer
                     </label>
                     <input
-                        id="customerSearch" type="text" placeholder="🔍 Email, name, or address..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                        id="customerSearch" type="text" placeholder="🔍 Email, name, or phone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} // Updated placeholder
                         className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     />
                 </div>
-
                 {/* Search Results / Recent List */}
                 <div className="mb-4 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md p-2 bg-gray-50 dark:bg-gray-800">
                     <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 px-1">
                         {searchTerm.trim() === '' ? '📋 Recent Customers' : 'Search Results'}
                     </h4>
-                     {/* --- UPDATED LOADING/EMPTY/RESULTS LOGIC --- */}
                     {isListLoading ? (
                         <p className="text-sm text-gray-500 dark:text-gray-400 px-1">
                             {isLoadingSearch ? 'Searching...' : 'Loading recent...'}
                          </p>
                     ) : errorCustomersHook ? (
                          <p className="text-sm text-red-500 dark:text-red-400 px-1">{errorCustomersHook}</p>
-                    // Only show empty state if loading is done, fetch has happened, AND results are empty
                     ) : (hasAttemptedFetch && searchResults.length === 0) ? (
                         <p className="text-sm text-gray-500 dark:text-gray-400 px-1">
                             {searchTerm.trim() ? 'No customers found matching search.' : 'No recent customers found.'}
                         </p>
-                    ) : ( // Otherwise, display results
+                    ) : (
                         <ul className="space-y-1">
                             {searchResults.map((customer) => (
                                 <li key={customer.id}>
@@ -196,15 +191,14 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
                                     className="w-full text-left p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition text-sm"
                                 >
                                     <span className="font-medium text-gray-800 dark:text-gray-200">{customer.name}</span>
-                                    <span className="text-gray-500 dark:text-gray-400"> - {customer.address || customer.email || 'No Address/Email'}</span>
+                                    {/* Show email or phone for better identification */}
+                                    <span className="text-gray-500 dark:text-gray-400"> - {customer.email || customer.phone}</span>
                                 </button>
                                 </li>
                             ))}
                         </ul>
                     )}
-                     {/* --- END UPDATED LOGIC --- */}
                 </div>
-
 
                 {/* --- Separator --- */}
                 <div className="relative flex items-center my-6">
@@ -219,32 +213,26 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ isOpen, onClose, onCustom
                     {/* Name */}
                      <div>
                         <label htmlFor="newName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name <span className="text-red-500">*</span></label>
-                        <input type="text" id="newName" name="name" value={newCustomerData.name} onChange={handleNewCustomerChange}
+                        <input type="text" id="newName" name="name" value={newCustomerData.name} onChange={handleNewCustomerChange} required
                                 className={`block w-full py-2 px-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${formErrors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
                         {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
                     </div>
-                     {/* Email */}
+                     {/* Email - Now Required */}
                     <div>
-                        <label htmlFor="newEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
-                        <input type="email" id="newEmail" name="email" value={newCustomerData.email} onChange={handleNewCustomerChange}
+                        <label htmlFor="newEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address <span className="text-red-500">*</span></label>
+                        <input type="email" id="newEmail" name="email" value={newCustomerData.email} onChange={handleNewCustomerChange} required
                                 className={`block w-full py-2 px-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${formErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
-                        {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
+                         {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
                     </div>
-                    {/* Phone */}
+                    {/* Phone - Now Required */}
                     <div>
-                        <label htmlFor="newPhone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
-                        <input type="tel" id="newPhone" name="phone" value={newCustomerData.phone} onChange={handleNewCustomerChange}
-                                className="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
+                        <label htmlFor="newPhone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number <span className="text-red-500">*</span></label>
+                        <input type="tel" id="newPhone" name="phone" value={newCustomerData.phone} onChange={handleNewCustomerChange} required
+                                className={`block w-full py-2 px-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${formErrors.phone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
+                         {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
                     </div>
-                     {/* Address */}
-                    <div>
-                        <label htmlFor="newAddress" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Address <span className="text-red-500">*</span></label>
-                        <input type="text" id="newAddress" name="address" value={newCustomerData.address} onChange={handleNewCustomerChange}
-                                className={`block w-full py-2 px-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${formErrors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
-                        {formErrors.address && <p className="text-red-500 text-xs mt-1">{formErrors.address}</p>}
-                    </div>
+                    {/* Address Field Removed */}
                  </div>
-
 
                 {/* --- Action Buttons --- */}
                 <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">

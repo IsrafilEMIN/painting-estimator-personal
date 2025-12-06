@@ -34,8 +34,7 @@ export const useEstimates = (userId?: string) => {
     const [estimates, setEstimates] = useState<Estimate[]>([]);
     const [isLoading, setIsLoading] = useState(true); // Start true
     const [error, setError] = useState<string | null>(null);
-    // Add state to track if the initial fetch attempt completed
-    const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false); // <-- NEW STATE
+    const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
     const estimatesColRef = userId ? collection(db, `users/${userId}/estimates`) : null;
     const countersColRef = userId ? collection(db, `users/${userId}/counters`) : null;
@@ -105,16 +104,17 @@ export const useEstimates = (userId?: string) => {
     }, [userId]);
 
      // --- Create New Estimate ---
+     // Signature now includes projectAddress
     const createEstimate = async (
         customerId: string,
         customerName: string,
-        projectAddress: string
+        projectAddress: string // Add projectAddress parameter
     ): Promise<string | null> => {
          if (!userId || !estimatesColRef || !countersColRef) {
             setError("User not authenticated.");
             return null;
         }
-        // Don't set global isLoading for create, let caller handle if needed
+        // Don't set global loading for create
         setError(null);
 
         const batch = writeBatch(db);
@@ -131,14 +131,15 @@ export const useEstimates = (userId?: string) => {
 
             batch.set(counterRef, { count: nextCount }, { merge: true });
 
+             // Include projectAddress in the data to save
              const dataToSave = {
                 customerId,
                 customerName,
-                projectAddress,
+                projectAddress, // Use the passed-in value (initially empty string)
                 estimateNumber: newEstimateNumber,
                 status: 'Draft' as const,
-                createdAt: Timestamp.now(), // Store as Timestamp
-                lastModified: Timestamp.now(), // Store as Timestamp
+                createdAt: Timestamp.now(),
+                lastModified: Timestamp.now(),
                 subtotal: 0, tax: 0, total: 0, discountAmount: 0, adjustedSubtotal: 0,
                 paintCost: 0, primerCost: 0, asbestosCost: 0,
                 rooms: [],
@@ -152,14 +153,12 @@ export const useEstimates = (userId?: string) => {
             const createdEstimate: Estimate = {
                 ...dataToSave,
                 id: newEstimateRef.id,
-                createdAt: dataToSave.createdAt.toDate(), // Convert to Date for local state
-                lastModified: dataToSave.lastModified.toDate(), // Convert to Date for local state
+                createdAt: dataToSave.createdAt.toDate(),
+                lastModified: dataToSave.lastModified.toDate(),
                 status: 'Draft',
                 rooms: [],
             };
-             // Add and re-sort
-             setEstimates(prev => [...prev, createdEstimate].sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime()));
-
+            setEstimates(prev => [createdEstimate, ...prev].sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime()));
 
             return newEstimateRef.id;
         } catch (err) {
@@ -208,9 +207,8 @@ export const useEstimates = (userId?: string) => {
              const updatedEstimateForState: Estimate = {
                 ...estimateData,
                 createdAt: createdAtTimestamp.toDate(),
-                lastModified: new Date() // Use current JS date locally
+                lastModified: new Date()
             };
-             // Update and re-sort
             setEstimates(prev => prev.map(est => est.id === id ? updatedEstimateForState : est)
                                      .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime()));
 
@@ -236,9 +234,7 @@ export const useEstimates = (userId?: string) => {
         try {
             const estimateRef = doc(db, `users/${userId}/estimates`, estimateId);
             await deleteDoc(estimateRef);
-
             setEstimates(prev => prev.filter(est => est.id !== estimateId));
-
             return true;
         } catch (err) {
             console.error("Error deleting estimate:", err);
@@ -253,7 +249,8 @@ export const useEstimates = (userId?: string) => {
             setError("User not authenticated or refs not initialized.");
             return null;
         }
-        // Don't set global isLoading for duplicate, let caller handle if needed
+        // Use hook's isLoading for duplication feedback
+        setIsLoading(true);
         setError(null);
 
         try {
@@ -277,10 +274,11 @@ export const useEstimates = (userId?: string) => {
 
             const plainRooms = JSON.parse(JSON.stringify(originalEstimate.rooms));
 
+            // Ensure projectAddress is copied from original
             const duplicatedData = {
                 customerId: originalEstimate.customerId,
                 customerName: originalEstimate.customerName,
-                projectAddress: originalEstimate.projectAddress,
+                projectAddress: originalEstimate.projectAddress, // Copy project address
                 estimateNumber: newEstimateNumber,
                 status: 'Draft' as const,
                 createdAt: Timestamp.now(),
@@ -300,12 +298,11 @@ export const useEstimates = (userId?: string) => {
             const addedEstimate: Estimate = {
                 ...duplicatedData,
                 id: newEstimateRef.id,
-                createdAt: new Date(), // Convert to JS Date
-                lastModified: new Date(), // Convert to JS Date
+                createdAt: new Date(),
+                lastModified: new Date(),
                 status: 'Draft',
-                rooms: originalEstimate.rooms,
+                rooms: originalEstimate.rooms, // Use original rooms for local state
             };
-             // Add and re-sort
             setEstimates(prev => [addedEstimate, ...prev].sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime()));
 
             return newEstimateRef.id;
@@ -314,6 +311,8 @@ export const useEstimates = (userId?: string) => {
             console.error("Error duplicating estimate:", err);
             setError(err instanceof Error ? err.message : "Failed to duplicate estimate.");
             return null;
+        } finally {
+            setIsLoading(false); // Stop loading after duplication attempt
         }
     };
 
@@ -322,8 +321,8 @@ export const useEstimates = (userId?: string) => {
         estimates,
         isLoading,
         error,
-        hasAttemptedFetch, // <-- EXPORT NEW STATE
-        fetchEstimates, // Keep if manual refresh is needed
+        hasAttemptedFetch,
+        fetchEstimates,
         createEstimate,
         updateEstimate,
         deleteEstimate,
