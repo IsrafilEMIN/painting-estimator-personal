@@ -1,8 +1,8 @@
 // src/components/Dashboard.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 // Import NewCustomerInput
-import type { Estimate, EstimateStatus, Customer, NewCustomerInput } from '@/types/paintingEstimator';
+import type { EstimateStatus, Customer, NewCustomerInput } from '@/types/paintingEstimator';
 import CustomerModal from './modals/CustomerModal';
 import { useEstimates } from '@/hooks/useEstimates';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -111,8 +111,6 @@ const Dashboard: React.FC = () => {
         await deleteEstimate(id);
     };
 
-    const handleArchive = (id: string) => alert(`Archive estimate ${id} - TBD`);
-    const handleEmail = (id: string) => alert(`Email estimate ${id} - TBD`);
     // --- End Action Handlers ---
 
     // --- Filtering logic ---
@@ -126,7 +124,6 @@ const Dashboard: React.FC = () => {
     });
 
     // --- Stats Calculation ---
-    const totalEstimatesThisMonth = filteredEstimates.length;
     const totalRevenuePotential = filteredEstimates.reduce((sum, est) => sum + (est.total || 0), 0);
     const pendingApprovals = filteredEstimates.filter(est => est.status === 'Sent').length;
 

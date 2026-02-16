@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "incremental": false,
+    "tsBuildInfoFile": ".tmp-test-dist/tsconfig.test.tsbuildinfo",
+    "outDir": ".tmp-test-dist",
+    "rootDir": ".",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2020"
+  },
+  "include": [
+    "src/types/paintingEstimator.ts",
+    "src/constants/pricing.ts",
+    "src/repositories/pricingRepository.ts",
+    "src/services/pricing/pricingService.ts",
+    "src/utils/calculateEstimate.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
+}

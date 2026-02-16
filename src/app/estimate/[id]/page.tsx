@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import EstimateEditor from '@/components/EstimateEditor';
-import type { Estimate, Customer, Pricing } from '@/types/paintingEstimator';
+import type { Estimate, Customer } from '@/types/paintingEstimator';
 import { useAuth } from '@/hooks/useAuth';
 import { useEstimates } from '@/hooks/useEstimates'; // Import full hook
 import { useCustomers } from '@/hooks/useCustomers'; // Import full hook
@@ -22,7 +22,7 @@ export default function EstimatePage() {
     // Use hooks for data fetching and actions
     const { getEstimate, updateEstimate, isLoading: isLoadingEstimateHook, error: errorEstimateHook } = useEstimates(user?.uid);
     const { getCustomer, isLoading: isLoadingCustomerHook } = useCustomers(user?.uid); // Only need getCustomer here
-    const { pricing, isLoading: isLoadingPricing, savePricing } = usePricing(user?.uid); // Get pricing data
+    const { pricing, isLoading: isLoadingPricing } = usePricing(user?.uid); // Get pricing data
 
     const [estimate, setEstimate] = useState<Estimate | null>(null);
     const [customer, setCustomer] = useState<Customer | null>(null);

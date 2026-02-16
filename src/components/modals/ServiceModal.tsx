@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import type { Room, Service, ServiceType } from '@/types/paintingEstimator';
 import WallModal from './WallModal';
 import CeilingModal from './CeilingModal';
-import PopcornModal from './PopcornModal';
 import TrimModal from './TrimModal';
 import AdditionalModal from './AdditionalModal';
 // Add other specific modals as needed for crown, door, etc. For now, use Additional for those
@@ -23,7 +22,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ service, onSave, onClose })
   };
 
   const serviceTypes: ServiceType[] = [
-    'wallPainting', 'ceilingPainting', 'popcornRemoval', 'trims', 'additional'
+    'wallPainting', 'ceilingPainting', 'trims', 'additional'
   ];
 
   if (!selectedType) {
@@ -51,8 +50,6 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ service, onSave, onClose })
       return <WallModal wall={service} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
     case 'ceilingPainting':
       return <CeilingModal service={service} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
-    case 'popcornRemoval':
-      return <PopcornModal service={service} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
     case 'trims':
       return <TrimModal service={service} onSave={onSave} onClose={onClose} onBack={() => setSelectedType('')} />;
     case 'additional':

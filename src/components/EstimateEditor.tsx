@@ -1,11 +1,9 @@
 // src/components/EstimateEditor.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-// Import NewCustomerInput type for clarity, though not directly used here
-import type { Estimate, Customer, Room, Service, DetailedBreakdownItem, Pricing, NewCustomerInput } from '@/types/paintingEstimator';
+import type { Estimate, Customer, Room, Service, DetailedBreakdownItem, Pricing } from '@/types/paintingEstimator';
 import RoomModal from './modals/RoomModal';
 import ServiceModal from './modals/ServiceModal';
-import InvoiceModal from './modals/InvoiceModal';
-import ContractModal from './modals/ContractModal';
+import { validateEstimateForCalculation } from '@/domain/estimate/workflow';
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(value);
 const formatTypeLabel = (type: string) => type.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, char => char.toUpperCase());
@@ -18,15 +16,11 @@ interface EstimateEditorProps {
     calculateEstimateFn: (rooms: Room[], pricing: Pricing) => {
         total: number;
         breakdown: DetailedBreakdownItem[];
-        subtotal: number;
-        tax: number;
-        paintCost: number;
-        primerCost: number;
-        asbestosCost: number;
-        // Assume drywallCost is handled if needed by calculateEstimateFn
-        drywallCost: number; // Keep if calculateEstimate returns it
-        discountAmount: number;
-        adjustedSubtotal: number;
+        materialCost: number;
+        laborCost: number;
+        overheadCost: number;
+        profitAmount: number;
+        baseCost: number;
     };
 }
 
@@ -49,8 +43,23 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
     const [editingRoom, setEditingRoom] = useState<Room | undefined>(undefined);
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
     const [editingService, setEditingService] = useState<{ roomId: number; service?: Service } | null>(null);
-    const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
-    const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+
+    const validateCurrentEstimate = useCallback(() => {
+        const validation = validateEstimateForCalculation(estimate);
+        if (validation.isValid) {
+            setAddressError(undefined);
+            return validation;
+        }
+
+        const firstIssue = validation.issues[0];
+        if (firstIssue.field === 'projectAddress') {
+            setAddressError(firstIssue.message);
+        } else {
+            setAddressError(undefined);
+        }
+
+        return validation;
+    }, [estimate]);
 
     // --- Handle Project Address Change ---
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,20 +80,21 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
     // --- Recalculate Estimate ---
      const runCalculation = useCallback(() => {
         if (!estimate) return;
-        // Validate address before calculating
-        if (!estimate.projectAddress.trim()) {
-            setAddressError('Project Address is required before calculating.');
-             setActiveTab('build'); // Switch back to build tab if address missing
-             alert('Please enter the Project Address before reviewing.');
+
+        const validation = validateCurrentEstimate();
+        if (!validation.isValid) {
+            setActiveTab('build');
+            alert(validation.issues[0].message);
             return;
         }
+
         try {
             const result = calculateEstimateFn(estimate.rooms, pricing);
             setCalculationResult(result);
         } catch (error) {
             console.error("Error calculating estimate:", error);
         }
-    }, [estimate, pricing, calculateEstimateFn]);
+    }, [estimate, pricing, calculateEstimateFn, validateCurrentEstimate]);
 
     useEffect(() => {
         if (activeTab === 'review') {
@@ -189,11 +199,10 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
 
     // --- Save Handler ---
     const handleTriggerSave = async () => {
-        // Validate Project Address before saving
-        if (!estimate.projectAddress.trim()) {
-            setAddressError('Project Address is required before saving.');
-            setActiveTab('build'); // Ensure user sees the address field
-            alert('Please enter the Project Address before saving.');
+        const validation = validateCurrentEstimate();
+        if (!validation.isValid) {
+            setActiveTab('build');
+            alert(validation.issues[0].message);
             return;
         }
 
@@ -202,15 +211,11 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
         const result = calculateEstimateFn(estimate.rooms, pricing);
         const estimateToSave: Estimate = {
             ...estimate, // Includes the latest projectAddress from state
-            subtotal: result.subtotal,
-            tax: result.tax,
+            materialCost: result.materialCost,
+            laborCost: result.laborCost,
+            overheadCost: result.overheadCost,
+            profitAmount: result.profitAmount,
             total: result.total,
-            discountAmount: result.discountAmount,
-            adjustedSubtotal: result.adjustedSubtotal,
-            paintCost: result.paintCost,
-            primerCost: result.primerCost,
-            asbestosCost: result.asbestosCost,
-            // drywallCost: result.drywallCost, // Include if applicable
             lastModified: new Date(), // This will be replaced by serverTimestamp in the hook
             createdAt: estimate.createdAt || new Date(), // Keep original createdAt
         };
@@ -303,7 +308,7 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
             );
         }
 
-        const { breakdown, subtotal, tax, total, discountAmount, adjustedSubtotal, paintCost, primerCost, asbestosCost, drywallCost } = calculationResult;
+        const { breakdown, baseCost, materialCost, laborCost, overheadCost, profitAmount, total } = calculationResult;
 
          return (
              <div className="space-y-6">
@@ -337,51 +342,27 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                                 ))}
                             </React.Fragment>
                         ))}
-                        {paintCost > 0 && (
-                            <tr className="bg-gray-50 dark:bg-gray-700/50 font-medium">
-                                <td className="py-2 px-4 text-sm text-gray-800 dark:text-gray-200">Paint Costs</td>
-                                <td className="py-2 px-4 text-sm text-right">{formatCurrency(paintCost)}</td>
-                            </tr>
-                        )}
-                        {primerCost > 0 && (
-                             <tr className="bg-gray-50 dark:bg-gray-700/50 font-medium">
-                                <td className="py-2 px-4 text-sm text-gray-800 dark:text-gray-200">Primer Costs</td>
-                                <td className="py-2 px-4 text-sm text-right">{formatCurrency(primerCost)}</td>
-                            </tr>
-                        )}
-                         {drywallCost > 0 && (
-                            <tr className="bg-gray-50 dark:bg-gray-700/50 font-medium">
-                                <td className="py-2 px-4 text-sm text-gray-800 dark:text-gray-200">Drywall Compound</td>
-                                <td className="py-2 px-4 text-sm text-right">{formatCurrency(drywallCost)}</td>
-                            </tr>
-                        )}
-                        {asbestosCost > 0 && (
-                             <tr className="bg-gray-50 dark:bg-gray-700/50 font-medium">
-                                <td className="py-2 px-4 text-sm text-gray-800 dark:text-gray-200">Asbestos Check Fee</td>
-                                <td className="py-2 px-4 text-sm text-right">{formatCurrency(asbestosCost)}</td>
-                            </tr>
-                        )}
                     </tbody>
                     <tfoot className="border-t-2 border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-gray-700">
                         <tr>
-                            <td className="py-2 px-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Subtotal</td>
-                            <td className="py-2 px-4 text-sm font-semibold text-right text-gray-800 dark:text-gray-100">{formatCurrency(subtotal)}</td>
+                            <td className="py-2 px-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Material Cost</td>
+                            <td className="py-2 px-4 text-sm font-semibold text-right text-gray-800 dark:text-gray-100">{formatCurrency(materialCost)}</td>
                         </tr>
-                         {discountAmount > 0 && (
-                        <>
-                            <tr>
-                                <td className="py-1 px-4 text-sm text-gray-700 dark:text-gray-300">Discount</td>
-                                <td className="py-1 px-4 text-sm text-right text-gray-700 dark:text-gray-300">-{formatCurrency(discountAmount)}</td>
-                            </tr>
-                            <tr>
-                                <td className="py-2 px-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Adjusted Subtotal</td>
-                                <td className="py-2 px-4 text-sm font-semibold text-right text-gray-800 dark:text-gray-100">{formatCurrency(adjustedSubtotal)}</td>
-                            </tr>
-                        </>
-                        )}
                         <tr>
-                            <td className="py-1 px-4 text-sm text-gray-700 dark:text-gray-300">Tax ({ (pricing.TAX_RATE * 100).toFixed(1) }%)</td>
-                            <td className="py-1 px-4 text-sm text-right text-gray-700 dark:text-gray-300">{formatCurrency(tax)}</td>
+                            <td className="py-2 px-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Labour Cost</td>
+                            <td className="py-2 px-4 text-sm font-semibold text-right text-gray-800 dark:text-gray-100">{formatCurrency(laborCost)}</td>
+                        </tr>
+                        <tr>
+                            <td className="py-2 px-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Base Cost</td>
+                            <td className="py-2 px-4 text-sm font-semibold text-right text-gray-800 dark:text-gray-100">{formatCurrency(baseCost)}</td>
+                        </tr>
+                        <tr>
+                            <td className="py-2 px-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Overhead ({(pricing.overheadRate * 100).toFixed(1)}%)</td>
+                            <td className="py-2 px-4 text-sm font-semibold text-right text-gray-800 dark:text-gray-100">{formatCurrency(overheadCost)}</td>
+                        </tr>
+                        <tr>
+                            <td className="py-2 px-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Profit ({(pricing.profitMarginRate * 100).toFixed(1)}%)</td>
+                            <td className="py-2 px-4 text-sm font-semibold text-right text-gray-800 dark:text-gray-100">{formatCurrency(profitAmount)}</td>
                         </tr>
                         <tr className="text-lg font-bold border-t border-gray-300 dark:border-gray-500">
                             <td className="py-3 px-4 text-gray-900 dark:text-white">Total</td>
@@ -399,18 +380,6 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                         title={!estimate.projectAddress.trim() ? "Project Address is required" : estimate.rooms.length === 0 ? "Add rooms before calculating" : "Recalculate Estimate"}
                     >
                          Recalculate
-                    </button>
-                    <button
-                        onClick={() => setIsContractModalOpen(true)}
-                        className="bg-purple-600 dark:bg-purple-800 hover:bg-purple-700 dark:hover:bg-purple-900 text-white py-2 px-5 rounded-lg transition"
-                    >
-                        Generate Contract
-                    </button>
-                     <button
-                        onClick={() => setIsInvoiceModalOpen(true)}
-                        className="bg-blue-600 dark:bg-blue-800 hover:bg-blue-700 dark:hover:bg-blue-900 text-white py-2 px-5 rounded-lg transition"
-                    >
-                        Generate Invoice
                     </button>
                  </div>
             </div>
@@ -493,53 +462,6 @@ const EstimateEditor: React.FC<EstimateEditorProps> = ({
                     onClose={() => { setIsServiceModalOpen(false); setEditingService(null); }}
                 />
             )}
-             {isInvoiceModalOpen && calculationResult && customer && (
-                <InvoiceModal
-                    onClose={() => setIsInvoiceModalOpen(false)}
-                    initialClientInfo={{ // Pass initial info
-                        name: customer.name,
-                        address: customer.address || '',
-                        address2: '',
-                        email: customer.email,
-                        phone: customer.phone,
-                    }}
-                    breakdown={calculationResult.breakdown}
-                    subtotal={calculationResult.subtotal}
-                    tax={calculationResult.tax}
-                    total={calculationResult.total}
-                    discountAmount={calculationResult.discountAmount}
-                    adjustedSubtotal={calculationResult.adjustedSubtotal}
-                    paintCost={calculationResult.paintCost}
-                    primerCost={calculationResult.primerCost}
-                    asbestosCost={calculationResult.asbestosCost}
-                    formatCurrency={formatCurrency}
-                />
-             )}
-             {isContractModalOpen && calculationResult && customer && (
-                 <ContractModal
-                    onClose={() => setIsContractModalOpen(false)}
-                    initialContractInfo={{ // Pass initial info
-                        clientName: customer.name || '',
-                        clientEmail: customer.email || '',
-                        clientPhone: customer.phone || '',
-                        projectAddress: estimate.projectAddress || '',
-                        startDate: estimate.startDate || '',
-                        completionDate: estimate.completionDate || '',
-                        warrantyPeriod: '1 year', // Default or make configurable
-                    }}
-                    breakdown={calculationResult.breakdown}
-                    subtotal={calculationResult.subtotal}
-                    tax={calculationResult.tax}
-                    total={calculationResult.total}
-                    discountAmount={calculationResult.discountAmount}
-                    adjustedSubtotal={calculationResult.adjustedSubtotal}
-                    paintCost={calculationResult.paintCost}
-                    primerCost={calculationResult.primerCost}
-                    asbestosCost={calculationResult.asbestosCost}
-                    formatCurrency={formatCurrency}
-                />
-             )}
-
         </div>
     );
 };

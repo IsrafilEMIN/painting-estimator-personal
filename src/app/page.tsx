@@ -10,13 +10,24 @@ import Dashboard from '@/components/Dashboard'; // Import the new Dashboard comp
 
 export default function HomePage() {
   const { user } = useAuth();
+  const allowedGoogleEmail = process.env.NEXT_PUBLIC_ALLOWED_GOOGLE_EMAIL?.trim().toLowerCase();
   // Keep authentication logic if needed, but remove estimator state management
   // const { pricing, isSettingsOpen, setIsSettingsOpen, savePricing } = usePricing(user?.uid); // Keep if settings are global
   // Remove estimator state hooks
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const result = await signInWithPopup(auth, provider);
+
+    if (
+      allowedGoogleEmail &&
+      result.user.email &&
+      result.user.email.toLowerCase() !== allowedGoogleEmail
+    ) {
+      await signOut(auth);
+      alert(`Please sign in with ${allowedGoogleEmail}.`);
+    }
   };
 
   const handleSignOut = async () => {
