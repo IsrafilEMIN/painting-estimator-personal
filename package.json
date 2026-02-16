@@ -12,7 +12,10 @@
   "dependencies": {
     "firebase": "^12.1.0",
     "firebase-admin": "^13.5.0",
-    "next": "15.5.7",
+    "next": "15.5.9",
+    "playwright": "^1.55.0",
+    "playwright-core": "^1.55.0",
+    "puppeteer": "^24.18.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0"
