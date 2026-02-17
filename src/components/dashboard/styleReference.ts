@@ -1,0 +1,16 @@
+export const dashboardUi = {
+  fontFamily: '"Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif',
+  topBanner: 'sticky top-0 z-20 h-12 border-b border-slate-200 bg-slate-50/95 px-1 backdrop-blur',
+  panel: 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm',
+  sidebarPanel: 'rounded-2xl border border-slate-200 bg-white p-3 shadow-sm',
+  input: 'rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900',
+  buttonBase: 'rounded-xl px-4 py-2 text-sm font-semibold transition',
+  buttonPrimary: 'bg-cyan-600 text-white hover:bg-cyan-700',
+  buttonSecondary: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
+  buttonDanger: 'bg-rose-600 text-white hover:bg-rose-700',
+  sidebarItemBase: 'w-full rounded-xl px-3 py-2 text-left transition',
+  sidebarItemActive: 'bg-slate-900 text-white shadow',
+  sidebarItemInactive: 'bg-slate-50 text-slate-700 hover:bg-slate-100',
+  accountPanel: 'rounded-xl border border-slate-200 bg-slate-50 p-3',
+  accountSummary: 'cursor-pointer list-none text-sm font-semibold text-slate-700',
+} as const;
