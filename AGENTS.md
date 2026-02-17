@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Last updated: 2026-02-16
+Last updated: 2026-02-17
 Owner: Product + Engineering
 
 ## Mission
@@ -122,14 +122,20 @@ In scope:
 - [x] Hook-level status transition guard rails
 - [x] Extract repository/service layer for estimates/customers/pricing hooks
 - [x] Remove direct Firestore usage from UI hooks
-- [ ] Replace placeholder dashboard actions with workflow-backed actions
-- [ ] Add automated tests for validation and status transition paths
+- [x] Replace placeholder dashboard actions with workflow-backed actions
+- [x] Add automated tests for validation and status transition paths
+- [x] Build first-pass lead intake + leads-to-customers pipeline dashboard flow
+- [x] Add shared dashboard UI style reference (tokens + guide)
+- [x] Replace narrow-screen fallback tabs with full-screen hamburger menu overlay
 
 Risks:
-- Build pipeline still reports webpack/turbopack failure in this environment and needs isolated follow-up.
+- Next.js SWC binary warnings still appear in this environment despite successful builds; keep monitoring CI parity.
 
 Decisions:
 - Keep hardening logic in domain module (`src/domain/estimate/workflow.ts`) and call it from UI + persistence layers.
+- Introduce a first-pass leads pipeline dashboard (`Overview`, `Leads`, `Estimates`, `Customers`, `Operations`) backed by a lead repository/service/hook stack to prepare intake and nurture workflows.
+- Standardize dashboard UI using `docs/dashboard-style-guide.md` + `src/components/dashboard/styleReference.ts` (buttons, spacing, radii, sidebar behavior, top banner behavior).
+- Use a persistent left sidebar on desktop and a full-screen overlay menu on mobile/tablet for dashboard navigation and account actions.
 
 ### Backlog Snapshot
 Now:

@@ -59,6 +59,54 @@ export interface Customer {
 // Type for data passed back from modal when creating a NEW customer
 export type NewCustomerInput = Omit<Customer, 'id' | 'createdAt' | 'address'>;
 
+export type LeadStage =
+  | 'Intake'
+  | 'Qualified'
+  | 'Nurturing'
+  | 'OfferDraft'
+  | 'OfferSent'
+  | 'Negotiation'
+  | 'Won'
+  | 'Lost';
+
+export type LeadSource = 'Referral' | 'Website' | 'Phone' | 'Partner' | 'RepeatCustomer' | 'Other';
+
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  source: LeadSource;
+  stage: LeadStage;
+  projectAddress: string;
+  scopeSummary: string;
+  expectedValue: number;
+  confidence: number; // 0-100, used for weighted pipeline forecasts
+  assignedPainter?: string;
+  nextAction?: string;
+  nextActionDate?: Date;
+  notes?: string;
+  customerId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewLeadInput {
+  name: string;
+  email: string;
+  phone: string;
+  source: LeadSource;
+  projectAddress: string;
+  scopeSummary: string;
+  expectedValue: number;
+  confidence: number;
+  stage?: LeadStage;
+  assignedPainter?: string;
+  nextAction?: string;
+  nextActionDate?: Date;
+  notes?: string;
+}
+
 export type EstimateStatus = 'Draft' | 'Sent' | 'Approved' | 'Archived';
 
 export interface Estimate {

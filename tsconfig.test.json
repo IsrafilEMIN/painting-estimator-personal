@@ -15,6 +15,7 @@
     "src/constants/pricing.ts",
     "src/repositories/pricingRepository.ts",
     "src/services/pricing/pricingService.ts",
+    "src/domain/lead/workflow.ts",
     "src/utils/calculateEstimate.ts",
     "tests/**/*.ts"
   ],

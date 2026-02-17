@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "SANDBOX_SAFE_BUILD=1 next build",
+    "build:full": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "rm -rf .tmp-test-dist && tsc -p tsconfig.test.json && node --test \".tmp-test-dist/tests/**/*.test.js\" && rm -rf .tmp-test-dist"
